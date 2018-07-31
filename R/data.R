@@ -22,5 +22,5 @@
 #'
 #'   }
 #'
-#' @seealso \code{\link{data_exteral_datasets_list}}
-"data_exteral_datasets_list"
+#' @seealso \code{\link{plan_external_data}}
+"exteral_datasets_list"

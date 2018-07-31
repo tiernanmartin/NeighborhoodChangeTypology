@@ -12,7 +12,7 @@
 #'
 #'   }
 #'
-#' @seealso \code{\link{data_exteral_datasets_list}}
+#' @seealso \code{\link{exteral_datasets_list}}
 #' @keywords drake, plan
 #' @examples
 #'

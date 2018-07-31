@@ -34,7 +34,7 @@ readd(item_one)
 }
 }
 \seealso{
-\code{\link{data_exteral_datasets_list}}
+\code{\link{exteral_datasets_list}}
 }
 \keyword{drake,}
 \keyword{plan}

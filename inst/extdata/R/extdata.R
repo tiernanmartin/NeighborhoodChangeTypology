@@ -1,9 +1,9 @@
 
 # EXTERNAL DATASETS LIST --------------------------------------------------
 
-data_exteral_datasets_list <- NULL
+exteral_datasets_list <- NULL
 
-usethis::use_data(data_exteral_datasets_list)
+usethis::use_data(exteral_datasets_list)
 
 
 # KING COUNTY BOUNDARY ----------------------------------------------------
