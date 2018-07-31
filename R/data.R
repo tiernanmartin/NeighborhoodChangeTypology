@@ -1,3 +1,6 @@
+
+# EXTERNAL DATA LIST ------------------------------------------------------
+
 #' @title External Data List
 #' @description This is a list of datasets that are included in the package workflow but
 #'   are not stored in the \code{data/} directory.
