@@ -13,7 +13,7 @@ The following external datasets are accessed by workflows in this package:
 
 \describe{
 
-\item{\code{• item_one}:}{Description(\href{www.url.com}{link})}
+\item{\code{• kc_boundary}:}{A polygon of King County, WA}
 
 }}
 \usage{

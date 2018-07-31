@@ -18,7 +18,7 @@
 #'
 #' \describe{
 #'
-#'   \item{`• item_one`:}{Description(\href{www.url.com}{link})}
+#'   \item{`• kc_boundary`:}{A polygon of King County, WA}
 #'
 #'   }
 #'
