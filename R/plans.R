@@ -8,7 +8,7 @@
 #'   the following \code{\link[drake]{target}}s:
 #'   \describe{
 #'
-#'   \item{`• item_one`:}{Description}
+#'   \item{`• kc_boundary`:}{A polygon of King County, WA}
 #'
 #'   }
 #'
@@ -18,15 +18,15 @@
 #'
 #' # Print the plan
 #'
-#' print("change this")
+#' print(plan_external_data)
 #'
 #'
 #' # Make the plan, load a target, print the target
 #'
 #' \dontrun{
 #'
-#' make(item_one)
+#' make(plan_external_data)
 #'
-#' readd(item_one)
+#' readd(kc_boundary)
 #' }
 "plan_external_data"

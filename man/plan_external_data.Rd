@@ -8,7 +8,7 @@
 the following \code{\link[drake]{target}}s:
 \describe{
 
-\item{\code{• item_one}:}{Description}
+\item{\code{• kc_boundary}:}{A polygon of King County, WA}
 
 }}
 \usage{
@@ -21,16 +21,16 @@ A \code{\link[drake]{drake_plan}} that loads several external datasets.
 
 # Print the plan
 
-print("change this")
+print(plan_external_data)
 
 
 # Make the plan, load a target, print the target
 
 \dontrun{
 
-make(item_one)
+make(plan_external_data)
 
-readd(item_one)
+readd(kc_boundary)
 }
 }
 \seealso{
