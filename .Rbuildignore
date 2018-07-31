@@ -2,3 +2,8 @@
 ^LICENSE\.md$
 ^NeighborhoodChangeTypology\.Rproj$
 ^\.Rproj\.user$
+^\.drake$
+^inst/extdata/*
+^doc/*
+^extdata/*
+^plans/*
