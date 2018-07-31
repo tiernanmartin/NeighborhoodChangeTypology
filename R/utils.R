@@ -2,7 +2,6 @@
 #' @description General purpose functions to make working in R easier.
 #' @name utils
 #' @import purrr
-#' @importFrom methods as
 NULL
 
 not_sfc <- function(x) !any(class(x) %in% 'sfc')
