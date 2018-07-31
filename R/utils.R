@@ -5,12 +5,8 @@
 #' @importFrom methods as
 NULL
 
-#' @rdname utils
-#' @export
 not_sfc <- function(x) !any(class(x) %in% 'sfc')
 
-#' @rdname utils
-#' @export
 first_not_na <- function(x){
         if(all(sapply(x,is.na))){
                 methods::as(NA,class(x))
@@ -21,8 +17,6 @@ first_not_na <- function(x){
 
 }
 
-#' @rdname utils
-#' @export
 st_intersect_filter <- function(x,y){
   ids <- lengths(sf::st_intersects(x, y))>0
 
