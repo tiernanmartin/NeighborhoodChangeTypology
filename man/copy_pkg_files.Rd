@@ -5,7 +5,7 @@
 \title{Save the Source Code Files of a Packaged Drake Workflow}
 \usage{
 copy_pkg_files(to = getwd(), overwrite_doc = TRUE,
-  overwrite_extdata = TRUE, overwrite_plans = TRUE)
+  overwrite_extdata = TRUE)
 }
 \arguments{
 \item{to}{Character scalar, file path, where
@@ -14,8 +14,6 @@ to write the folders containing the workflow's files.}
 \item{overwrite_doc}{Logical, whether to overwrite the \code{doc/} directory (default = \code{TRUE})}
 
 \item{overwrite_extdata}{Logical, whether to overwrite the \code{extdata/} directory (default = \code{TRUE})}
-
-\item{overwrite_plans}{Logical, whether to overwrite the \code{plans/} directory (default = \code{TRUE})}
 }
 \value{
 \code{NULL}
@@ -27,5 +25,5 @@ supplied directory.
 \note{
 This function will copy the following directories (and their subdirectories and files) into
 the user's working directory (or the directory supplied to the \code{to} parameter): \cr
-\code{. \cr ├── doc/ \cr ├── extdata/ \cr └── plans/ \cr}
+\code{. \cr ├── doc/ \cr └── extdata/ \cr}
 }
