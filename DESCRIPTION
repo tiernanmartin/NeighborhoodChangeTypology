@@ -15,4 +15,9 @@ Depends:
 Imports: 
     magrittr,
     purrr,
-    dplyr
+    dplyr,
+    readr,
+    sf,
+    osfr,
+    tidycensus,
+    tigris
