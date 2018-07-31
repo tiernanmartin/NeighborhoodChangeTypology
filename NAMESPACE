@@ -2,6 +2,11 @@
 
 export("%>%")
 export(copy_pkg_files)
+export(make_kc_boundary)
+importFrom(dplyr,filter)
+importFrom(dplyr,select)
 importFrom(magrittr,"%>%")
 importFrom(purrr,map)
 importFrom(purrr,walk2)
+importFrom(sf,st_transform)
+importFrom(tigris,counties)
