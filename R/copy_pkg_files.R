@@ -24,7 +24,7 @@ copy_pkg_files <- function(to = getwd(),
   dir_list <- map(
     list("doc", "extdata"),
     system.file,
-    package = "drakepkg",
+    package = "NeighborhoodChangeTypology",
     mustWork = TRUE)
 
   overwrite_list <- list(overwrite_doc, overwrite_extdata)
