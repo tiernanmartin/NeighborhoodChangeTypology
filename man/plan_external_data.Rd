@@ -9,6 +9,7 @@ the following \code{\link[drake]{target}}s:
 \describe{
 
 \item{\code{• kc_boundary}:}{A polygon of King County, WA}
+\item{\code{• waterbodies}:}{Multipolygons of the major waterbodies in King County, WA }
 
 }}
 \usage{

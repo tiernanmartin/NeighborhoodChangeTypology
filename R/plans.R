@@ -9,6 +9,7 @@
 #'   \describe{
 #'
 #'   \item{`• kc_boundary`:}{A polygon of King County, WA}
+#'   \item{`• waterbodies`:}{Multipolygons of the major waterbodies in King County, WA }
 #'
 #'   }
 #'
