@@ -7,3 +7,4 @@
 ^doc/*
 ^extdata/*
 ^plans/*
+^data-raw$
