@@ -13,7 +13,6 @@ The following external datasets are accessed by workflows in this package:
 
 \describe{
 
-\item{\code{• kc_boundary}:}{A polygon of King County, WA}
 \item{\code{• waterbodies}:}{Multipolygons of the major waterbodies in King County, WA (\href{https://osf.io/9fp6q/}{osf.io/9fp6q})}
 
 }}

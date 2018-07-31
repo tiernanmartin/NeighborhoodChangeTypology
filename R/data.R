@@ -1,4 +1,25 @@
 
+# KC BOUNDARY -------------------------------------------------------------
+
+#' @title The Boundary of King County, WA
+#' @description A polygon of the boundary of King County, WA.
+#' @docType data
+#' @format The data is a single record simple feature (class = `sf`) with
+#'   one variable and a `MULTIPOLYGON` geometry column.
+#'
+#'   The object includes the following variables:
+#' \describe{
+#'
+#'   \item{`• NAME`:}{The name of the county}
+#'   \item{`• geometry`:}{The simple feature column (geometry type is `MULTIPOLYGON`)}
+#'
+#'   }
+#'
+#' @seealso \code{\link{get_external_data_plan}}
+"kc_boundary"
+
+
+
 # EXTERNAL DATA LIST ------------------------------------------------------
 
 #' @title External Data List
@@ -18,7 +39,6 @@
 #'
 #' \describe{
 #'
-#'   \item{`• kc_boundary`:}{A polygon of King County, WA}
 #'   \item{`• waterbodies`:}{Multipolygons of the major waterbodies in King County, WA (\href{https://osf.io/9fp6q/}{osf.io/9fp6q})}
 #'
 #'   }
