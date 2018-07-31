@@ -28,6 +28,6 @@ The primary reason that a dataset is included in this list is that it exceeds Gi
 50 MB file size limit (see \href{https://help.github.com/articles/conditions-for-large-files/}{here} for details).
 }
 \seealso{
-\code{\link{plan_external_data}}
+\code{\link{get_external_data_plan}}
 }
 \keyword{datasets}

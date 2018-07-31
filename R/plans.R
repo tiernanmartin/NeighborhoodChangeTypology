@@ -1,33 +1,30 @@
 
 # EXTERNAL DATA -----------------------------------------------------------
 
-#' @title Drake Plan: External Data
-#' @description A \code{\link[drake]{drake_plan}} that loads several external datasets.
-#' @docType data
-#' @format A \code{\link[drake]{drake_plan}} object of class \code{tbl_df} that builds
-#'   the following \code{\link[drake]{target}}s:
-#'   \describe{
-#'
-#'   \item{`• kc_boundary`:}{A polygon of King County, WA}
-#'   \item{`• waterbodies`:}{Multipolygons of the major waterbodies in King County, WA }
-#'
-#'   }
-#'
-#' @seealso \code{\link{exteral_datasets_list}}
-#' @keywords drake, plan
+#' @title Get the External Data Plan
+#' @description Use \code{\link[drake]{drake_plan}} to create the external data plan.
+#' @return a `drake` plan
+#' @export
 #' @examples
 #'
 #' # Print the plan
 #'
-#' print(plan_external_data)
+#' get_external_data_plan()
 #'
 #'
 #' # Make the plan, load a target, print the target
 #'
 #' \dontrun{
 #'
-#' make(plan_external_data)
+#' make(get_external_data_plan())
 #'
-#' readd(kc_boundary)
+#' loadd(kc_boundary)
+#'
+#' print(kc_boundary)
 #' }
-"plan_external_data"
+get_external_data_plan <- function(){
+  drake::drake_plan(
+  kc_boundary = make_kc_boundary(),
+  waterbodies = make_waterbodies(kc_boundary)
+)
+}
