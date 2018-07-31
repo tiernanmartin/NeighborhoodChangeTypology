@@ -1,7 +1,8 @@
 Package: NeighborhoodChangeTypology
-Version: 0.0.0.9000
-Title: What the Package Does (One Line, Title Case)
-Description: What the package does (one paragraph).
+Version: 0.0.1
+Title: Project: Neighborhood Change Typology for King County, WA
+Description: This project provides a framework for understanding the different phases 
+  and types of neighborhood change that are occurring in communities throughout King County, Washington.
 Authors@R: person("Tiernan", "Martin", email = "tiernan.martin@gmail.com", role = c("aut", "cre"))
 License: MIT + file LICENSE
 Encoding: UTF-8
