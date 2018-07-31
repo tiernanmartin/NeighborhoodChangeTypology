@@ -4,11 +4,14 @@
 \alias{utils}
 \alias{not_sfc}
 \alias{first_not_na}
+\alias{st_intersect_filter}
 \title{A set of generic helpful functions}
 \usage{
 not_sfc(x)
 
 first_not_na(x)
+
+st_intersect_filter(x, y)
 }
 \description{
 General purpose functions to make working in R easier.

@@ -2,6 +2,7 @@
 #' @description General purpose functions to make working in R easier.
 #' @name utils
 #' @import purrr
+#' @importFrom methods as
 NULL
 
 #' @rdname utils
@@ -18,4 +19,12 @@ first_not_na <- function(x){
         }
 
 
+}
+
+#' @rdname utils
+#' @export
+st_intersect_filter <- function(x,y){
+  ids <- lengths(sf::st_intersects(x, y))>0
+
+  x[ids,]
 }
