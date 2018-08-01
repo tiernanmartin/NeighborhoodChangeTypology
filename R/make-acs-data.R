@@ -28,10 +28,12 @@ make_acs_data <- function(acs_tables){
 
   variables <- target_census_vars %>% dplyr::pull(FULL_NAME)
 
+  geographies <- c("tract","county")
+
   years <- c(2010, 2016)
 
-  get_tract_data <- function(years){
-    tidycensus::get_acs(geography = "tract",
+  get_data <- function(geographies, years){
+    tidycensus::get_acs(geography = geographies,
             variables = variables,
             year = years,
             state = "53",
@@ -40,7 +42,10 @@ make_acs_data <- function(acs_tables){
       dplyr::mutate(ENDYEAR = years)
   }
 
-  acs_data <- purrr::map_df(years, get_tract_data)
+  acs_data <- list(geographies = geographies,
+        years = years) %>%
+     cross_df %>%
+     pmap_dfr(get_data)
 }
 
 
