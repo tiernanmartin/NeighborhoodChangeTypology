@@ -4,5 +4,5 @@
 .drake
 doc/*
 extdata/*
-inst/extdata/*.*
+inst/extdata/**/*.*
 plans/*
