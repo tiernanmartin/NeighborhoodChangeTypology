@@ -40,3 +40,30 @@ get_external_data_plan <- function(){
 
 )
 }
+
+# INDICATOR PLAN ------------------------------------------------------
+
+#' @title Get the Indicator Plan
+#' @description Use \code{\link[drake]{drake_plan}} to create the indicator plan.
+#' @return a `drake` plan
+#' @export
+#' @examples
+#'
+#' # Print the plan
+#'
+#' get_indicator_plan()
+#'
+#'
+#' # Make the plan, load a target, print the target
+#'
+#' \dontrun{
+#'
+#' make(get_indicator_plan())
+#'
+#' loadd(kc_boundary)
+#'
+#' print(kc_boundary)
+#' }
+get_indicator_plan <- drake::drake_plan(
+ vulnerability_indicators = make_vulnerability_indicators(acs_data, acs_tables)
+)
