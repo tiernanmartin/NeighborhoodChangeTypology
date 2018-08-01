@@ -24,6 +24,7 @@ Imports:
     rgdal,
     utils,
     tibble,
-    stringr
+    stringr,
+    janitor
 URL: https://github.com/tiernanmartin/NeighborhoodChangeTypology
 BugReports: https://github.com/tiernanmartin/NeighborhoodChangeTypology/issues
