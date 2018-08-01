@@ -3,6 +3,7 @@
 #'   and filter the data to include those waterbodies within King County.
 #' @param kc_boundary Polygon, the boundary of King County, WA
 #' @return a MULTIPOLYGON simple feature (class =  `sf`)
+#' @importFrom osfr download_files
 #' @importFrom rgdal readOGR
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_transform

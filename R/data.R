@@ -40,6 +40,10 @@
 #' \describe{
 #'
 #'   \item{`• waterbodies`:}{Multipolygons of the major waterbodies in King County, WA (\href{https://osf.io/9fp6q/}{osf.io/9fp6q})}
+#'   \item{`• census_tracts_2009`:}{King County census tract boundaries (2009) (\href{https://osf.io/5gx8a/}{osf.io/5gx8a}).\cr
+#'     Original source: \href{ftp://ftp.census.gov/geo/tiger/TIGER2009/53_WASHINGTON/53033_King_County/tl_2009_53033_tract00.zip}{ftp.census.gov} }
+#'   \item{`• census_tracts_2016`:}{King County census tract boundaries (2009) \cr
+#'     Downloaded with the \code{\link[tigris]{tigris}} package. }
 #'
 #'   }
 #'

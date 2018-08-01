@@ -25,6 +25,8 @@
 get_external_data_plan <- function(){
   drake::drake_plan(
   kc_boundary = make_kc_boundary(),
-  waterbodies = make_waterbodies(kc_boundary)
+  waterbodies = make_waterbodies(kc_boundary),
+  census_tracts_2009 = make_census_tracts_2009(),
+  census_tracts_2016 = make_census_tracts_2016()
 )
 }
