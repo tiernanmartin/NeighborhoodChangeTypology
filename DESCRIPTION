@@ -25,6 +25,8 @@ Imports:
     utils,
     tibble,
     stringr,
-    janitor
+    janitor,
+    tidyr,
+    tidyselect
 URL: https://github.com/tiernanmartin/NeighborhoodChangeTypology
 BugReports: https://github.com/tiernanmartin/NeighborhoodChangeTypology/issues

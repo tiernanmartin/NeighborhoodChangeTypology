@@ -60,10 +60,15 @@ get_external_data_plan <- function(){
 #'
 #' make(get_indicator_plan())
 #'
-#' loadd(kc_boundary)
+#' loadd(acs_indicators)
 #'
-#' print(kc_boundary)
+#' print(acs_indicators)
 #' }
-get_indicator_plan <- drake::drake_plan(
- vulnerability_indicators = make_vulnerability_indicators(acs_data, acs_tables)
+get_indicator_plan <- function(){
+  drake::drake_plan(
+ acs_indicators = make_acs_indicators(acs_data, acs_tables),
+ vulnerability_indicators = make_vulnerability_indicators(acs_indicators),
+ demo_change_indicators = make_demo_change_indicators(acs_indicators)
 )
+}
+
