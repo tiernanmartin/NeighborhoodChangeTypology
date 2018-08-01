@@ -1,4 +1,26 @@
 
+# ACS TABLES --------------------------------------------------------------
+
+#' @title A Tibble of ACS Tables
+#' @description A `tibble` of the American Community Survey tables that
+#'   are used in the Neighborhood Change Typology model.
+#' @docType data
+#' @format A `tibble` with four (4) rows and three (3) columns.
+#'
+#'   The object includes the following variables:
+#' \describe{
+#'
+#'   \item{`• NAME`:}{The ACS table's identification number}
+#'   \item{`• TOPIC`:}{The topic of the ACS table}
+#'   \item{`• UNIVERSE`:}{The universe that the ACS table's count represent
+#'     (e.g., households, adults, population living in occupied housing units, etc.)}
+#'
+#'   }
+#'
+#' @seealso \code{\link{get_external_data_plan}}
+"acs_tables"
+
+
 # KC BOUNDARY -------------------------------------------------------------
 
 #' @title The Boundary of King County, WA

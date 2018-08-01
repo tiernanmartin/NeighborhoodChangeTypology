@@ -1,3 +1,11 @@
+
+# ACS TABLES --------------------------------------------------------------
+
+loadd(acs_tables)
+
+usethis::use_data(acs_tables, overwrite = TRUE, compress = "xz")
+
+
 # KING COUNTY BOUNDARY ----------------------------------------------------
 
 loadd(kc_boundary)
