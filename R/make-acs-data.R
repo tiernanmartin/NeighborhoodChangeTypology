@@ -8,11 +8,13 @@
 #' @importFrom tidycensus load_variables
 #' @importFrom tidycensus get_acs
 #' @importFrom stringr str_extract
-#' @importFrom purrr map_df
+#' @importFrom purrr map_dfr
+#' @importFrom purrr cross
 #' @importFrom dplyr transmute
 #' @importFrom dplyr pull
 #' @importFrom dplyr semi_join
 #' @importFrom dplyr mutate
+#' @importFrom janitor clean_names
 #' @seealso make_acs_table
 #' @export
 make_acs_data <- function(acs_tables){
@@ -45,7 +47,8 @@ make_acs_data <- function(acs_tables){
   acs_data <- list(geographies = geographies,
         years = years) %>%
      cross_df %>%
-     pmap_dfr(get_data)
+     pmap_dfr(get_data) %>%
+    janitor::clean_names(case = "screaming_snake")
 }
 
 
