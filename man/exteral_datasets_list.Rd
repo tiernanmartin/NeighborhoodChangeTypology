@@ -20,6 +20,7 @@ Original source: \href{ftp://ftp.census.gov/geo/tiger/TIGER2009/53_WASHINGTON/53
 Downloaded with the \code{\link[tigris]{tigris}} package. }
 \item{\code{• acs_data}:}{A \code{tibble} of all of the American Community Survey data variables used in this project.\cr
 Downloaded with the \code{\link[tidycensus]{tidycensus}} package.}
+\item{\code{• parcel_value}:}{Tax value history for all parcels in King County, WA (\href{https://osf.io/XXX/}{osf.io/XXX})}
 
 }}
 \usage{
