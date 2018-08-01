@@ -28,6 +28,7 @@ get_external_data_plan <- function(){
   waterbodies = make_waterbodies(kc_boundary),
   census_tracts_2009 = make_census_tracts_2009(),
   census_tracts_2016 = make_census_tracts_2016(),
-  acs_tables = make_acs_tables()
+  acs_tables = make_acs_tables(),
+  acs_data = make_acs_data(acs_tables)
 )
 }

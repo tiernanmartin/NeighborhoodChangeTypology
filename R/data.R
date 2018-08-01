@@ -66,6 +66,8 @@
 #'     Original source: \href{ftp://ftp.census.gov/geo/tiger/TIGER2009/53_WASHINGTON/53033_King_County/tl_2009_53033_tract00.zip}{ftp.census.gov} }
 #'   \item{`• census_tracts_2016`:}{King County census tract boundaries (2009) \cr
 #'     Downloaded with the \code{\link[tigris]{tigris}} package. }
+#'   \item{`• acs_data`:}{A `tibble` of all of the American Community Survey data variables used in this project.\cr
+#'     Downloaded with the \code{\link[tidycensus]{tidycensus}} package.}
 #'
 #'   }
 #'
