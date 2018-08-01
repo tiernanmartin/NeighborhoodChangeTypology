@@ -22,6 +22,7 @@ Imports:
     tidycensus,
     tigris,
     rgdal,
-    utils
+    utils,
+    tibble
 URL: https://github.com/tiernanmartin/NeighborhoodChangeTypology
 BugReports: https://github.com/tiernanmartin/NeighborhoodChangeTypology/issues
