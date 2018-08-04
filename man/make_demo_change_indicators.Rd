@@ -7,11 +7,11 @@
 make_demo_change_indicators(acs_indicators)
 }
 \arguments{
-\item{acs_indicators}{desc}
+\item{acs_indicators}{Tibble, Temporary description.}
 }
 \value{
 a \code{tibble}
 }
 \description{
-Make The Demographic Change Indicators
+Temporary description
 }

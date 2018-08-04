@@ -1,5 +1,8 @@
 #' @title Make  Typology
 #' @description This is a temporary function.
+#' @param vulnerability_indicators Tibble, Temporary description.
+#' @param demo_change_indicators Tibble, Temporary description.
+#' @param previous_typology Tibble, Temporary description.
 #' @return a MULTIPOLYGON simple feature (class =  `sf`)
 #' @export
 make_typology <- function(vulnerability_indicators,demo_change_indicators,previous_typology){

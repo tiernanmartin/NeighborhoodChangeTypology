@@ -70,6 +70,7 @@ get_indicator_plan <- function(){
   drake::drake_plan(
  acs_indicators = make_acs_indicators(acs_data, acs_tables),
  vulnerability_indicators = make_vulnerability_indicators(acs_indicators),
+ present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
  demo_change_indicators = make_demo_change_indicators(acs_indicators)
 )
 }

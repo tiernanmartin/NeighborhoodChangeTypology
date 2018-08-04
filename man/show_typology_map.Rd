@@ -4,7 +4,12 @@
 \alias{show_typology_map}
 \title{SHow Typology Map}
 \usage{
-show_typology_map(typology)
+show_typology_map(typology, white_center_place)
+}
+\arguments{
+\item{typology}{typology}
+
+\item{white_center_place}{white center boundary}
 }
 \value{
 a MULTIPOLYGON simple feature (class =  \code{sf})

@@ -7,6 +7,13 @@
 make_typology(vulnerability_indicators, demo_change_indicators,
   previous_typology)
 }
+\arguments{
+\item{vulnerability_indicators}{Tibble, Temporary description.}
+
+\item{demo_change_indicators}{Tibble, Temporary description.}
+
+\item{previous_typology}{Tibble, Temporary description.}
+}
 \value{
 a MULTIPOLYGON simple feature (class =  \code{sf})
 }

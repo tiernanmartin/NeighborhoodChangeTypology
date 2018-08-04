@@ -1,8 +1,7 @@
 
-#' Make The Demographic Change Indicators
-#'
-#' @param acs_indicators desc
-#'
+#' @title Make The Demographic Change Indicators
+#' @description Temporary description
+#' @param acs_indicators Tibble, Temporary description.
 #' @return a `tibble`
 #' @export
 make_demo_change_indicators <- function(acs_indicators){

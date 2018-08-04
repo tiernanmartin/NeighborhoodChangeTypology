@@ -2,6 +2,9 @@
 #' @title Make The General Tax Data For King County Parcels (2018)
 #' @description Make the general tax data for King County parcels
 #'   (Tax Year 2018, Calendar Year 2017)
+#' @param dl_parcel_data NULL, a \code{\link[drake]{target}} whos purpose is only
+#'   to make sure that the external parcel data file has been downloaded before
+#'   `parcel_lut_2005` is created.
 #' @return a `tibble`
 #' @importFrom readr read_csv
 #' @importFrom janitor clean_names

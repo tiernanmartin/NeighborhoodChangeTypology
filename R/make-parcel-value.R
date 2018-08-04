@@ -2,6 +2,9 @@
 #' @title Make The Value History For King County Parcels
 #' @description Download the history of Tax Assessor appraisals for
 #'   all parcels in King County, WA (1998 - 2017).
+#' @param dl_parcel_data NULL, a \code{\link[drake]{target}} whos purpose is only
+#'   to make sure that the external parcel data file has been downloaded before
+#'   `parcel_lut_2005` is created.
 #' @return a `tibble`
 #' @importFrom janitor clean_names
 #' @export
