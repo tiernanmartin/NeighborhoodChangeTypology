@@ -4,12 +4,6 @@
 #' @import purrr
 NULL
 
-#' @export
-make_pin <- function( major, minor){
-  stringr::str_c(stringr::str_pad(string = major, width = 6,side = "left",pad = "0"),
-               stringr::str_pad(string = minor, width = 4,side = "left",pad = "0"))
-}
-
 not_sfc <- function(x) !any(class(x) %in% 'sfc')
 
 first_not_na <- function(x){
