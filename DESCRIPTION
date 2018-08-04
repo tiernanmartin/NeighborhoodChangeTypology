@@ -28,5 +28,8 @@ Imports:
     janitor,
     tidyr,
     tidyselect
+Suggests:
+    RColorBrewer,
+    leaflet
 URL: https://github.com/tiernanmartin/NeighborhoodChangeTypology
 BugReports: https://github.com/tiernanmartin/NeighborhoodChangeTypology/issues
