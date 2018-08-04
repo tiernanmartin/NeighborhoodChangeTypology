@@ -36,7 +36,9 @@ get_external_data_plan <- function(){
   parcel_lut_2018 = make_parcel_lut_2018(dl_parcel_data),
   parcel_info_2005 = make_parcel_info_2005(dl_parcel_data),
   parcel_info_2010 = make_parcel_info_2010(dl_parcel_data),
-  parcel_info_2018 = make_parcel_info_2018(dl_parcel_data)
+  parcel_info_2018 = make_parcel_info_2018(dl_parcel_data),
+  white_center_place = make_white_center_place(),
+  previous_typology = make_previous_typology()
 
 )
 }
@@ -72,3 +74,32 @@ get_indicator_plan <- function(){
 )
 }
 
+
+# TYPOLOGY PLAN ------------------------------------------------------
+
+#' @title Get the Typology Plan
+#' @description Use \code{\link[drake]{drake_plan}} to create the typology plan.
+#' @return a `drake` plan
+#' @export
+#' @examples
+#'
+#' # Print the plan
+#'
+#' get_typology_plan()
+#'
+#'
+#' # Make the plan, load a target, print the target
+#'
+#' \dontrun{
+#'
+#' make(get_indicator_plan())
+#'
+#' loadd(acs_indicators)
+#'
+#' print(acs_indicators)
+#' }
+get_typology_plan <- function(){
+  drake::drake_plan(
+typology = make_typology(vulnerability_indicators,demo_change_indicators,previous_typology)
+)
+}
