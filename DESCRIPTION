@@ -28,7 +28,8 @@ Imports:
     janitor,
     tidyr,
     tidyselect,
-    units
+    units,
+    blsAPI
 Suggests:
     RColorBrewer,
     leaflet
