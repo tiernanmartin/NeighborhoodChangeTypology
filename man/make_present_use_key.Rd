@@ -6,6 +6,13 @@
 \usage{
 make_present_use_key(parcel_lut_2005, parcel_lut_2018)
 }
+\arguments{
+\item{parcel_lut_2005}{Tibble, The lookup table data for the 2005
+King County Assessor parcel data.}
+
+\item{parcel_lut_2018}{Tibble, The lookup table data for the 2018
+King County Assessor parcel data.}
+}
 \value{
 a \code{tibble}
 }
