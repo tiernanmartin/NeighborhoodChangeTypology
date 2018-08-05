@@ -24,4 +24,6 @@ make_single_family_criteria <- function(present_use_key){
         "lower" = units::set_units(3000, "ft^2")
       )
     )
+
+  return(single_family_criteria)
 }
