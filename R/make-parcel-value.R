@@ -19,8 +19,10 @@ make_parcel_value <- function(dl_parcel_data){
     filter(TAX_STATUS %in% "T") %>%
     filter(TAX_YR %in% c(2005, 2010, 2018)) %>%
     transmute(PIN = make_pin(MAJOR, MINOR),
-              VALUE = LAND_VAL + IMPS_VAL,
-              TAX_YR)
+              VALUE_LAND = LAND_VAL,
+              VALUE_IMPROVEMENT = IMPS_VAL,
+              VALUE_TOTAL = VALUE_LAND + VALUE_IMPROVEMENT,
+              TAX_YEAR = TAX_YR)
 
   parcel_value <- parcel_value_ready
 
