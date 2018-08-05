@@ -14,5 +14,7 @@ make_parcel_info_2018 <- function(dl_parcel_data){
   dl_parcel_data # ignore
 
   parcel_info_2018 <- readr::read_csv("extdata/kc-assessor-parcels-2005-2010-2018/EXTR_Parcel_2018.csv") %>%
-    janitor::clean_names(case = "screaming_snake")
+    janitor::clean_names(case = "screaming_snake") %>%
+    rename(PRESENTUSE = PRESENT_USE,
+           SQFTLOT = SQ_FT_LOT) # this facilitates a left_join() later in the plan
 }
