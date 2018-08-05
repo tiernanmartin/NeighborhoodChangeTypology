@@ -27,7 +27,8 @@ Imports:
     stringr,
     janitor,
     tidyr,
-    tidyselect
+    tidyselect,
+    units
 Suggests:
     RColorBrewer,
     leaflet

@@ -71,6 +71,7 @@ get_indicator_plan <- function(){
  acs_indicators = make_acs_indicators(acs_data, acs_tables),
  vulnerability_indicators = make_vulnerability_indicators(acs_indicators),
  present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
+ single_family_criteria = make_single_family_criteria(present_use_key),
  demo_change_indicators = make_demo_change_indicators(acs_indicators)
 )
 }
