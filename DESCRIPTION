@@ -29,7 +29,8 @@ Imports:
     tidyr,
     tidyselect,
     units,
-    blsAPI
+    blsAPI,
+    jsonlite
 Suggests:
     RColorBrewer,
     leaflet
