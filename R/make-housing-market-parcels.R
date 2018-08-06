@@ -1,5 +1,18 @@
+
+#' @title Make Housing Market Parcel Data
+#' @description Temporary description
+#' @param present_use_key Tibble, Temporary description
+#' @param single_family_criteria Tibble, Temporary description.
+#' @param cpi Tibble, Temporary description.
+#' @param parcel_value Tibble, Temporary description.
+#' @param parcel_info_2005 Tibble, Temporary description.
+#' @param parcel_info_2010 Tibble, Temporary description.
+#' @param parcel_info_2018 Tibble, Temporary description.
+#' @return a `tibble`
+#' @export
 make_housing_market_parcels <- function(present_use_key,
                                         single_family_criteria,
+                                        cpi,
                                         parcel_value,
                                         parcel_info_2005,
                                         parcel_info_2010,
@@ -10,10 +23,10 @@ make_housing_market_parcels <- function(present_use_key,
 
   prep_parcels  <- function(p, tax_year){
 
-      p %>% dplyr::transmute(PIN = make_pin(MAJOR,MINOR),
-                    PRESENT_USE = PRESENTUSE,
-                    SQFT_LOT = units::set_units(SQFTLOT,"ft^2"),
-                    TAX_YEAR = tax_year)
+    p %>% dplyr::transmute(PIN = make_pin(MAJOR,MINOR),
+                           PRESENT_USE = PRESENTUSE,
+                           SQFT_LOT = units::set_units(SQFTLOT,"ft^2"),
+                           TAX_YEAR = tax_year)
 
   }
 
@@ -29,16 +42,29 @@ make_housing_market_parcels <- function(present_use_key,
   p_all <- purrr::pmap_df(list(p, tax_year), prep_parcels) %>%
     dplyr::left_join(present_use_key, by = "PRESENT_USE") %>%
     dplyr::transmute(PIN,
-              TAX_YEAR,
-              PRESENT_USE = PRESENT_USE_DESC,
-              SQFT_LOT = units::set_units(SQFT_LOT,"ft^2"))
+                     TAX_YEAR,
+                     PRESENT_USE = PRESENT_USE_DESC,
+                     SQFT_LOT = units::set_units(SQFT_LOT,"ft^2"))
 
-  # Prepare parcel_value: where a parcel has multiple values for a given year, add them together
+  # Prepare parcel_value:
+  #
+  #   1. where a parcel has multiple values for a given year, add them together
+  #   2. convert to 2018 dollars (inflation adjustment)
+
+  convert_to_2018_dollars <- function(value, year){
+
+    adj_rate <- cpi[as.character(2018)]/cpi[as.character(year)]
+
+    as.integer(round(as.double(value * adj_rate) ,digits = -2) )
+  }
 
   parcel_value_ready <- parcel_value %>%
     dplyr::group_by(PIN, TAX_YEAR) %>%
     dplyr::summarise_all(sum) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    tidyr::gather(TYPE, VALUE, tidyselect::matches("VALUE")) %>%
+    dplyr::mutate(VALUE = purrr::map2_int(VALUE,TAX_YEAR, convert_to_2018_dollars)) %>%
+    tidyr::spread(TYPE, VALUE)
 
   # Filter for single family parcels with complete records and appropriate sizes
 
@@ -68,11 +94,11 @@ make_housing_market_parcels <- function(present_use_key,
     dplyr::group_by(PIN) %>%
     dplyr::summarise_all(list) %>%
     dplyr::mutate(SF_LGL = purrr::pmap_lgl(list(TAX_YEAR, PRESENT_USE, SQFT_LOT, VALUE_IMPROVEMENT),
-                             is_single_family)) %>%
+                                           is_single_family)) %>%
     tidyr::unnest() %>%
     dplyr::filter(SF_LGL) %>%
     dplyr::select(-SF_LGL)
 
-return(p_sf)
+  return(p_sf)
 
 }
