@@ -4,6 +4,7 @@
 #' @import purrr
 NULL
 
+#' @export
 not_sfc <- function(x) !any(class(x) %in% 'sfc')
 
 first_not_na <- function(x){
