@@ -70,6 +70,7 @@ get_external_data_plan <- function(){
 #' }
 get_indicator_plan <- function(){
   drake::drake_plan(
+    parcel_tract_overlay = make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016),
     present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
     single_family_criteria = make_single_family_criteria(present_use_key),
     housing_market_parcels = make_housing_market_parcels(present_use_key,
