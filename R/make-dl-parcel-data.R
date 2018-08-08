@@ -15,10 +15,12 @@ make_dl_parcel_data <- function(){
 
   data_fp_full <- osfr::download_files(id = data_osfr_id, path = data_fp)
 
-  unzip(data_fp_full, exdir = "extdata")
+  unzip(data_fp_full, exdir = "extdata", overwrite = TRUE)
 
   file.remove(data_fp_full)
 
-  NULL
+  gc()
+
+  return(NULL)
 
 }
