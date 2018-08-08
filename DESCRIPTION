@@ -30,7 +30,8 @@ Imports:
     tidyselect,
     units,
     blsAPI,
-    jsonlite
+    jsonlite,
+    snakecase
 Suggests:
     RColorBrewer,
     leaflet
