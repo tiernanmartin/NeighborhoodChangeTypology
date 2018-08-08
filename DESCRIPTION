@@ -31,7 +31,8 @@ Imports:
     units,
     blsAPI,
     jsonlite,
-    snakecase
+    snakecase,
+    lwgeom
 Suggests:
     RColorBrewer,
     leaflet
