@@ -9,7 +9,7 @@ make_parcel_info_2005(dl_parcel_data)
 \arguments{
 \item{dl_parcel_data}{NULL, a \code{\link[drake]{target}} whos purpose is only
 to make sure that the external parcel data file has been downloaded before
-\code{parcel_lut_2005} is created.}
+\code{parcel_info_2005} is created.}
 }
 \value{
 a \code{tibble}

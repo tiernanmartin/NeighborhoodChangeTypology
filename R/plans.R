@@ -23,21 +23,35 @@
 #' print(kc_boundary)
 #' }
 get_external_data_plan <- function(){
+
+  pkgconfig::set_config("drake::strings_in_dots" = "literals")
+
   drake::drake_plan(
     kc_boundary = make_kc_boundary(),
-    parcel_boundaries = make_parcel_boundaries(),
-    waterbodies = make_waterbodies(kc_boundary),
-    census_tracts_2009 = make_census_tracts_2009(),
+    parcel_boundaries = target(
+      command = make_parcel_boundaries(),
+      trigger = trigger(change = get_osf_version("sj7n9","kc-parcels-spatial.gpkg"))
+      ),
+    waterbodies = target(
+      command = make_waterbodies(kc_boundary),
+      trigger = trigger(change = get_osf_version("sj7n9","NHDMajor.zip"))
+      ),
     census_tracts_2016 = make_census_tracts_2016(),
     acs_tables = make_acs_tables(),
     acs_data = make_acs_data(acs_tables),
-    dl_parcel_data = make_dl_parcel_data(),
+    dl_parcel_data = target(
+      command = make_dl_parcel_data(),
+      trigger = trigger(change = get_osf_version("sj7n9","kc-assessor-parcels-2005-2010-2018.zip"))
+    ),
     parcel_value = make_parcel_value(dl_parcel_data),
     parcel_lut_2005 = make_parcel_lut_2005(dl_parcel_data),
     parcel_lut_2018 = make_parcel_lut_2018(dl_parcel_data),
     parcel_info_2005 = make_parcel_info_2005(dl_parcel_data),
     parcel_info_2010 = make_parcel_info_2010(dl_parcel_data),
     parcel_info_2018 = make_parcel_info_2018(dl_parcel_data),
+    condo_info_2005 = make_condo_info_2005(dl_parcel_data),
+    condo_info_2010 = make_condo_info_2010(dl_parcel_data),
+    condo_info_2018 = make_condo_info_2018(dl_parcel_data),
     white_center_place = make_white_center_place(),
     cpi = make_cpi(),
     previous_typology = make_previous_typology()
@@ -69,6 +83,9 @@ get_external_data_plan <- function(){
 #' print(acs_indicators)
 #' }
 get_indicator_plan <- function(){
+
+  pkgconfig::set_config("drake::strings_in_dots" = "literals")
+
   drake::drake_plan(
     parcel_tract_overlay = make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016),
     present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
@@ -113,6 +130,9 @@ get_indicator_plan <- function(){
 #' print(acs_indicators)
 #' }
 get_typology_plan <- function(){
+
+  pkgconfig::set_config("drake::strings_in_dots" = "literals")
+
   drake::drake_plan(
     typology = make_typology(vulnerability_indicators,demo_change_indicators,previous_typology)
   )
