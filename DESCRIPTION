@@ -32,7 +32,10 @@ Imports:
     blsAPI,
     jsonlite,
     snakecase,
-    lwgeom
+    lwgeom,
+    pkgconfig,
+    beepr,
+    scales
 Suggests:
     RColorBrewer,
     leaflet
