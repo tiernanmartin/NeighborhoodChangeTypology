@@ -12,7 +12,7 @@ make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016)
 \item{census_tracts_2016}{Simple feature, Temporary description.}
 }
 \value{
-a simple feature (class = \code{sf})
+a tibble
 }
 \description{
 Temporary description

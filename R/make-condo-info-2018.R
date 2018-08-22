@@ -13,7 +13,8 @@ make_condo_info_2018 <- function(dl_parcel_data){
   dl_parcel_data # ignore
 
   condo_info_2018 <- readr::read_csv("extdata/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2018.csv") %>%
-    janitor::clean_names(case = "screaming_snake")
+    janitor::clean_names(case = "screaming_snake") %>%
+    rename(UNITTYPE = UNIT_TYPE) # this facilitates a downstream join with the 2005 and 2010 condo data
 
   return(condo_info_2018)
 }
