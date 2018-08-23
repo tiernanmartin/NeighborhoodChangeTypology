@@ -5,7 +5,7 @@
 \title{Make  Typology}
 \usage{
 make_typology(vulnerability_indicators, demo_change_indicators,
-  previous_typology)
+  housing_market_indicators, census_tracts_2016_trimmed)
 }
 \arguments{
 \item{vulnerability_indicators}{Tibble, Temporary description.}

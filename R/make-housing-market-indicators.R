@@ -104,7 +104,7 @@ check_spillover <- function(){
 }
 
 
-housing_market_indicators <- list(tract_summary_stats_sf, tracts_spillover) %>%
+housing_market_indicators_sf <- list(tract_summary_stats_sf, tracts_spillover) %>%
   purrr::reduce(dplyr::left_join, by = "GEOID") %>%
   dplyr::mutate(HOUSING_MARKET_TYPE = dplyr::case_when(
     VALUE_TOTAL_GROUP_2005 %in% "LOW/MED" & VALUE_TOTAL_GROUP_2018 %in% "HIGH" & APPRECIATION_GROUP_YEARS_05_18 %in% "HIGH" ~ "appreciated",
@@ -114,8 +114,7 @@ housing_market_indicators <- list(tract_summary_stats_sf, tracts_spillover) %>%
   ))
 
 check_housing_market_inds <- function(){
-  tmp <-
-  housing_market_indicators %>%
+  tmp <- housing_market_indicators_sf %>%
   mutate(HOUSING_MARKET_TYPE = factor(HOUSING_MARKET_TYPE,
                                       levels = c(NA_character_,"adjacent", "accelerating", "appreciated"),
                                       ordered = TRUE))
@@ -123,6 +122,9 @@ check_housing_market_inds <- function(){
   mapview(tmp, zcol = "HOUSING_MARKET_TYPE")
 }
 
+housing_market_indicators <- housing_market_indicators_sf %>%
+  sf::st_set_geometry(NULL) %>%
+  tibble::as_tibble()
 
   return(housing_market_indicators)
 

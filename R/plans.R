@@ -88,6 +88,7 @@ get_indicator_plan <- function(){
 
   drake::drake_plan(
     parcel_tract_overlay = make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016),
+    census_tracts_2016_trimmed = make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies),
     present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
     condo_unit_type_key = make_condo_unit_type_key(parcel_lut_2005, parcel_lut_2018),
     single_family_criteria = make_single_family_criteria(present_use_key),
@@ -147,6 +148,6 @@ get_typology_plan <- function(){
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
   drake::drake_plan(
-    typology = make_typology(vulnerability_indicators,demo_change_indicators,previous_typology)
+    typology = make_typology(vulnerability_indicators, demo_change_indicators, housing_market_indicators, census_tracts_2016_trimmed)
   )
 }
