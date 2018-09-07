@@ -35,7 +35,8 @@ Imports:
     lwgeom,
     pkgconfig,
     beepr,
-    scales
+    scales,
+    httr
 Suggests:
     RColorBrewer,
     leaflet

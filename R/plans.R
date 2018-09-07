@@ -1,63 +1,149 @@
 
-# EXTERNAL DATA -----------------------------------------------------------
 
-#' @title Get the External Data Plan
-#' @description Use \code{\link[drake]{drake_plan}} to create the external data plan.
+# DATA PLANS -----------------------------------------------------
+
+
+#' @title Get the Data Plans
+#' @description Use \code{\link[drake]{drake_plan}} to create the data plan.
 #' @return a `drake` plan
-#' @export
 #' @examples
 #'
-#' # Print the plan
+#' # Print one of the external data plans
 #'
-#' get_external_data_plan()
+#' get_ext_data_ready_plan()
 #'
 #'
 #' # Make the plan, load a target, print the target
 #'
 #' \dontrun{
 #'
-#' make(get_external_data_plan())
+#' plans <- bind_plans(get_ext_data_download_plan(), get_ext_data_ready_plan())
+#'
+#' make(plans)
 #'
 #' loadd(kc_boundary)
 #'
 #' print(kc_boundary)
 #' }
-get_external_data_plan <- function(){
+
+#' @export
+get_data_source_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  drake::drake_plan(
-    kc_boundary = make_kc_boundary(),
-    parcel_boundaries = target(
-      command = make_parcel_boundaries(),
-      trigger = trigger(change = get_osf_version("sj7n9","kc-parcels-spatial.gpkg"))
-    ),
-    waterbodies = target(
-      command = make_waterbodies(kc_boundary),
-      trigger = trigger(change = get_osf_version("sj7n9","NHDMajor.zip"))
-    ),
-    census_tracts_2016 = make_census_tracts_2016(),
+  # PREP PLAN NOTE: only changes in the commands or dependent objects should
+  # trigger these commands -- file outputs should *not* trigger the command.
+
+  prep_plan <- drake::drake_plan(
     acs_tables = make_acs_tables(),
-    acs_data = make_acs_data(acs_tables),
-    dl_parcel_data = target(
-      command = make_dl_parcel_data(),
-      trigger = trigger(change = get_osf_version("sj7n9","kc-assessor-parcels-2005-2010-2018.zip"))
-    ),
-    parcel_value = make_parcel_value(dl_parcel_data),
-    parcel_lut_2005 = make_parcel_lut_2005(dl_parcel_data),
-    parcel_lut_2018 = make_parcel_lut_2018(dl_parcel_data),
-    parcel_info_2005 = make_parcel_info_2005(dl_parcel_data),
-    parcel_info_2010 = make_parcel_info_2010(dl_parcel_data),
-    parcel_info_2018 = make_parcel_info_2018(dl_parcel_data),
-    condo_info_2005 = make_condo_info_2005(dl_parcel_data),
-    condo_info_2010 = make_condo_info_2010(dl_parcel_data),
-    condo_info_2018 = make_condo_info_2018(dl_parcel_data),
-    white_center_place = make_white_center_place(),
-    cpi = make_cpi(),
-    previous_typology = make_previous_typology()
+    acs_data_prep_status = prepare_acs_data(acs_tables, path = file_out("extdata/source/acs-data.csv")),
+    kc_boundary_prep_status = prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
+    white_center_place_prep_status = prepare_white_center_place(path = file_out("extdata/source/white-center-place.gpkg")),
+    waterbodies_prep_status = prepare_waterbodies(path = file_out("extdata/source/ECY_WAT_NHDWAMajor.zip")),
+    parcel_boundaries_prep_status = prepare_parcel_boundaries(path = file_out("extdata/source/parcel_SHP.zip")),
+    census_tracts_2016_prep_status = prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg")),
+    cpi_prep_status = prepare_cpi(path= file_out("extdata/source/cpi-2000-2018.csv"))
 
   )
+
+  upload_plan <- drake::drake_plan(
+    has_osf_access = check_osf_access(project_title = "Neighborhood Change Typology"),
+    acs_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                  project_id = "sj7n9",
+                                                  file_id = "xhzv8",
+                                                  path = file_in("extdata/source/acs-data.csv")),
+    kc_boundary_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                     project_id = "sj7n9",
+                                                     file_id = "mzd5v",
+                                                     path = file_in("extdata/source/kc-boundary.gpkg")),
+    white_center_place_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                            project_id = "sj7n9",
+                                                            file_id = "ctbqp",
+                                                            path = file_in("extdata/source/white-center-place.gpkg")),
+    waterbodies_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                     project_id = "sj7n9",
+                                                     file_id = "gevkt",
+                                                     path = file_in("extdata/source/ECY_WAT_NHDWAMajor.zip")),
+    parcel_boundaries_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                           project_id = "sj7n9",
+                                                           file_id = "2ufmh",
+                                                           path = file_in("extdata/source/parcel_SHP.zip")),
+    census_tracts_2016_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                            project_id = "sj7n9",
+                                                            file_id = "cagvu",
+                                                            path = file_in("extdata/source/census-tracts-2016.gpkg")),
+    cpi_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                            project_id = "sj7n9",
+                                                            file_id = "8y3cj",
+                                                            path = file_in("extdata/source/cpi-2000-2018.csv"))
+
+  )
+
+  data_source_plan <- drake::bind_plans(prep_plan, upload_plan)
+
+  return(data_source_plan)
+
 }
+
+
+#' @export
+get_data_cache_plan <- function(){
+
+  pkgconfig::set_config("drake::strings_in_dots" = "literals")
+
+  download_plan <- drake::drake_plan(
+    acs_data_filepath = target(command = osf_download_files(id = "xhzv8", path = file_out("extdata/osf/acs-data.csv")),
+                               trigger = trigger(condition = get_osf_version("sj7n9","acs-data.csv"))),
+    kc_boundary_filepath = target(command = osf_download_files(id = "mzd5v", path = file_out("extdata/osf/kc-boundary.gpkg")),
+                                  trigger = trigger(condition = get_osf_version("sj7n9", "kc-boundary.gpkg"))),
+    white_center_place_filepath = target(command = osf_download_files(id = "ctbqp", path = file_out("extdata/osf/kc-boundary.gpkg")),
+                                         trigger = trigger(condition = get_osf_version("sj7n9", "white-center-place.gpkg"))),
+    waterbodies_filepath = target(command = osf_download_files(id = "gevkt", path = file_out("extdata/osf/ECY_WAT_NHDWAMajor.zip")),
+                                  trigger = trigger(condition = get_osf_version("sj7n9", "ECY_WAT_NHDWAMajor.zip"))),
+    parcel_boundaries_filepath = target(command = osf_download_files(id = "2ufmh", path = file_out("extdata/osf/parcel_SHP.zip")),
+                                        trigger = trigger(condition = get_osf_version("sj7n9", "parcel_SHP.zip"))),
+    census_tracts_2016_filepath = target(command = osf_download_files(id = "cagvu", path = file_out("extdata/osf/census-tracts-2016.gpkg")),
+                                         trigger = trigger(condition = get_osf_version("sj7n9", "census-tracts-2016.gpkg"))),
+    parcel_data_filepath = target(command = osf_download_files(id = "t7b8v", path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip")),
+                                  trigger = trigger(condition = get_osf_version("sj7n9", "kc-assessor-parcels-2005-2010-2018.zip"))),
+    cpi_filepath = target(command = osf_download_files(id = "8y3cj", path = file_out("extdata/osf/cpi-2000-2018.csv")),
+                                  trigger = trigger(condition = get_osf_version("sj7n9", "cpi-2000-2018.csv")))
+  )
+
+  ready_plan <- drake::drake_plan(
+    acs_data = make_acs_data(path = file_in("extdata/osf/acs-data.csv")),
+    kc_boundary = make_kc_boundary(path = file_in("extdata/osf/kc-boundary.gpkg")),
+    white_center_place = make_white_center_place(path = file_in("extdata/osf/white-center-place.gpkg")),
+    waterbodies = make_waterbodies(path = file_in("extdata/osf/ECY_WAT_NHDWAMajor.zip")),
+    parcel_boundaries = make_parcel_boundaries(path = file_in("extdata/osf/parcel_SHP.zip")),
+    census_tracts_2016 = make_census_tracts_2016(path = file_in("extdata/osf/census-tracts-2016.gpkg")),
+    parcel_info_2005 = make_parcel_info_2005(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                             file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Parcel_2005.csv")),
+    parcel_info_2010 = make_parcel_info_2010(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                             file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Parcel_2010.csv")),
+    parcel_info_2018 = make_parcel_info_2018(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                             file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Parcel_2018.csv")),
+    parcel_lut_2005 = make_parcel_lut_2005(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                           file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_LookUp_2005.csv")),
+    parcel_lut_2018 = make_parcel_lut_2018(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                           file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_LookUp_2018.csv")),
+    condo_info_2005 =  make_condo_info_2005(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                            file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2005.csv")),
+    condo_info_2010 =  make_condo_info_2010(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                            file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2010.csv")),
+    condo_info_2018 =  make_condo_info_2018(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                            file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2018.csv")),
+    parcel_value =  make_parcel_value(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                      file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_ValueHistory_V_2018.csv")),
+    cpi = make_cpi(path = file_in("extdata/osf/cpi-2000-2018.csv"))
+  )
+
+  data_cache_plan <- drake::bind_plans(download_plan, ready_plan)
+
+  return(data_cache_plan)
+
+}
+
 
 # INDICATOR PLAN ------------------------------------------------------
 

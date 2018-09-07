@@ -22,3 +22,22 @@ st_intersect_filter <- function(x,y){
 
   x[ids,]
 }
+
+#' @export
+get_modified_time <- function(path){glue::glue("'{path}' modified at: {file.mtime(path)}.")}
+
+
+#' @export
+extract_file <- function(zip_path, file_path){
+
+  split_file_path <- file_path %>%
+    stringr::str_split(pattern = "(?<=osf)/") %>%  # split at the '/' sign preceeded by 'osf'
+    purrr::flatten_chr() %>%
+    purrr::set_names(c("exdir","files"))
+
+  unzip(zipfile = zip_path,
+        files = split_file_path["files"],
+        exdir = split_file_path["exdir"])
+
+  invisible(NULL)
+}

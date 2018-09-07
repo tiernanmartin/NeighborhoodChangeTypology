@@ -1,7 +1,7 @@
 
 # EXTERNAL DATASETS LIST --------------------------------------------------
 
-exteral_datasets_list <- NULL
+exteral_datasets_list <- NULL # placeholder -- will be updated later
 
 usethis::use_data(exteral_datasets_list)
 
@@ -106,3 +106,8 @@ st_write(parcel, dsn = parcel_fp, driver = "GPKG")
 login() # this won'r work for anyone except Tiernan Martin
 
 osfr::upload_files(id = "sj7n9", path = parcel_fp)
+
+
+
+
+

@@ -140,7 +140,7 @@ make_acs_indicators <- function(acs_data, acs_tables){
     dplyr::arrange(COUNTY_PROPORTION) %>%
     tidyr::fill(matches("COUNTY")) %>%
     dplyr::ungroup() %>%
-    mutate(GREATER_THAN_COUNTY = TRACT_PROPORTION >= COUNTY_PROPORTION)
+    dplyr::mutate(GREATER_THAN_COUNTY = TRACT_PROPORTION >= COUNTY_PROPORTION)
 
 acs_indicators <- indicator_values_comparison
 
