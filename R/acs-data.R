@@ -28,7 +28,7 @@ prepare_acs_data <- function(acs_tables, path){
 
   geographies <- c("tract","county")
 
-  years <- c(2010, 2016)
+  years <- c(2010, 2011, 2015, 2016)
 
   get_data <- function(geographies, years){
     tidycensus::get_acs(geography = geographies,
