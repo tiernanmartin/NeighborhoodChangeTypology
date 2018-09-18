@@ -93,21 +93,21 @@ get_data_cache_plan <- function(){
 
   download_plan <- drake::drake_plan(
     acs_data_filepath = target(command = osf_download_files(id = "xhzv8", path = file_out("extdata/osf/acs-data.csv")),
-                               trigger = trigger(condition = get_osf_version("sj7n9","acs-data.csv"))),
+                               trigger = trigger(change = get_osf_version("sj7n9","acs-data.csv"))),
     kc_boundary_filepath = target(command = osf_download_files(id = "mzd5v", path = file_out("extdata/osf/kc-boundary.gpkg")),
-                                  trigger = trigger(condition = get_osf_version("sj7n9", "kc-boundary.gpkg"))),
+                                  trigger = trigger(change = get_osf_version("sj7n9", "kc-boundary.gpkg"))),
     white_center_place_filepath = target(command = osf_download_files(id = "ctbqp", path = file_out("extdata/osf/kc-boundary.gpkg")),
-                                         trigger = trigger(condition = get_osf_version("sj7n9", "white-center-place.gpkg"))),
+                                         trigger = trigger(change = get_osf_version("sj7n9", "white-center-place.gpkg"))),
     waterbodies_filepath = target(command = osf_download_files(id = "gevkt", path = file_out("extdata/osf/ECY_WAT_NHDWAMajor.zip")),
-                                  trigger = trigger(condition = get_osf_version("sj7n9", "ECY_WAT_NHDWAMajor.zip"))),
+                                  trigger = trigger(change = get_osf_version("sj7n9", "ECY_WAT_NHDWAMajor.zip"))),
     parcel_boundaries_filepath = target(command = osf_download_files(id = "2ufmh", path = file_out("extdata/osf/parcel_SHP.zip")),
-                                        trigger = trigger(condition = get_osf_version("sj7n9", "parcel_SHP.zip"))),
+                                        trigger = trigger(change = get_osf_version("sj7n9", "parcel_SHP.zip"))),
     census_tracts_2016_filepath = target(command = osf_download_files(id = "cagvu", path = file_out("extdata/osf/census-tracts-2016.gpkg")),
-                                         trigger = trigger(condition = get_osf_version("sj7n9", "census-tracts-2016.gpkg"))),
+                                         trigger = trigger(change = get_osf_version("sj7n9", "census-tracts-2016.gpkg"))),
     parcel_data_filepath = target(command = osf_download_files(id = "t7b8v", path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip")),
-                                  trigger = trigger(condition = get_osf_version("sj7n9", "kc-assessor-parcels-2005-2010-2018.zip"))),
+                                  trigger = trigger(change = get_osf_version("sj7n9", "kc-assessor-parcels-2005-2010-2018.zip"))),
     cpi_filepath = target(command = osf_download_files(id = "8y3cj", path = file_out("extdata/osf/cpi-2000-2018.csv")),
-                                  trigger = trigger(condition = get_osf_version("sj7n9", "cpi-2000-2018.csv")))
+                                  trigger = trigger(change = get_osf_version("sj7n9", "cpi-2000-2018.csv")))
   )
 
   ready_plan <- drake::drake_plan(
