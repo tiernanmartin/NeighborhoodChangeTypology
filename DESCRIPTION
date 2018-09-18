@@ -15,6 +15,9 @@ Depends:
 Imports:
     magrittr,
     purrr,
+    tibble,
+    stringr 
+Suggests:
     dplyr,
     readr,
     sf,
@@ -22,9 +25,7 @@ Imports:
     tidycensus,
     tigris,
     rgdal,
-    utils,
-    tibble,
-    stringr,
+    utils, 
     janitor,
     tidyr,
     tidyselect,
@@ -36,8 +37,7 @@ Imports:
     pkgconfig,
     beepr,
     scales,
-    httr
-Suggests:
+    httr,
     RColorBrewer,
     leaflet
 URL: https://github.com/tiernanmartin/NeighborhoodChangeTypology
