@@ -8,6 +8,9 @@ make_demo_change_indicators <- function(acs_indicators){
 
   get_greater_vars <- function(data){
 
+    # For each tract, returns each TOPIC name (e.g., RACE, TENURE, etc.)
+    # where the proportion of the tract is greater than the county
+
     if(sum(data$N) ==0){return("none")}
 
     data %>% dplyr::filter(N>0) %>% purrr::pluck("TOPIC")

@@ -1,29 +1,63 @@
 
 
-# DATA PLANS -----------------------------------------------------
-
-
-#' @title Get the Data Plans
-#' @description Use \code{\link[drake]{drake_plan}} to create the data plan.
+# MODEL PLAN --------------------------------------------------------------
+#' @title Get the Model Plan
+#' @description Use \code{\link[drake]{drake_plan}} to create the project's
+#'   model plan.
 #' @return a `drake` plan
 #' @examples
 #'
 #' # Print one of the external data plans
 #'
-#' get_ext_data_ready_plan()
+#' get_model_plan()
 #'
 #'
 #' # Make the plan, load a target, print the target
 #'
 #' \dontrun{
 #'
-#' plans <- bind_plans(get_ext_data_download_plan(), get_ext_data_ready_plan())
+#' make(get_model_plan())
 #'
-#' make(plans)
+#' readd(model_table)
 #'
-#' loadd(kc_boundary)
+#' }
+
+#' @export
+get_model_plan <- function(){
+
+  pkgconfig::set_config("drake::strings_in_dots" = "literals")
+
+  model_plan <- drake::drake_plan(
+    model_table = make_model_table()
+  )
+
+  return(model_plan)
+
+}
+
+
+# DATA PLANS -----------------------------------------------------
+
+
+#' @title Get the Data Plans
+#' @description Use \code{\link[drake]{drake_plan}} to create the data plans.
+#' @return a `drake` plan
+#' @examples
 #'
-#' print(kc_boundary)
+#' # Print one of the external data plans
+#'
+#' get_data_cache_plan()
+#'
+#'
+#' # Make the plan, load a target, print the target
+#'
+#' \dontrun{
+#'
+#' data_plans <- bind_plans(get_data_source_plan(), get_data_cache_plan())
+#'
+#' make(data_plans)
+#'
+#' readd(kc_boundary)
 #' }
 
 #' @export
@@ -36,7 +70,7 @@ get_data_source_plan <- function(){
 
   prep_plan <- drake::drake_plan(
     acs_tables = make_acs_tables(),
-    acs_data_prep_status = prepare_acs_data(acs_tables, path = file_out("extdata/source/acs-data.csv")),
+    acs_data_prep_status = prepare_acs_data(model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
     kc_boundary_prep_status = prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
     white_center_place_prep_status = prepare_white_center_place(path = file_out("extdata/source/white-center-place.gpkg")),
     waterbodies_prep_status = prepare_waterbodies(path = file_out("extdata/source/ECY_WAT_NHDWAMajor.zip")),

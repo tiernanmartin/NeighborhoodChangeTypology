@@ -3,6 +3,7 @@
 #' @description Return a `tibble` of all of the American Community Survey data variables
 #'   that are used in the Neighborhood Change Typology model for both 5-year spans
 #'   (2006-2010 and 2012-2016).
+#' @param model_table Tibble, the `model_table` object
 #' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
 #' @return a `tibble`
@@ -10,7 +11,7 @@
 
 #' @rdname acs-data
 #' @export
-prepare_acs_data <- function(acs_tables, path){
+prepare_acs_data <- function(model_table, acs_tables, path){
 
 
 # GET DATA ----------------------------------------------------------------
@@ -21,14 +22,14 @@ prepare_acs_data <- function(acs_tables, path){
                      LABEL = label,
                      TOPIC = concept)
 
-  target_census_vars <- all_census_vars %>%
-    dplyr::semi_join(acs_tables, by = "NAME")
+  data_key <- dplyr::inner_join(model_table, acs_tables, by = "INDICATOR") %>%
+    inner_join(all_census_vars, by = "NAME")
 
-  variables <- target_census_vars %>% dplyr::pull(FULL_NAME)
+  variables <- data_key %>% dplyr::pull(FULL_NAME)
 
   geographies <- c("tract","county")
 
-  years <- c(2010, 2011, 2015, 2016)
+  years <- data_key %>% dplyr::arrange(ENDYEAR) %>% dplyr::pull(ENDYEAR) %>% unique()
 
   get_data <- function(geographies, years){
     tidycensus::get_acs(geography = geographies,

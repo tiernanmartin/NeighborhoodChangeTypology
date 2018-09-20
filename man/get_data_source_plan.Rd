@@ -10,25 +10,23 @@ get_data_source_plan()
 a \code{drake} plan
 }
 \description{
-Use \code{\link[drake]{drake_plan}} to create the data plan.
+Use \code{\link[drake]{drake_plan}} to create the data plans.
 }
 \examples{
 
 # Print one of the external data plans
 
-get_ext_data_ready_plan()
+get_data_cache_plan()
 
 
 # Make the plan, load a target, print the target
 
 \dontrun{
 
-plans <- bind_plans(get_ext_data_download_plan(), get_ext_data_ready_plan())
+data_plans <- bind_plans(get_data_source_plan(), get_data_cache_plan())
 
-make(plans)
+make(data_plans)
 
-loadd(kc_boundary)
-
-print(kc_boundary)
+readd(kc_boundary)
 }
 }

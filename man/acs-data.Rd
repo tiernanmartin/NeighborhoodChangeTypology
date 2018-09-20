@@ -5,11 +5,13 @@
 \alias{make_acs_data}
 \title{Make A Tibble of The Project's ACS Variables}
 \usage{
-prepare_acs_data(acs_tables, path)
+prepare_acs_data(model_table, acs_tables, path)
 
 make_acs_data(path)
 }
 \arguments{
+\item{model_table}{Tibble, the \code{model_table} object}
+
 \item{acs_tables}{Tibble, the \code{acs_table} object}
 
 \item{path}{Character, the path or connection to write to.}
