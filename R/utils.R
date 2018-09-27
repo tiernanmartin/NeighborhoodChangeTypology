@@ -41,3 +41,18 @@ extract_file <- function(zip_path, file_path){
 
   invisible(NULL)
 }
+
+#' @export
+zip_subdirectory <- function(zip_path, dir_path){
+
+  proj_wd <- getwd()
+
+  zip_wd <- dirname(dir_path)
+
+  setwd(zip_wd)
+
+  zip(zipfile = basename(zip_path), files = basename(dir_path))
+
+  setwd(proj_wd)
+
+}

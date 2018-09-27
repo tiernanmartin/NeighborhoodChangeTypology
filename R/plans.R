@@ -1,5 +1,3 @@
-
-
 # MODEL PLAN --------------------------------------------------------------
 #' @title Get the Model Plan
 #' @description Use \code{\link[drake]{drake_plan}} to create the project's
@@ -28,7 +26,8 @@ get_model_plan <- function(){
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
   model_plan <- drake::drake_plan(
-    model_table = make_model_table()
+    model_table = make_model_table(),
+    acs_tables = make_acs_tables()
   )
 
   return(model_plan)
@@ -69,12 +68,12 @@ get_data_source_plan <- function(){
   # trigger these commands -- file outputs should *not* trigger the command.
 
   prep_plan <- drake::drake_plan(
-    acs_tables = make_acs_tables(),
     acs_data_prep_status = prepare_acs_data(model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
     kc_boundary_prep_status = prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
     white_center_place_prep_status = prepare_white_center_place(path = file_out("extdata/source/white-center-place.gpkg")),
     waterbodies_prep_status = prepare_waterbodies(path = file_out("extdata/source/ECY_WAT_NHDWAMajor.zip")),
     parcel_boundaries_prep_status = prepare_parcel_boundaries(path = file_out("extdata/source/parcel_SHP.zip")),
+    parcel_data_prep_status = prepare_parcel_data(zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
     census_tracts_2016_prep_status = prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg")),
     cpi_prep_status = prepare_cpi(path= file_out("extdata/source/cpi-2000-2018.csv"))
 
@@ -102,6 +101,10 @@ get_data_source_plan <- function(){
                                                            project_id = "sj7n9",
                                                            file_id = "2ufmh",
                                                            path = file_in("extdata/source/parcel_SHP.zip")),
+    parcel_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                     project_id = "sj7n9",
+                                                     file_id = "t7b8v",
+                                                     path = file_in("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
     census_tracts_2016_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                             project_id = "sj7n9",
                                                             file_id = "cagvu",
@@ -151,6 +154,10 @@ get_data_cache_plan <- function(){
     waterbodies = make_waterbodies(path = file_in("extdata/osf/ECY_WAT_NHDWAMajor.zip")),
     parcel_boundaries = make_parcel_boundaries(path = file_in("extdata/osf/parcel_SHP.zip")),
     census_tracts_2016 = make_census_tracts_2016(path = file_in("extdata/osf/census-tracts-2016.gpkg")),
+    parcel_value =  make_parcel_value(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                      file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_ValueHistory_V.csv")),
+    parcel_sales =  make_parcel_value(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                      file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_RPSale.csv")),
     parcel_info_2005 = make_parcel_info_2005(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
                                              file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Parcel_2005.csv")),
     parcel_info_2010 = make_parcel_info_2010(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
@@ -167,8 +174,7 @@ get_data_cache_plan <- function(){
                                             file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2010.csv")),
     condo_info_2018 =  make_condo_info_2018(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
                                             file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2018.csv")),
-    parcel_value =  make_parcel_value(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
-                                      file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_ValueHistory_V_2018.csv")),
+
     cpi = make_cpi(path = file_in("extdata/osf/cpi-2000-2018.csv"))
   )
 

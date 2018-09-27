@@ -7,7 +7,6 @@
 #' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
 #' @return a `tibble`
-#' @seealso make_acs_table
 
 #' @rdname acs-data
 #' @export
