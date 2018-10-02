@@ -22,7 +22,7 @@ prepare_acs_data <- function(model_table, acs_tables, path){
                      TOPIC = concept)
 
   data_key <- dplyr::inner_join(model_table, acs_tables, by = "INDICATOR") %>%
-    inner_join(all_census_vars, by = "NAME")
+    dplyr::inner_join(all_census_vars, by = "NAME")
 
   variables <- data_key %>% dplyr::pull(FULL_NAME)
 
