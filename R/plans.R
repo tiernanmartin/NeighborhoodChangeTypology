@@ -217,6 +217,7 @@ get_indicator_plan <- function(){
     census_tracts_2016_trimmed = make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies),
     present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
     condo_unit_type_key = make_condo_unit_type_key(parcel_lut_2005, parcel_lut_2018),
+    sales_lut_key_list = make_sales_lut_key_list(parcel_lut_2018),
     single_family_criteria = make_single_family_criteria(present_use_key),
     condo_criteria = make_condo_criteria(condo_unit_type_key),
     housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
