@@ -108,7 +108,7 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
 
   file_paths <- list("EXTR_RPSale.csv",
                     "EXTR_ValueHistory_V.csv",
-                    "EXTR_Parcel.csv",
+                    "EXTR_Parcel_2018.csv",
                     "EXTR_CondoUnit2_2018.csv",
                     "EXTR_LookUp_2018.csv",
                     "EXTR_Parcel_2005.csv",

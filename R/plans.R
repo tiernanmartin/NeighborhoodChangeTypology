@@ -156,7 +156,7 @@ get_data_cache_plan <- function(){
     census_tracts_2016 = make_census_tracts_2016(path = file_in("extdata/osf/census-tracts-2016.gpkg")),
     parcel_value =  make_parcel_value(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
                                       file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_ValueHistory_V.csv")),
-    parcel_sales =  make_parcel_value(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+    parcel_sales =  make_parcel_sales(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
                                       file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_RPSale.csv")),
     parcel_info_2005 = make_parcel_info_2005(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
                                              file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Parcel_2005.csv")),
@@ -173,7 +173,7 @@ get_data_cache_plan <- function(){
     condo_info_2010 =  make_condo_info_2010(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
                                             file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2010.csv")),
     condo_info_2018 =  make_condo_info_2018(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
-                                            file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2018.csv")),
+                                            file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_CondoUnit2_2018.csv")),
 
     cpi = make_cpi(path = file_in("extdata/osf/cpi-2000-2018.csv"))
   )
