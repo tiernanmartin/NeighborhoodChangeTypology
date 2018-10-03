@@ -8,3 +8,4 @@
 ^extdata/*
 ^plans/*
 ^data-raw$
+^R/scripts/*
