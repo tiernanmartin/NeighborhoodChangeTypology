@@ -6,6 +6,11 @@
 #' @export
 prepare_cpi <- function(path){
 
+# NOTE: as of 10/3/2018, the blsAPI() function is not working.
+#       An issue has been filed with the package developer
+#      <https://github.com/mikeasilva/blsAPI/issues/19#issue-366444481>
+#      Until this gets resolved, this function should not be used.
+
 
   # GET DATA ----------------------------------------------------------------
 

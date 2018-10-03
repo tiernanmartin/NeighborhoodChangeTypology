@@ -74,8 +74,7 @@ get_data_source_plan <- function(){
     waterbodies_prep_status = prepare_waterbodies(path = file_out("extdata/source/ECY_WAT_NHDWAMajor.zip")),
     parcel_boundaries_prep_status = prepare_parcel_boundaries(path = file_out("extdata/source/parcel_SHP.zip")),
     parcel_data_prep_status = prepare_parcel_data(zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
-    census_tracts_2016_prep_status = prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg")),
-    cpi_prep_status = prepare_cpi(path= file_out("extdata/source/cpi-2000-2018.csv"))
+    census_tracts_2016_prep_status = prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg"))
 
   )
 
@@ -94,27 +93,32 @@ get_data_source_plan <- function(){
                                                             file_id = "ctbqp",
                                                             path = file_in("extdata/source/white-center-place.gpkg")),
     waterbodies_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                     project_id = "sj7n9",
-                                                     file_id = "gevkt",
-                                                     path = file_in("extdata/source/ECY_WAT_NHDWAMajor.zip")),
+                                                                      project_id = "sj7n9",
+                                                                      file_id = "gevkt",
+                                                                      path = file_in("extdata/source/ECY_WAT_NHDWAMajor.zip")),
     parcel_boundaries_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                           project_id = "sj7n9",
-                                                           file_id = "2ufmh",
-                                                           path = file_in("extdata/source/parcel_SHP.zip")),
+                                                                            project_id = "sj7n9",
+                                                                            file_id = "2ufmh",
+                                                                            path = file_in("extdata/source/parcel_SHP.zip")),
     parcel_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                     project_id = "sj7n9",
-                                                     file_id = "t7b8v",
-                                                     path = file_in("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
+                                                                      project_id = "sj7n9",
+                                                                      file_id = "t7b8v",
+                                                                      path = file_in("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
     census_tracts_2016_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                            project_id = "sj7n9",
-                                                            file_id = "cagvu",
-                                                            path = file_in("extdata/source/census-tracts-2016.gpkg")),
-    cpi_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                            project_id = "sj7n9",
-                                                            file_id = "8y3cj",
-                                                            path = file_in("extdata/source/cpi-2000-2018.csv"))
-
+                                                                             project_id = "sj7n9",
+                                                                             file_id = "cagvu",
+                                                                             path = file_in("extdata/source/census-tracts-2016.gpkg"))
   )
+
+  target_archive_plan <- drake::drake_plan(
+    cpi_prep_status = prepare_cpi(path= file_out("extdata/source/cpi-2000-2018.csv")),
+    cpi_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                              project_id = "sj7n9",
+                                                              file_id = "8y3cj",
+                                                              path = file_in("extdata/source/cpi-2000-2018.csv")),
+                               trigger = trigger(condition = FALSE))
+  )
+
 
   data_source_plan <- drake::bind_plans(prep_plan, upload_plan)
 
@@ -144,7 +148,7 @@ get_data_cache_plan <- function(){
     parcel_data_filepath = target(command = osf_download_files(id = "t7b8v", path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip")),
                                   trigger = trigger(change = get_osf_version("sj7n9", "kc-assessor-parcels-2005-2010-2018.zip"))),
     cpi_filepath = target(command = osf_download_files(id = "8y3cj", path = file_out("extdata/osf/cpi-2000-2018.csv")),
-                                  trigger = trigger(change = get_osf_version("sj7n9", "cpi-2000-2018.csv")))
+                          trigger = trigger(change = get_osf_version("sj7n9", "cpi-2000-2018.csv")))
   )
 
   ready_plan <- drake::drake_plan(
@@ -220,6 +224,7 @@ get_indicator_plan <- function(){
     sales_lut_key_list = make_sales_lut_key_list(parcel_lut_2018),
     single_family_criteria = make_single_family_criteria(present_use_key),
     condo_criteria = make_condo_criteria(condo_unit_type_key),
+    sales_criteria = make_sales_criteria(),
     housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
                                                                    condo_unit_type_key,
                                                                    single_family_criteria,
@@ -233,6 +238,16 @@ get_indicator_plan <- function(){
                                                                    condo_info_2010,
                                                                    condo_info_2018),
     housing_market_parcel_appr = make_housing_market_parcel_appr(housing_market_parcel_value),
+    housing_market_sales = make_housing_market_sales(parcel_sales,
+                                                     sales_lut_key_list,
+                                                     sales_criteria,
+                                                     cpi,
+                                                     parcel_info_2005,
+                                                     parcel_info_2010,
+                                                     parcel_info_2018,
+                                                     condo_info_2005,
+                                                     condo_info_2010,
+                                                     condo_info_2018),
     excluded_tract_geoids = make_excluded_tract_geoids(),
     housing_market_indicators = make_housing_market_indicators(census_tracts_2016,
                                                                excluded_tract_geoids,
