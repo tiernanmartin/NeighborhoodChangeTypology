@@ -34,6 +34,8 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
   lut_2018 <- readr::read_csv("extdata/source/Year2018/EXTR_LookUp.csv") %>%
     janitor::clean_names(case = "screaming_snake")
 
+  res_bldg_2018 <- readr::read_csv("extdata/source/Year2018/EXTR_ResBldg.csv") %>%
+    janitor::clean_names(case = "screaming_snake")
 
   present_use_lut <- lut_2018 %>%
     dplyr::filter(LU_TYPE %in% 102) %>%
@@ -82,9 +84,13 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
 
   lut_2005 <- sf::st_read(dsn = "extdata/source/Year2005.gdb", layer = "lookup_extr")
 
+  res_bldg_2005 <- sf::st_read(dsn = "extdata/source/Year2005.gdb", layer = "resbldg_extr")
+
   p_2010 <- sf::st_read(dsn = "extdata/source/Year2010.gdb", layer = "parcel_extr")
 
   condo_2010 <- sf::st_read(dsn = "extdata/source/Year2010.gdb", layer = "condounit_extr")
+
+  res_bldg_2010 <- sf::st_read(dsn = "extdata/source/Year2005.gdb", layer = "resbldg_extr")
 
 
 
@@ -99,10 +105,13 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
                 p_2018,
                 condo_2018,
                 lut_2018,
+                res_bldg_2018,
                 p_2005,
                 condo_2005,
                 lut_2005,
+                res_bldg_2005,
                 p_2010,
+                res_bldg_2010,
                 condo_2010
   )
 
@@ -111,10 +120,13 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
                     "EXTR_Parcel_2018.csv",
                     "EXTR_CondoUnit2_2018.csv",
                     "EXTR_LookUp_2018.csv",
+                    "EXTR_ResBldg_2018.csv",
                     "EXTR_Parcel_2005.csv",
                     "EXTR_Condo_Unit_2005.csv",
                     "EXTR_LookUp_2005.csv",
+                    "EXTR_ResBldg_2005.csv",
                     "EXTR_Parcel_2010.csv",
+                    "EXTR_ResBldg_2010.csv",
                     "EXTR_Condo_Unit_2010.csv"
   ) %>% purrr::map_chr(~ file.path(target_dir,.x))
 
@@ -272,3 +284,42 @@ make_parcel_lut_2018 <- function(zip_path, file_path){
 
   return(parcel_lut_2018)
 }
+
+#' @rdname acs-data
+#' @export
+make_res_bldg_2018 <- function(zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  res_bldg_2018 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake")
+
+  return(res_bldg_2018)
+}
+
+#' @rdname acs-data
+#' @export
+make_res_bldg_2010 <- function(zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  res_bldg_2010 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake")
+
+  return(res_bldg_2010)
+}
+
+#' @rdname acs-data
+#' @export
+make_res_bldg_2005 <- function(zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  res_bldg_2005 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake")
+
+  return(res_bldg_2005)
+}
+
+
+

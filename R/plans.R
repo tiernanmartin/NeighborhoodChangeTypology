@@ -73,7 +73,7 @@ get_data_source_plan <- function(){
     white_center_place_prep_status = prepare_white_center_place(path = file_out("extdata/source/white-center-place.gpkg")),
     waterbodies_prep_status = prepare_waterbodies(path = file_out("extdata/source/ECY_WAT_NHDWAMajor.zip")),
     parcel_boundaries_prep_status = prepare_parcel_boundaries(path = file_out("extdata/source/parcel_SHP.zip")),
-    parcel_data_prep_status = prepare_parcel_data(zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
+    parcel_data_prep_status = prepare_parcel_data(model_table, acs_tables, zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
     census_tracts_2016_prep_status = prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg"))
 
   )
@@ -178,7 +178,12 @@ get_data_cache_plan <- function(){
                                             file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Condo_Unit_2010.csv")),
     condo_info_2018 =  make_condo_info_2018(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
                                             file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_CondoUnit2_2018.csv")),
-
+    res_bldg_2005 = make_res_bldg_2005(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                       file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_ResBldg_2005.csv")),
+    res_bldg_2010 = make_res_bldg_2010(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                       file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_ResBldg_2010.csv")),
+    res_bldg_2018 = make_res_bldg_2018(zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2018.zip"),
+                                       file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_ResBldg_2018.csv")),
     cpi = make_cpi(path = file_in("extdata/osf/cpi-2000-2018.csv"))
   )
 
