@@ -13,6 +13,9 @@
 \alias{make_parcel_info_2018}
 \alias{make_parcel_lut_2005}
 \alias{make_parcel_lut_2018}
+\alias{make_res_bldg_2018}
+\alias{make_res_bldg_2010}
+\alias{make_res_bldg_2005}
 \title{Make A Tibble of The Project's ACS Variables}
 \usage{
 prepare_acs_data(model_table, acs_tables, path)
@@ -38,6 +41,12 @@ make_parcel_info_2018(zip_path, file_path)
 make_parcel_lut_2005(zip_path, file_path)
 
 make_parcel_lut_2018(zip_path, file_path)
+
+make_res_bldg_2018(zip_path, file_path)
+
+make_res_bldg_2010(zip_path, file_path)
+
+make_res_bldg_2005(zip_path, file_path)
 }
 \arguments{
 \item{model_table}{Tibble, the \code{model_table} object}
