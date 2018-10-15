@@ -6,6 +6,9 @@
 \usage{
 make_sales_lut_key_list(parcel_lut_2018)
 }
+\arguments{
+\item{parcel_lut_2018}{Temporary description}
+}
 \value{
 A named list of tibbles
 }

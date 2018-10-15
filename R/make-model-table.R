@@ -49,11 +49,14 @@ make_model_table <- function(){
    "ALT", "DEMOGRAPHIC CHANGE",      "EDUCATION",      "ACS",    2015L,
    "ALT", "DEMOGRAPHIC CHANGE",         "TENURE",      "ACS",    2015L,
    "ALT", "DEMOGRAPHIC CHANGE",         "INCOME",      "ACS",    2015L,
-   "ALT",     "HOUSING MARKET",    "COST BURDEN",      "ACS",    2010L,
-   "ALT",     "HOUSING MARKET",    "COST BURDEN",      "ACS",    2016L,
-   "ALT",     "HOUSING MARKET",     "SALE PRICE",      "ACS",    2005L,
-   "ALT",     "HOUSING MARKET",     "SALE PRICE",      "ACS",    2010L,
-   "ALT",     "HOUSING MARKET",     "SALE PRICE",      "ACS",    2018L
+   "ALT",     "HOUSING MARKET",           "RENT",      "ACS",    2010L,
+   "ALT",     "HOUSING MARKET",           "RENT",      "ACS",    2016L,
+   "ALT",     "HOUSING MARKET",     "SALE PRICE", "ASSESSOR",    2005L,
+   "ALT",     "HOUSING MARKET",     "SALE PRICE", "ASSESSOR",    2010L,
+   "ALT",     "HOUSING MARKET",     "SALE PRICE", "ASSESSOR",    2018L,
+   "ALT",     "HOUSING MARKET",      "SALE RATE", "ASSESSOR",    2005L,
+   "ALT",     "HOUSING MARKET",      "SALE RATE", "ASSESSOR",    2010L,
+   "ALT",     "HOUSING MARKET",      "SALE RATE", "ASSESSOR",    2018L
   )
 
 return(model_table)

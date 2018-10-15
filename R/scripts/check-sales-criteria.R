@@ -48,7 +48,7 @@ p_sales %>%
     adorn_pct_formatting() %>%
     arrange(desc(n))
 
-# Use: 'LAND WITH PREV USED BLDG' OR 'LAND WITH NEW BUILDING'
+# Use: 'LAND WITH PREV USED BLDG' OR 'LAND WITH NEW BUILDING' OR 'Household, single family units' OR 'Residential condominiums'
 
 p_sales %>%
   tabyl(SALE_REASON_DESC) %>%

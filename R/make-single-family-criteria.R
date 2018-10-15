@@ -9,9 +9,11 @@
 #' @export
 make_single_family_criteria <- function(present_use_key){
 
-  sf_uses <- present_use_key %>%
+  sf_uses_all <- present_use_key %>%
     dplyr::filter(stringr::str_detect(PRESENT_USE_DESC, "Single Family")) %>% # this excludes `Vacant(Single-family)`
     purrr::pluck("PRESENT_USE_DESC")
+
+  sf_uses <- c("Single Family(Res Use/Zone)", "Single Family(C/I Zone)") # this exlcudes "Single Family(C/I Use)"
 
   single_family_criteria <-
     list(

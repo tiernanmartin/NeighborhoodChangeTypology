@@ -190,7 +190,8 @@ make_condo_info_2005 <- function(zip_path, file_path){
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
   condo_info_2005 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(FOOTAGE = FT)
 
   return(condo_info_2005)
 }
@@ -202,7 +203,8 @@ make_condo_info_2010 <- function(zip_path, file_path){
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
   condo_info_2010 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(FOOTAGE = FT)
 
   return(condo_info_2010)
 }
@@ -304,7 +306,10 @@ make_res_bldg_2010 <- function(zip_path, file_path){
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
   res_bldg_2010 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(SQ_FT_TOT_LIVING = SQFTTOTLIV,
+                  BLDG_NBR = BLDGNBR,
+                  YR_BUILT = YRBUILT)
 
   return(res_bldg_2010)
 }
@@ -316,7 +321,10 @@ make_res_bldg_2005 <- function(zip_path, file_path){
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
   res_bldg_2005 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(SQ_FT_TOT_LIVING = SQFTTOTLIV,
+                  BLDG_NBR = BLDGNBR,
+                  YR_BUILT = YRBUILT)
 
   return(res_bldg_2005)
 }

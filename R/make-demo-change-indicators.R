@@ -8,12 +8,12 @@ make_demo_change_indicators <- function(acs_indicators){
 
   get_greater_vars <- function(data){
 
-    # For each tract, returns each TOPIC name (e.g., RACE, TENURE, etc.)
+    # For each tract, returns each INDICATOR name (e.g., RACE, TENURE, etc.)
     # where the proportion of the tract is greater than the county
 
     if(sum(data$N) ==0){return("none")}
 
-    data %>% dplyr::filter(N>0) %>% purrr::pluck("TOPIC")
+    data %>% dplyr::filter(N>0) %>% purrr::pluck("INDICATOR")
   }
 
   demo_change_comparison <- acs_indicators %>%
@@ -29,7 +29,7 @@ make_demo_change_indicators <- function(acs_indicators){
            )
 
   demo_change_indicators <- demo_change_comparison %>%
-    dplyr::group_by(GEOID, TOPIC) %>%
+    dplyr::group_by(GEOID, INDICATOR) %>%
     dplyr::summarise(N = sum(as.numeric(GREATER_THAN_COUNTY), na.rm = TRUE)) %>%
     tidyr::nest() %>%
    dplyr::mutate(N = purrr::map_dbl(data, ~ purrr::pluck(.x,"N") %>% sum),
