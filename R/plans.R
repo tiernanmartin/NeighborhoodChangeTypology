@@ -221,7 +221,7 @@ get_indicator_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  drake::drake_plan(
+  ind_prep_plan <- drake::drake_plan(
     parcel_tract_overlay = make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016),
     census_tracts_2016_trimmed = make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies),
     present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
@@ -230,6 +230,10 @@ get_indicator_plan <- function(){
     single_family_criteria = make_single_family_criteria(present_use_key),
     condo_criteria = make_condo_criteria(condo_unit_type_key),
     sales_criteria = make_sales_criteria(),
+    excluded_tract_geoids = make_excluded_tract_geoids()
+  )
+
+  ind_plan <- drake::drake_plan(
     housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
                                                                    condo_unit_type_key,
                                                                    single_family_criteria,
@@ -260,7 +264,6 @@ get_indicator_plan <- function(){
                                                      res_bldg_2005,
                                                      res_bldg_2010,
                                                      res_bldg_2018),
-    excluded_tract_geoids = make_excluded_tract_geoids(),
     housing_market_indicators = make_housing_market_indicators(census_tracts_2016,
                                                                excluded_tract_geoids,
                                                                parcel_boundaries,
@@ -271,12 +274,17 @@ get_indicator_plan <- function(){
     vulnerability_indicators = make_vulnerability_indicators(acs_indicators),
     demo_change_indicators = make_demo_change_indicators(acs_indicators)
   )
+
+  indicator_plan <- drake::bind_plans(ind_prep_plan, ind_plan)
+
+  return(indicator_plan)
+
 }
 
 
-# TYPOLOGY PLAN ------------------------------------------------------
+# MODEL PLAN --------------------------------------------------------------
 
-#' @title Get the Typology Plan
+#' @title Get the Model Plan
 #' @description Use \code{\link[drake]{drake_plan}} to create the typology plan.
 #' @return a `drake` plan
 #' @export
@@ -284,24 +292,26 @@ get_indicator_plan <- function(){
 #'
 #' # Print the plan
 #'
-#' get_typology_plan()
+#' get_model_plan()
 #'
 #'
 #' # Make the plan, load a target, print the target
 #'
 #' \dontrun{
 #'
-#' make(get_indicator_plan())
+#' make(get_model_plan())
 #'
 #' loadd(acs_indicators)
 #'
 #' print(acs_indicators)
 #' }
-get_typology_plan <- function(){
+get_model_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  drake::drake_plan(
+  model_plan <- drake::drake_plan(
     typology = make_typology(vulnerability_indicators, demo_change_indicators, housing_market_indicators, census_tracts_2016_trimmed)
   )
+
+  return(model_plan)
 }
