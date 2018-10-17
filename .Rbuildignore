@@ -9,3 +9,4 @@
 ^plans/*
 ^data-raw$
 ^R/scripts/*
+^R/archive/*
