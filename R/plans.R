@@ -1,5 +1,5 @@
-# MODEL PLAN --------------------------------------------------------------
-#' @title Get the Model Plan
+# PRELIMINARY MODEL PLAN --------------------------------------------------------------
+#' @title Get the Prelininary Model Plan
 #' @description Use \code{\link[drake]{drake_plan}} to create the project's
 #'   model plan.
 #' @return a `drake` plan
@@ -7,30 +7,30 @@
 #'
 #' # Print one of the external data plans
 #'
-#' get_model_plan()
+#' get_preliminary_model_plan()
 #'
 #'
 #' # Make the plan, load a target, print the target
 #'
 #' \dontrun{
 #'
-#' make(get_model_plan())
+#' make(get_preliminary_model_plan())
 #'
 #' readd(model_table)
 #'
 #' }
 
 #' @export
-get_model_plan <- function(){
+get_preliminary_model_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  model_plan <- drake::drake_plan(
+  preliminary_model_plan <- drake::drake_plan(
     model_table = make_model_table(),
     acs_tables = make_acs_tables()
   )
 
-  return(model_plan)
+  return(preliminary_model_plan)
 
 }
 
