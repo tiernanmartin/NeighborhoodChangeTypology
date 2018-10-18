@@ -26,8 +26,8 @@ get_preliminary_model_plan <- function(){
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
   preliminary_model_plan <- drake::drake_plan(
-    model_table = make_model_table(),
-    acs_tables = make_acs_tables()
+    model_table = make_model_table()
+
   )
 
   return(preliminary_model_plan)
@@ -64,47 +64,55 @@ get_data_source_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  # PREP PLAN NOTE: only changes in the commands or dependent objects should
-  # trigger these commands -- file outputs should *not* trigger the command.
+  # PREP PLAN NOTE: these should be *manually* triggered to prevent unnecessary,
+  #                 long-running uploads to OSF.io
 
   prep_plan <- drake::drake_plan(
-    acs_data_prep_status = prepare_acs_data(model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
-    kc_boundary_prep_status = prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
-    white_center_place_prep_status = prepare_white_center_place(path = file_out("extdata/source/white-center-place.gpkg")),
-    waterbodies_prep_status = prepare_waterbodies(path = file_out("extdata/source/ECY_WAT_NHDWAMajor.zip")),
-    parcel_boundaries_prep_status = prepare_parcel_boundaries(path = file_out("extdata/source/parcel_SHP.zip")),
-    parcel_data_prep_status = prepare_parcel_data(model_table, acs_tables, zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
-    census_tracts_2016_prep_status = prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg"))
+    acs_tables = make_acs_tables(),
+    acs_data_prep_status = target(command = prepare_acs_data(model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
+                                  trigger = trigger(mode = "condition", condition = FALSE)),
+    kc_boundary_prep_status = target(prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
+                                     trigger = trigger(mode = "condition", condition = FALSE)),
+    white_center_place_prep_status = target(prepare_white_center_place(path = file_out("extdata/source/white-center-place.gpkg")),
+                                            trigger = trigger(mode = "condition", condition = FALSE)),
+    waterbodies_prep_status = target(prepare_waterbodies(path = file_out("extdata/source/ECY_WAT_NHDWAMajor.zip")),
+                                     trigger = trigger(mode = "condition", condition = FALSE)),
+    parcel_boundaries_prep_status = target(prepare_parcel_boundaries(path = file_out("extdata/source/parcel_SHP.zip")),
+                                           trigger = trigger(mode = "condition", condition = FALSE)),
+    parcel_data_prep_status = target(prepare_parcel_data(model_table, acs_tables, zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
+                                     trigger = trigger(mode = "condition", condition = FALSE)),
+    census_tracts_2016_prep_status = target(prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg")),
+                                            trigger = trigger(mode = "condition", condition = FALSE))
 
   )
 
   upload_plan <- drake::drake_plan(
     has_osf_access = check_osf_access(project_title = "Neighborhood Change Typology"),
-    acs_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access(),
+    acs_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                   project_id = "sj7n9",
                                                   file_id = "xhzv8",
                                                   path = file_in("extdata/source/acs-data.csv")),
-    kc_boundary_upload_status = osf_upload_or_update(has_osf_access = has_osf_access(),
+    kc_boundary_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                      project_id = "sj7n9",
                                                      file_id = "mzd5v",
                                                      path = file_in("extdata/source/kc-boundary.gpkg")),
-    white_center_place_upload_status = osf_upload_or_update(has_osf_access = has_osf_access(),
+    white_center_place_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                             project_id = "sj7n9",
                                                             file_id = "ctbqp",
                                                             path = file_in("extdata/source/white-center-place.gpkg")),
-    waterbodies_upload_status = osf_upload_or_update(has_osf_access = has_osf_access(),
+    waterbodies_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                      project_id = "sj7n9",
                                                      file_id = "gevkt",
                                                      path = file_in("extdata/source/ECY_WAT_NHDWAMajor.zip")),
-    parcel_boundaries_upload_status = osf_upload_or_update(has_osf_access = has_osf_access(),
+    parcel_boundaries_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                            project_id = "sj7n9",
                                                            file_id = "2ufmh",
                                                            path = file_in("extdata/source/parcel_SHP.zip")),
-    parcel_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access(),
+    parcel_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                      project_id = "sj7n9",
                                                      file_id = "t7b8v",
                                                      path = file_in("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
-    census_tracts_2016_upload_status = osf_upload_or_update(has_osf_access = has_osf_access(),
+    census_tracts_2016_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                             project_id = "sj7n9",
                                                             file_id = "cagvu",
                                                             path = file_in("extdata/source/census-tracts-2016.gpkg"))
@@ -112,7 +120,7 @@ get_data_source_plan <- function(){
 
   target_archive_plan <- drake::drake_plan(
     cpi_prep_status = prepare_cpi(path= file_out("extdata/source/cpi-2000-2018.csv")),
-    cpi_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access(),
+    cpi_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
                                                               project_id = "sj7n9",
                                                               file_id = "8y3cj",
                                                               path = file_in("extdata/source/cpi-2000-2018.csv")),
@@ -234,45 +242,46 @@ get_indicator_plan <- function(){
   )
 
   ind_plan <- drake::drake_plan(
-    housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
-                                                                   condo_unit_type_key,
-                                                                   single_family_criteria,
-                                                                   condo_criteria,
-                                                                   cpi,
-                                                                   parcel_value,
-                                                                   parcel_info_2005,
-                                                                   parcel_info_2010,
-                                                                   parcel_info_2018,
-                                                                   condo_info_2005,
-                                                                   condo_info_2010,
-                                                                   condo_info_2018),
-    housing_market_parcel_appr = make_housing_market_parcel_appr(housing_market_parcel_value),
-    housing_market_sales = make_housing_market_sales(parcel_sales,
-                                                     sales_lut_key_list,
-                                                     sales_criteria,
-                                                     present_use_key,
-                                                     single_family_criteria,
-                                                     condo_unit_type_key,
-                                                     condo_criteria,
-                                                     cpi,
-                                                     parcel_info_2005,
-                                                     parcel_info_2010,
-                                                     parcel_info_2018,
-                                                     condo_info_2005,
-                                                     condo_info_2010,
-                                                     condo_info_2018,
-                                                     res_bldg_2005,
-                                                     res_bldg_2010,
-                                                     res_bldg_2018),
-    housing_market_indicators = make_housing_market_indicators(census_tracts_2016,
-                                                               excluded_tract_geoids,
-                                                               parcel_boundaries,
-                                                               parcel_tract_overlay,
-                                                               housing_market_parcel_value,
-                                                               housing_market_parcel_appr),
-    acs_indicators = make_acs_indicators(acs_data, acs_tables),
-    vulnerability_indicators = make_vulnerability_indicators(acs_indicators),
-    demo_change_indicators = make_demo_change_indicators(acs_indicators)
+    # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
+    #                                                                condo_unit_type_key,
+    #                                                                single_family_criteria,
+    #                                                                condo_criteria,
+    #                                                                cpi,
+    #                                                                parcel_value,
+    #                                                                parcel_info_2005,
+    #                                                                parcel_info_2010,
+    #                                                                parcel_info_2018,
+    #                                                                condo_info_2005,
+    #                                                                condo_info_2010,
+    #                                                                condo_info_2018),
+    # housing_market_parcel_appr = make_housing_market_parcel_appr(housing_market_parcel_value),
+    # housing_market_sales = make_housing_market_sales(parcel_sales,
+    #                                                  sales_lut_key_list,
+    #                                                  sales_criteria,
+    #                                                  present_use_key,
+    #                                                  single_family_criteria,
+    #                                                  condo_unit_type_key,
+    #                                                  condo_criteria,
+    #                                                  cpi,
+    #                                                  parcel_info_2005,
+    #                                                  parcel_info_2010,
+    #                                                  parcel_info_2018,
+    #                                                  condo_info_2005,
+    #                                                  condo_info_2010,
+    #                                                  condo_info_2018,
+    #                                                  res_bldg_2005,
+    #                                                  res_bldg_2010,
+    #                                                  res_bldg_2018),
+    # housing_market_indicators = make_housing_market_indicators(census_tracts_2016,
+    #                                                            excluded_tract_geoids,
+    #                                                            parcel_boundaries,
+    #                                                            parcel_tract_overlay,
+    #                                                            housing_market_parcel_value,
+    #                                                            housing_market_parcel_appr),
+    acs_indicators_pct = make_acs_indicators_pct(acs_data, acs_tables),
+    # vulnerability_indicators = make_vulnerability_indicators(acs_indicators),
+    # demo_change_indicators = make_demo_change_indicators(acs_indicators),
+    tmp = c("placeholder")
   )
 
   indicator_plan <- drake::bind_plans(ind_prep_plan, ind_plan)

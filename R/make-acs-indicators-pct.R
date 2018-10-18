@@ -1,13 +1,19 @@
-#' Make The Census Data (ACS) Indicators
-#'
+#' @title Make The Census Data (ACS) Indicators
+#' @description Make the ACS Inidcators related to a _proportion_ of a population.
+#'   An example of the type of indicator included in this object might be
+#'   the percentage of renter households, while the median rent price would _not_ be included.
 #' @param acs_data desc
 #' @param acs_tables desc
 #'
 #' @return a `tibble`
 #' @export
-make_acs_indicators <- function(acs_data, acs_tables){
+make_acs_indicators_pct <- function(acs_data, acs_tables){
 
   # Join each acs variable its respective indicator
+
+  pct_indicators <- acs_tables %>%
+    dplyr::filter(MEASURE_TYPE %in% "PERCENT")
+
 
   all_vars <- tidycensus::load_variables(2016, "acs5", cache = TRUE) %>%
     dplyr::transmute(NAME = stringr::str_extract(name,".*(?=_\\d{3})"), # regex lookahead for '_001'
@@ -15,12 +21,13 @@ make_acs_indicators <- function(acs_data, acs_tables){
                      LABEL = label,
                      CONCEPT = concept)
 
-  indicator_vars <- dplyr::inner_join(acs_tables, all_vars, by = "NAME")
+  indicator_pct_vars <- pct_indicators %>%
+    dplyr::inner_join(all_vars, by = "NAME")
 
 
   # FIGURE OUT THE PROPORTION INDICATORS
 
-  race_vars_join <- indicator_vars %>%
+  race_vars_join <- indicator_pct_vars %>%
     dplyr::filter(INDICATOR %in% "RACE") %>%
     dplyr::transmute(INDICATOR,
               TOPIC,
@@ -34,7 +41,7 @@ make_acs_indicators <- function(acs_data, acs_tables){
               )
     )
 
-  ed_vars_join <- indicator_vars %>%
+  ed_vars_join <- indicator_pct_vars %>%
     dplyr::filter(INDICATOR %in% "EDUCATION") %>%
     dplyr::transmute(INDICATOR,
                      TOPIC,
@@ -50,7 +57,7 @@ make_acs_indicators <- function(acs_data, acs_tables){
 
                      ))
 
-  inc_vars_join <- indicator_vars %>%
+  inc_vars_join <- indicator_pct_vars %>%
     dplyr::filter(INDICATOR %in% "INCOME") %>%
     dplyr::transmute(INDICATOR,
                      TOPIC,
@@ -72,7 +79,7 @@ make_acs_indicators <- function(acs_data, acs_tables){
 
                      ))
 
-  tenure_vars_join <- indicator_vars %>%
+  tenure_vars_join <- indicator_pct_vars %>%
     dplyr::filter(INDICATOR %in% "TENURE") %>%
     dplyr::transmute(INDICATOR,
                      TOPIC,
@@ -85,7 +92,7 @@ make_acs_indicators <- function(acs_data, acs_tables){
                      ))
 
 
-  burden_own_vars_join <- indicator_vars %>%
+  burden_own_vars_join <- indicator_pct_vars %>%
     dplyr::filter(INDICATOR %in% "COST BURDEN") %>%
     dplyr::transmute(INDICATOR = "COST BURDEN OWN",
                      TOPIC,
@@ -98,7 +105,7 @@ make_acs_indicators <- function(acs_data, acs_tables){
 
                      ))
 
-  burden_rent_vars_join <- indicator_vars %>%
+  burden_rent_vars_join <- indicator_pct_vars %>%
     dplyr::filter(INDICATOR %in% "COST BURDEN") %>%
     dplyr::transmute(INDICATOR = "COST BURDEN RENT",
                      TOPIC,
@@ -140,22 +147,24 @@ make_acs_indicators <- function(acs_data, acs_tables){
     ) %>%
     dplyr::ungroup()
 
-  indicator_values_comparison <-
-    indicator_values %>%
-    dplyr::mutate(TYPE = dplyr::case_when(
-      GEOID %in% "53033" ~ "COUNTY",
-      TRUE ~ "TRACT"
-    )) %>%
-    tidyr::gather(VAL_TYPE, VALUE, tidyselect::matches("PROPORTION")) %>%
-    tidyr::unite(GEOG_VAL, TYPE:VAL_TYPE) %>%
-    tidyr::spread(GEOG_VAL, VALUE) %>%
-    dplyr::group_by(INDICATOR, ENDYEAR) %>%
-    dplyr::arrange(COUNTY_PROPORTION) %>%
-    tidyr::fill(matches("COUNTY")) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(GREATER_THAN_COUNTY = TRACT_PROPORTION >= COUNTY_PROPORTION)
+  # indicator_values_comparison <-
+  #   indicator_values %>%
+  #   dplyr::mutate(TYPE = dplyr::case_when(
+  #     GEOID %in% "53033" ~ "COUNTY",
+  #     TRUE ~ "TRACT"
+  #   )) %>%
+  #   tidyr::gather(VAL_TYPE, VALUE, tidyselect::matches("PROPORTION")) %>%
+  #   tidyr::unite(GEOG_VAL, TYPE:VAL_TYPE) %>%
+  #   tidyr::spread(GEOG_VAL, VALUE) %>%
+  #   dplyr::group_by(INDICATOR, ENDYEAR) %>%
+  #   dplyr::arrange(COUNTY_PROPORTION) %>%
+  #   tidyr::fill(matches("COUNTY")) %>%
+  #   dplyr::ungroup() %>%
+  #   dplyr::mutate(GREATER_THAN_COUNTY = TRACT_PROPORTION >= COUNTY_PROPORTION)
+  #
+  # acs_indicators <- indicator_values_comparison
 
-  acs_indicators <- indicator_values_comparison
+  acs_indicators <- indicator_values
 
   return(acs_indicators)
 
