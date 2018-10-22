@@ -24,11 +24,17 @@ prepare_acs_data <- function(model_table, acs_tables, path){
   data_key <- dplyr::inner_join(model_table, acs_tables, by = "INDICATOR") %>%
     dplyr::inner_join(all_census_vars, by = "NAME")
 
-  variables <- data_key %>% dplyr::pull(FULL_NAME)
+  variables <- data_key %>%
+    dplyr::pull(FULL_NAME) %>%
+    unique()
 
   geographies <- c("tract","county")
 
-  years <- data_key %>% dplyr::arrange(ENDYEAR) %>% dplyr::pull(ENDYEAR) %>% unique()
+  years <- data_key %>%
+    dplyr::filter(ENDYEAR >= 2010L) %>% # the tidycensus package only queries data from 2010 - present
+    dplyr::arrange(ENDYEAR) %>%
+    dplyr::pull(ENDYEAR) %>%
+    unique()
 
   get_data <- function(geographies, years){
     tidycensus::get_acs(geography = geographies,
