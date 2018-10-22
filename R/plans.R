@@ -71,6 +71,8 @@ get_data_source_plan <- function(){
     acs_tables = make_acs_tables(),
     acs_data_prep_status = target(command = prepare_acs_data(model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
+    hud_chas_data_prep_status = target(command = prepare_hud_chas_data(path = file_out("extdata/source/hud-chas-data.csv")),
+                                  trigger = trigger(mode = "condition", condition = FALSE)),
     ltdb_data_prep_status = target(command = prepare_ltdb_data(path = file_out("extdata/source/ltdb-data.csv")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
     kc_boundary_prep_status = target(prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
@@ -94,6 +96,10 @@ get_data_source_plan <- function(){
                                                   project_id = "sj7n9",
                                                   file_id = "xhzv8",
                                                   path = file_in("extdata/source/acs-data.csv")),
+    hud_chas_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                  project_id = "sj7n9",
+                                                  file_id = "7dp9m",
+                                                  path = file_in("extdata/source/hud-chas-data.csv")),
     ltdb_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                   project_id = "sj7n9",
                                                   file_id = "7xwga",
@@ -149,6 +155,8 @@ get_data_cache_plan <- function(){
   download_plan <- drake::drake_plan(
     acs_data_filepath = target(command = osf_download_files(id = "xhzv8", path = file_out("extdata/osf/acs-data.csv")),
                                trigger = trigger(change = get_osf_version("sj7n9","acs-data.csv"))),
+    hud_chas_data_filepath = target(command = osf_download_files(id = "7dp9m", path = file_out("extdata/osf/hud-chas-data.csv")),
+                               trigger = trigger(change = get_osf_version("sj7n9","hud-chas-data.csv"))),
     ltdb_data_filepath = target(command = osf_download_files(id = "7xwga", path = file_out("extdata/osf/ltdb-data.csv")),
                                trigger = trigger(change = get_osf_version("sj7n9","ltdb-data.csv"))),
     kc_boundary_filepath = target(command = osf_download_files(id = "mzd5v", path = file_out("extdata/osf/kc-boundary.gpkg")),
@@ -169,6 +177,8 @@ get_data_cache_plan <- function(){
 
   ready_plan <- drake::drake_plan(
     acs_data = make_acs_data(path = file_in("extdata/osf/acs-data.csv")),
+    hud_chas_data = make_hud_chas_data(path = file_in("extdata/osf/hud-chas-data.csv")),
+    ltdb_data = make_ltdb_data(path = file_in("extdata/osf/ltdb-data.csv")),
     kc_boundary = make_kc_boundary(path = file_in("extdata/osf/kc-boundary.gpkg")),
     white_center_place = make_white_center_place(path = file_in("extdata/osf/white-center-place.gpkg")),
     waterbodies = make_waterbodies(path = file_in("extdata/osf/ECY_WAT_NHDWAMajor.zip")),
