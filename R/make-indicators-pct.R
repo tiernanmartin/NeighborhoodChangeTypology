@@ -3,11 +3,16 @@
 #'   An example of the type of indicator included in this object might be
 #'   the percentage of renter households, while the median rent price would _not_ be included.
 #' @param acs_data desc
+#' @param hud_chas_data desc
 #' @param acs_tables desc
 #'
 #' @return a `tibble`
 #' @export
-make_acs_indicators_pct <- function(acs_data, acs_tables){
+make_indicators_pct <- function(acs_data, hud_chas_data, acs_tables){
+
+
+
+# PREPARE ACS DATA --------------------------------------------------------
 
   # Join each acs variable its respective indicator
 
@@ -124,7 +129,7 @@ make_acs_indicators_pct <- function(acs_data, acs_tables){
 
                      ))
 
-  vars_join <- list(race_vars_join,
+  acs_vars_join <- list(race_vars_join,
                     ed_vars_join,
                     inc_vars_join,
                     tenure_vars_join,
@@ -133,8 +138,17 @@ make_acs_indicators_pct <- function(acs_data, acs_tables){
     purrr::reduce(dplyr::bind_rows)
 
 
-  indicator_values <- acs_data %>%
-    dplyr::inner_join(vars_join,  by = "VARIABLE") %>%   # this will filter out non-pct variables like RENT
+# JOIN DATA ---------------------------------------------------------------
+
+
+  pct_vars_join_all <- acs_data %>%
+    dplyr::inner_join(acs_vars_join,  by = "VARIABLE") %>%   # this will filter out non-pct variables like RENT
+    dplyr::bind_rows(hud_chas_data)
+
+
+# CALCULATE % -------------------------------------------------------------
+
+  indicator_values <- pct_vars_join_all %>%
     dplyr::group_by(GEOID, ENDYEAR, INDICATOR, SOURCE, ROLE) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
                      MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
@@ -173,25 +187,25 @@ make_acs_indicators_pct <- function(acs_data, acs_tables){
   #
   # acs_indicators <- indicator_values_comparison
 
-  acs_indicators <- indicator_values
+  indicators_pct <- indicator_values
 
-  return(acs_indicators)
+  return(indicators_pct)
 
 }
 
-#' @export
-show_hist_facet_acs_indicators_pct <- function(){
+show_hist_facet_indicators_pct <- function(){
 
-  if(!exists("acs_indicators_pct")){stop("'acs_indicators_pct' doesn't exist\nTry loading it with 'loadd(acs_indicators_pct)'.")}
+  if(!exists("indicators_pct")){stop("'indicators_pct' doesn't exist\nTry loading it with 'loadd(indicators_pct)'.")}
 
-  acs_indicators_pct %>%
+  indicators_pct %>%
+      dplyr::mutate(INDICATOR = glue::glue("{INDICATOR} ({SOURCE})")) %>%
       dplyr::group_by(ENDYEAR, INDICATOR) %>%
-      dplyr::mutate(MEDIAN = median(ROLE,na.rm = TRUE)) %>%
+      dplyr::mutate(MEDIAN = median(PROPORTION,na.rm = TRUE)) %>%
       dplyr::ungroup() %>%
-      ggplot2::ggplot(ggplot2::aes(x = ROLE)) +
+      ggplot2::ggplot(ggplot2::aes(x = PROPORTION)) +
       ggplot2::scale_x_continuous(labels = scales::percent) +
       ggplot2::geom_histogram() +
-      ggplot2::geom_vline(aes(xintercept=MEDIAN), size=0.5, color = "red") +
+      ggplot2::geom_vline(ggplot2::aes(xintercept=MEDIAN), size=0.5, color = "red") +
       ggplot2::facet_grid(ENDYEAR ~ INDICATOR)
 
 }

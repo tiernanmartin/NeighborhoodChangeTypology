@@ -44,7 +44,7 @@ prepare_hud_chas_data <- function(path){
                      ))
 
 
-  # PREPARE CHAS DATA -------------------------------------------------------
+  # LOAD CHAS DATA -------------------------------------------------------
 
   county_2006_2010_fp <- "extdata/source/2006thru2010-050-csv/Table7.csv"
 
@@ -54,44 +54,76 @@ prepare_hud_chas_data <- function(path){
 
   tr_2011_2015_fp <- "extdata/source/2011thru2015-140-csv/140/Table7.csv"
 
-  fp_list <- list(county_2006_2010_fp,
-                  tr_2006_2010_fp,
-                  county_2011_2015_fp,
-                  tr_2011_2015_fp)
-
-  endyear_list <- c(2010L,2010L,2015L,2015L)
-
-  read_chas_csv <- function(x, endyear){
+  read_chas_csv <- function(x){
 
     # this function resolves column type inconsistencies between the data sets
     # 'T7_est1' is the pattern for the columns with count estimates
 
     readr::read_csv(x) %>%
       janitor::clean_names("screaming_snake") %>%
-      dplyr::mutate_at(dplyr::vars(-matches("T7")),as.character) %>%
-      dplyr::mutate(ENDYEAR = endyear)
-  }
+      dplyr::mutate_at(dplyr::vars(-matches("T7")),as.character)
+}
 
 
-  hud_chas_table7_all <- purrr::map2_dfr(fp_list, endyear_list, read_chas_csv) %>%
-    dplyr::filter(ST %in% "53" & CNTY %in% "033") %>% # these correspond with WA and King County
-    dplyr::select(ENDYEAR, GEOID, NAME, dplyr::matches("T7")) %>%
-    tidyr::gather(VAR, VALUE, dplyr::matches("T7"))  %>%
-    dplyr::transmute(GEOID = stringr::str_extract(GEOID, "(?<=US).*"),
-                     ENDYEAR,
-                     VALUE,
-                     TYPE = dplyr::case_when(
+county_2006_2010 <- read_chas_csv(county_2006_2010_fp) %>%
+  dplyr::mutate(ENDYEAR = 2010L,
+         ST =  stringr::str_extract(GEOID,"(?<=US).{2}"),
+         CNTY = stringr::str_extract(GEOID,"(?<=US.{2}).{3}")) %>%
+  dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
+  dplyr::select(ENDYEAR, GEOID, dplyr::matches("T7"))
+
+tr_2006_2010 <- read_chas_csv(tr_2006_2010_fp) %>%
+  dplyr::mutate(ENDYEAR = 2010L,
+         ST =  stringr::str_extract(GEOID,"(?<=US).{2}"),
+         CNTY = stringr::str_extract(GEOID,"(?<=US.{2}).{3}"),
+         GEOID = stringr::str_c(stringr::str_extract(GEOID,"^.{12}"),stringr::str_extract(GEOID,".{6}$"))) %>%
+  dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
+  dplyr::select(ENDYEAR, GEOID, dplyr::matches("T7"))
+
+county_2011_2015 <- read_chas_csv(county_2011_2015_fp) %>%
+  dplyr::mutate(ENDYEAR = 2015L) %>%
+  dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
+  dplyr::select(ENDYEAR, GEOID, dplyr::matches("T7"))
+
+tr_2011_2015 <- read_chas_csv(tr_2011_2015_fp) %>%
+  dplyr::mutate(ENDYEAR = 2015L) %>%
+  dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
+  dplyr::select(ENDYEAR, GEOID, dplyr::matches("T7"))
+
+
+
+# COMBINE CHAS DATA -------------------------------------------------------
+
+hud_chas_table7_all <- list(county_2006_2010, tr_2006_2010, county_2011_2015, tr_2011_2015) %>%
+  purrr::reduce(dplyr::bind_rows)
+
+hud_chas_table7_all_long <- hud_chas_table7_all %>%
+  dplyr::mutate(GEOID = dplyr::case_when(  # remove the unnecessary digits from GEOID
+    nchar(GEOID) == 12 ~ stringr::str_extract(GEOID,".{5}$"),
+    nchar(GEOID) == 18 ~ stringr::str_extract(GEOID,".{11}$"),
+    TRUE ~ NA_character_
+  )) %>%
+  tidyr::gather(VAR, VALUE, dplyr::matches("T7")) %>%
+  dplyr::mutate(VARIABLE = stringr::str_c("T7_",stringr::str_pad(stringr::str_extract(VAR,'\\d{1,3}$'),width = 3,side = 'left', pad = '0'),sep = ""),
+                TYPE = dplyr::case_when(
                        stringr::str_detect(VAR,"EST") ~ "ESTIMATE",
                        stringr::str_detect(VAR, "MOE") ~ "MOE",
-                       TRUE ~ NA_character_
-                     ),
-                     VARIABLE = stringr::str_c("T7_",stringr::str_pad(stringr::str_extract(VAR,'\\d{1,3}$'),width = 3,side = 'left', pad = '0'),sep = "")) %>%
-    tidyr::spread(TYPE, VALUE)
+                       TRUE ~ NA_character_)
+  ) %>%
+  dplyr::group_by(ENDYEAR, GEOID, VARIABLE, TYPE) %>%
+  dplyr::mutate(N = dplyr::row_number()) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(-VAR) %>%
+  tidyr::spread(TYPE, VALUE) %>%
+  dplyr::group_by(ENDYEAR, GEOID, VARIABLE) %>%
+  dplyr::summarize(ESTIMATE = sum(ESTIMATE, na.rm =  TRUE),
+            MOE = tidycensus::moe_sum(MOE,ESTIMATE, na.rm = TRUE)) %>%
+  dplyr::ungroup()
 
 
   # FILTER CHAS DATA --------------------------------------------------------
 
-  hud_chas_low_income <- hud_chas_table7_all %>%
+  hud_chas_low_income <- hud_chas_table7_all_long %>%
     dplyr::left_join(dictionary_filter, by = "VARIABLE") %>%
     dplyr::filter(ROLE %in% c("DENOMINATOR","NUMERATOR"))
 
