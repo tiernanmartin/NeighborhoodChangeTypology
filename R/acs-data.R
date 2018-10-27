@@ -13,7 +13,7 @@
 prepare_acs_data <- function(model_table, acs_tables, path){
 
 
-# GET DATA ----------------------------------------------------------------
+  # GET DATA ----------------------------------------------------------------
 
   all_census_vars <- tidycensus::load_variables(2016, "acs5", cache = TRUE) %>%
     dplyr::transmute(NAME = stringr::str_extract(name,".*(?=_\\d{3})"), # regex lookahead for '_001'
@@ -24,10 +24,6 @@ prepare_acs_data <- function(model_table, acs_tables, path){
   data_key <- dplyr::inner_join(model_table, acs_tables, by = "INDICATOR") %>%
     dplyr::inner_join(all_census_vars, by = "NAME")
 
-  variables <- data_key %>%
-    dplyr::pull(FULL_NAME) %>%
-    unique()
-
   geographies <- c("tract","county")
 
   years <- data_key %>%
@@ -36,31 +32,51 @@ prepare_acs_data <- function(model_table, acs_tables, path){
     dplyr::pull(ENDYEAR) %>%
     unique()
 
+  variables_types <- data_key %>%
+    dplyr::select(FULL_NAME, MEASURE_TYPE = MEASURE_TYPE.x) %>%
+    dplyr::distinct()
+
   get_data <- function(geographies, years){
     tidycensus::get_acs(geography = geographies,
-                        variables = variables,
+                        variables = variables_types$FULL_NAME,
                         year = years,
                         state = "53",
                         county = "033",
                         survey = "acs5") %>%
-      dplyr::mutate(ENDYEAR = years)
+      janitor::clean_names(case = "screaming_snake") %>%
+      dplyr::left_join(variables_types, by = c(VARIABLE = "FULL_NAME")) %>% # join the MEASURE_TYPE column
+      dplyr::mutate(MEASURE_TYPE = dplyr::case_when(
+        MEASURE_TYPE %in% "PERCENT" ~ "count",  # the count variables will be transformed into percent variables in the model
+        MEASURE_TYPE %in% "VALUE" ~ "value",
+        TRUE ~ NA_character_
+      )) %>%
+      dplyr::transmute(GEOID,
+                       NAME,
+                       GEOGRAPHY = geographies,
+                       ENDYEAR = years,
+                       VARIABLE,
+                       MEASURE_TYPE,
+                       ESTIMATE,
+                       MOE
+      )
+
   }
 
   acs_data_prep <- list(geographies = geographies,
-                   years = years) %>%
+                        years = years) %>%
     purrr::cross_df() %>%
-    purrr::pmap_dfr(get_data) %>%
-    janitor::clean_names(case = "screaming_snake")
+    purrr::pmap_dfr(get_data)
 
 
 
-# WRITE DATA --------------------------------------------------------------
 
-   readr::write_csv(x = acs_data_prep, path = path)
+  # WRITE DATA --------------------------------------------------------------
 
-# RETURN ------------------------------------------------------------------
+  readr::write_csv(x = acs_data_prep, path = path)
 
-   acs_data_prep_status <- NeighborhoodChangeTypology::get_modified_time(path)
+  # RETURN ------------------------------------------------------------------
+
+  acs_data_prep_status <- NeighborhoodChangeTypology::get_modified_time(path)
 
   return(acs_data_prep_status)
 
