@@ -71,7 +71,7 @@ get_data_source_plan <- function(){
     acs_tables = make_acs_tables(),
     acs_data_prep_status = target(command = prepare_acs_data(model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
-    hud_chas_data_prep_status = target(command = prepare_hud_chas_data(path = file_out("extdata/source/hud-chas-data.csv")),
+    hud_chas_data_prep_status = target(command = prepare_hud_chas_data(zip_path = file_out("extdata/source/hud-chas-data.zip")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
     ltdb_data_prep_status = target(command = prepare_ltdb_data(path = file_out("extdata/source/ltdb-data.csv")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
@@ -96,10 +96,11 @@ get_data_source_plan <- function(){
                                                   project_id = "sj7n9",
                                                   file_id = "xhzv8",
                                                   path = file_in("extdata/source/acs-data.csv")),
-    hud_chas_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+    hud_chas_data_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
                                                   project_id = "sj7n9",
-                                                  file_id = "7dp9m",
-                                                  path = file_in("extdata/source/hud-chas-data.csv")),
+                                                  file_id = "rc8wk",
+                                                  path = file_in("extdata/source/hud-chas-data.zip")),
+                                         trigger = trigger(command = FALSE)),
     ltdb_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
                                                   project_id = "sj7n9",
                                                   file_id = "7xwga",
@@ -260,6 +261,7 @@ get_indicator_plan <- function(){
   )
 
   ind_plan <- drake::drake_plan(
+    indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
     # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
     #                                                                condo_unit_type_key,
     #                                                                single_family_criteria,
@@ -296,7 +298,6 @@ get_indicator_plan <- function(){
     #                                                            parcel_tract_overlay,
     #                                                            housing_market_parcel_value,
     #                                                            housing_market_parcel_appr),
-    acs_indicators_pct = make_acs_indicators_pct(acs_data, acs_tables),
     # vulnerability_indicators = make_vulnerability_indicators(acs_indicators),
     # demo_change_indicators = make_demo_change_indicators(acs_indicators),
     tmp = c("placeholder")
