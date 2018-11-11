@@ -1,36 +1,37 @@
-# PRELIMINARY MODEL PLAN --------------------------------------------------------------
-#' @title Get the Prelininary Model Plan
+# PROJECT TEMPLATES PLAN --------------------------------------------------------------
+#' @title Get the Project Templates Plan
 #' @description Use \code{\link[drake]{drake_plan}} to create the project's
-#'   model plan.
+#'   templates plan.
 #' @return a `drake` plan
 #' @examples
 #'
 #' # Print one of the external data plans
 #'
-#' get_preliminary_model_plan()
+#' get_templates_plan()
 #'
 #'
 #' # Make the plan, load a target, print the target
 #'
 #' \dontrun{
 #'
-#' make(get_preliminary_model_plan())
+#' make(get_templates_plan())
 #'
-#' readd(model_table)
+#' readd(preliminary_model_plan)
 #'
 #' }
 
 #' @export
-get_preliminary_model_plan <- function(){
+get_templates_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  preliminary_model_plan <- drake::drake_plan(
-    model_table = make_model_table()
+  templates_plan <- drake::drake_plan(
+    model_table = make_model_table(),
+    indicator_template = make_indicator_template()
 
   )
 
-  return(preliminary_model_plan)
+  return(templates_plan)
 
 }
 
@@ -72,9 +73,9 @@ get_data_source_plan <- function(){
     acs_data_prep_status = target(command = prepare_acs_data(model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
     hud_chas_data_prep_status = target(command = prepare_hud_chas_data(zip_path = file_out("extdata/source/hud-chas-data.zip")),
-                                  trigger = trigger(mode = "condition", condition = FALSE)),
+                                       trigger = trigger(mode = "condition", condition = FALSE)),
     ltdb_data_prep_status = target(command = prepare_ltdb_data(path = file_out("extdata/source/ltdb-data.csv")),
-                                  trigger = trigger(mode = "condition", condition = FALSE)),
+                                   trigger = trigger(mode = "condition", condition = FALSE)),
     kc_boundary_prep_status = target(prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
                                      trigger = trigger(mode = "condition", condition = FALSE)),
     white_center_place_prep_status = target(prepare_white_center_place(path = file_out("extdata/source/white-center-place.gpkg")),
@@ -92,43 +93,51 @@ get_data_source_plan <- function(){
 
   upload_plan <- drake::drake_plan(
     has_osf_access = check_osf_access(project_title = "Neighborhood Change Typology"),
-    acs_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                  project_id = "sj7n9",
-                                                  file_id = "xhzv8",
-                                                  path = file_in("extdata/source/acs-data.csv")),
+    acs_data_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
+                                                         project_id = "sj7n9",
+                                                         file_id = "xhzv8",
+                                                         path = file_in("extdata/source/acs-data.csv")),
+                                    trigger = trigger(command = FALSE)),
     hud_chas_data_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                  project_id = "sj7n9",
-                                                  file_id = "rc8wk",
-                                                  path = file_in("extdata/source/hud-chas-data.zip")),
+                                                                        project_id = "sj7n9",
+                                                                        file_id = "rc8wk",
+                                                                        path = file_in("extdata/source/hud-chas-data.zip")),
                                          trigger = trigger(command = FALSE)),
-    ltdb_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                  project_id = "sj7n9",
-                                                  file_id = "7xwga",
-                                                  path = file_in("extdata/source/ltdb-data.csv")),
-    kc_boundary_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                     project_id = "sj7n9",
-                                                     file_id = "mzd5v",
-                                                     path = file_in("extdata/source/kc-boundary.gpkg")),
-    white_center_place_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+    ltdb_data_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
+                                                          project_id = "sj7n9",
+                                                          file_id = "7xwga",
+                                                          path = file_in("extdata/source/ltdb-data.csv")),
+                                     trigger = trigger(command = FALSE)),
+    kc_boundary_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                             project_id = "sj7n9",
-                                                            file_id = "ctbqp",
-                                                            path = file_in("extdata/source/white-center-place.gpkg")),
-    waterbodies_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                     project_id = "sj7n9",
-                                                     file_id = "gevkt",
-                                                     path = file_in("extdata/source/ECY_WAT_NHDWAMajor.zip")),
-    parcel_boundaries_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                           project_id = "sj7n9",
-                                                           file_id = "2ufmh",
-                                                           path = file_in("extdata/source/parcel_SHP.zip")),
-    parcel_data_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                     project_id = "sj7n9",
-                                                     file_id = "t7b8v",
-                                                     path = file_in("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
-    census_tracts_2016_upload_status = osf_upload_or_update(has_osf_access = has_osf_access,
+                                                            file_id = "mzd5v",
+                                                            path = file_in("extdata/source/kc-boundary.gpkg")),
+                                       trigger = trigger(command = FALSE)),
+    white_center_place_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
+                                                                   project_id = "sj7n9",
+                                                                   file_id = "ctbqp",
+                                                                   path = file_in("extdata/source/white-center-place.gpkg")),
+                                              trigger = trigger(command = FALSE)),
+    waterbodies_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                             project_id = "sj7n9",
-                                                            file_id = "cagvu",
-                                                            path = file_in("extdata/source/census-tracts-2016.gpkg"))
+                                                            file_id = "gevkt",
+                                                            path = file_in("extdata/source/ECY_WAT_NHDWAMajor.zip")),
+                                       trigger = trigger(command = FALSE)),
+    parcel_boundaries_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
+                                                                  project_id = "sj7n9",
+                                                                  file_id = "2ufmh",
+                                                                  path = file_in("extdata/source/parcel_SHP.zip")),
+                                             trigger = trigger(command = FALSE)),
+    parcel_data_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
+                                                            project_id = "sj7n9",
+                                                            file_id = "t7b8v",
+                                                            path = file_in("extdata/source/kc-assessor-parcels-2005-2010-2018.zip")),
+                                       trigger = trigger(command = FALSE)),
+    census_tracts_2016_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
+                                                                   project_id = "sj7n9",
+                                                                   file_id = "cagvu",
+                                                                   path = file_in("extdata/source/census-tracts-2016.gpkg")),
+                                              trigger = trigger(command = FALSE))
   )
 
   target_archive_plan <- drake::drake_plan(
@@ -156,10 +165,10 @@ get_data_cache_plan <- function(){
   download_plan <- drake::drake_plan(
     acs_data_filepath = target(command = osf_download_files(id = "xhzv8", path = file_out("extdata/osf/acs-data.csv")),
                                trigger = trigger(change = get_osf_version("sj7n9","acs-data.csv"))),
-    hud_chas_data_filepath = target(command = osf_download_files(id = "7dp9m", path = file_out("extdata/osf/hud-chas-data.csv")),
-                               trigger = trigger(change = get_osf_version("sj7n9","hud-chas-data.csv"))),
+    hud_chas_data_filepath = target(command = osf_download_files(id = "rc8wk", path = file_out("extdata/osf/hud-chas-data.zip")),
+                                    trigger = trigger(change = get_osf_version("sj7n9","hud-chas-data.zip"))),
     ltdb_data_filepath = target(command = osf_download_files(id = "7xwga", path = file_out("extdata/osf/ltdb-data.csv")),
-                               trigger = trigger(change = get_osf_version("sj7n9","ltdb-data.csv"))),
+                                trigger = trigger(change = get_osf_version("sj7n9","ltdb-data.csv"))),
     kc_boundary_filepath = target(command = osf_download_files(id = "mzd5v", path = file_out("extdata/osf/kc-boundary.gpkg")),
                                   trigger = trigger(change = get_osf_version("sj7n9", "kc-boundary.gpkg"))),
     white_center_place_filepath = target(command = osf_download_files(id = "ctbqp", path = file_out("extdata/osf/kc-boundary.gpkg")),
@@ -178,7 +187,8 @@ get_data_cache_plan <- function(){
 
   ready_plan <- drake::drake_plan(
     acs_data = make_acs_data(path = file_in("extdata/osf/acs-data.csv")),
-    hud_chas_data = make_hud_chas_data(path = file_in("extdata/osf/hud-chas-data.csv")),
+    hud_chas_data = make_hud_chas_data(zip_path = file_in("extdata/osf/hud-chas-data.zip"),
+                                       file_path = file_out("extdata/osf/hud-chas-data.csv")),
     ltdb_data = make_ltdb_data(path = file_in("extdata/osf/ltdb-data.csv")),
     kc_boundary = make_kc_boundary(path = file_in("extdata/osf/kc-boundary.gpkg")),
     white_center_place = make_white_center_place(path = file_in("extdata/osf/white-center-place.gpkg")),
@@ -261,7 +271,8 @@ get_indicator_plan <- function(){
   )
 
   ind_plan <- drake::drake_plan(
-    indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
+    # indicators_cnt = make_indicators_cnt(acs_data, hud_chas_data, acs_tables),
+    # indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
     # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
     #                                                                condo_unit_type_key,
     #                                                                single_family_criteria,
@@ -380,7 +391,7 @@ get_workflow_plan <- function(){
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
   workflow_plan <- drake::bind_plans(
-    get_preliminary_model_plan(),
+    get_templates_plan(),
     get_data_source_plan(),
     get_data_cache_plan(),
     get_indicator_plan()
@@ -388,4 +399,4 @@ get_workflow_plan <- function(){
 
   return(workflow_plan)
 
-  }
+}
