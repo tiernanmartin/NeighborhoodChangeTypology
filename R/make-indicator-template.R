@@ -5,7 +5,8 @@
 #' @export
 make_indicator_template <- function(){
 
-indicator_template <- tibble::tibble(GEOGRAPHY_ID = NA_character_,
+indicator_template <- tibble::tibble(SOURCE = NA_character_,
+                                     GEOGRAPHY_ID = NA_character_,
                          GEOGRAPHY_ID_TYPE = NA_character_,
                             GEOGRAPHY_NAME = NA_character_,
                             GEOGRAPHY_TYPE = NA_character_,
@@ -14,7 +15,7 @@ indicator_template <- tibble::tibble(GEOGRAPHY_ID = NA_character_,
                               MEASURE_TYPE = NA_character_,
                                   ESTIMATE = NA_real_,
                                        MOE = NA_real_
-                      )
+                      ) %>% dplyr::slice(0)
 
 return(indicator_template)
 

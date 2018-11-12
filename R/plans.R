@@ -70,7 +70,7 @@ get_data_source_plan <- function(){
 
   prep_plan <- drake::drake_plan(
     acs_tables = make_acs_tables(),
-    acs_data_prep_status = target(command = prepare_acs_data(model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
+    acs_data_prep_status = target(command = prepare_acs_data(indicator_template, model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
     hud_chas_data_prep_status = target(command = prepare_hud_chas_data(zip_path = file_out("extdata/source/hud-chas-data.zip")),
                                        trigger = trigger(mode = "condition", condition = FALSE)),

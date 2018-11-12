@@ -3,6 +3,7 @@
 #' @description Return a `tibble` of all of the American Community Survey data variables
 #'   that are used in the Neighborhood Change Typology model for both 5-year spans
 #'   (2006-2010 and 2012-2016).
+#' @param indicator_template Tibble, the `indicator_template` object
 #' @param model_table Tibble, the `model_table` object
 #' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
@@ -10,19 +11,21 @@
 
 #' @rdname acs-data
 #' @export
-prepare_acs_data <- function(model_table, acs_tables, path){
+prepare_acs_data <- function(indicator_template, model_table, acs_tables, path){
 
 
   # GET DATA ----------------------------------------------------------------
 
   all_census_vars <- tidycensus::load_variables(2016, "acs5", cache = TRUE) %>%
-    dplyr::transmute(NAME = stringr::str_extract(name,".*(?=_\\d{3})"), # regex lookahead for '_001'
-                     FULL_NAME = name,
+    dplyr::transmute(VARIABLE = stringr::str_extract(name,".*(?=_\\d{3})"), # regex lookahead for '_001'
+                     VARIABLE_SUBTOTAL = name,
                      LABEL = label,
                      TOPIC = concept)
 
-  data_key <- dplyr::inner_join(model_table, acs_tables, by = "INDICATOR") %>%
-    dplyr::inner_join(all_census_vars, by = "NAME")
+  data_key <- model_table %>%
+    dplyr::select(MODEL, TOPIC, -MEASURE_TYPE, INDICATOR, SOURCE, ENDYEAR) %>%
+    dplyr::inner_join(dplyr::select(acs_tables,-TOPIC), by = "INDICATOR") %>%
+    dplyr::inner_join(all_census_vars, by = "VARIABLE")
 
   geographies <- c("tract","county")
 
@@ -33,32 +36,45 @@ prepare_acs_data <- function(model_table, acs_tables, path){
     unique()
 
   variables_types <- data_key %>%
-    dplyr::select(FULL_NAME, MEASURE_TYPE = MEASURE_TYPE.x) %>%
+    dplyr::select(VARIABLE_SUBTOTAL, MEASURE_TYPE) %>%
     dplyr::distinct()
 
   get_data <- function(geographies, years){
-    tidycensus::get_acs(geography = geographies,
-                        variables = variables_types$FULL_NAME,
-                        year = years,
-                        state = "53",
-                        county = "033",
-                        survey = "acs5") %>%
+
+    acs_data_download <- tidycensus::get_acs(geography = geographies,
+                                             variables = variables_types$VARIABLE_SUBTOTAL,
+                                             year = years,
+                                             state = "53",
+                                             county = "033",
+                                             survey = "acs5") %>%
       janitor::clean_names(case = "screaming_snake") %>%
-      dplyr::left_join(variables_types, by = c(VARIABLE = "FULL_NAME")) %>% # join the MEASURE_TYPE column
-      dplyr::mutate(MEASURE_TYPE = dplyr::case_when(
-        MEASURE_TYPE %in% "PERCENT" ~ "count",  # the count variables will be transformed into percent variables in the model
-        MEASURE_TYPE %in% "VALUE" ~ "value",
-        TRUE ~ NA_character_
-      )) %>%
-      dplyr::transmute(GEOID,
-                       NAME,
-                       GEOGRAPHY = geographies,
+      dplyr::rename(VARIABLE_SUBTOTAL = VARIABLE) %>% # VARIABLE is reserved for the ACS table name (e.g., B03002)
+      dplyr::left_join(variables_types, by = "VARIABLE_SUBTOTAL")
+
+
+    # Use `full_join()` to transform the acs data to the
+    # column format in `indicator_template`
+    acs_data_formatted <- indicator_template %>%
+      dplyr::full_join(acs_data_download,
+                       c(GEOGRAPHY_ID = "GEOID",
+                         GEOGRAPHY_NAME = "NAME",
+                         "MEASURE_TYPE",
+                         "ESTIMATE",
+                         "MOE")) %>%
+      dplyr::transmute(SOURCE = "ACS",
+                       GEOGRAPHY_ID,
+                       GEOGRAPHY_ID_TYPE = "GEOID",
+                       GEOGRAPHY_NAME,
+                       GEOGRAPHY_TYPE = geographies,
                        ENDYEAR = years,
-                       VARIABLE,
+                       VARIABLE = stringr::str_extract(VARIABLE_SUBTOTAL,".*(?=_\\d{3})"),
+                       VARIABLE_SUBTOTAL,
                        MEASURE_TYPE,
                        ESTIMATE,
                        MOE
       )
+
+    return(acs_data_formatted)
 
   }
 
@@ -88,7 +104,7 @@ prepare_acs_data <- function(model_table, acs_tables, path){
 make_acs_data <- function(path){
 
   acs_data <- suppressWarnings(suppressMessages(readr::read_csv(path))) %>%
-    dplyr::mutate(GEOID = as.character(GEOID))
+    dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID))
 
   return(acs_data)
 

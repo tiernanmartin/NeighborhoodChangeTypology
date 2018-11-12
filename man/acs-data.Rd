@@ -18,7 +18,7 @@
 \alias{make_res_bldg_2005}
 \title{Make A Tibble of The Project's ACS Variables}
 \usage{
-prepare_acs_data(model_table, acs_tables, path)
+prepare_acs_data(indicator_template, model_table, acs_tables, path)
 
 make_acs_data(path)
 
@@ -49,6 +49,8 @@ make_res_bldg_2010(zip_path, file_path)
 make_res_bldg_2005(zip_path, file_path)
 }
 \arguments{
+\item{indicator_template}{Tibble, the \code{indicator_template} object}
+
 \item{model_table}{Tibble, the \code{model_table} object}
 
 \item{acs_tables}{Tibble, the \code{acs_table} object}
