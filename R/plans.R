@@ -187,8 +187,11 @@ get_data_cache_plan <- function(){
 
   ready_plan <- drake::drake_plan(
     acs_data = make_acs_data(path = file_in("extdata/osf/acs-data.csv")),
-    hud_chas_data = make_hud_chas_data(zip_path = file_in("extdata/osf/hud-chas-data.zip"),
+    hud_chas_data = make_hud_chas_data(indicator_template,
+                                       zip_path = file_in("extdata/osf/hud-chas-data.zip"),
                                        file_path = file_out("extdata/osf/hud-chas-data.csv")),
+    hud_chas_data_lut = make_hud_chas_data_lut(zip_path = file_in("extdata/osf/hud-chas-data.zip"),
+                                               file_path = file_out("extdata/osf/hud-chas-data/hud-chas-datadictionary-table7.csv")),
     ltdb_data = make_ltdb_data(path = file_in("extdata/osf/ltdb-data.csv")),
     kc_boundary = make_kc_boundary(path = file_in("extdata/osf/kc-boundary.gpkg")),
     white_center_place = make_white_center_place(path = file_in("extdata/osf/white-center-place.gpkg")),
