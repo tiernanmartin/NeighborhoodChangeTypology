@@ -3,13 +3,14 @@
 #' @description Return a `tibble` of all of the US Census data variables
 #'   that are obtained from the Brown University Longitudinal Tract Database (LTDB).
 #' @param indicator_template Tibble, the `indicator_template` object
+#' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
 #' @return a `tibble`
 #' @note Data source: \link{https://s4.ad.brown.edu/projects/diversity/Researcher/LTBDDload/DataList.aspx}
 
 #' @rdname ltdb-data
 #' @export
-prepare_ltdb_data <- function(indicator_template, path){
+prepare_ltdb_data <- function(indicator_template, acs_tables, path){
 
 
   # GET DATA ----------------------------------------------------------------
@@ -26,11 +27,17 @@ prepare_ltdb_data <- function(indicator_template, path){
   tract_2000_raw <- readr::read_csv(tr_2000_fp, col_types = tr_2000_coltypes) %>%
     janitor::clean_names("screaming_snake")
 
+  # get the ACS code for the VALUE variable ("B25077")
+  acs_variables_value <- acs_tables %>%
+    dplyr::filter(INDICATOR %in% "VALUE") %>%
+    dplyr::pull(VARIABLE)
+
+
   tract_2000 <- tract_2000_raw %>%
     dplyr::filter(STATE %in% "WA" & COUNTY %in% "King County") %>%
     dplyr::transmute(GEOGRAPHY_ID = TRTID10,
                      NAME = TRACT,
-                     VARIABLE = "B25077",
+                     VARIABLE = acs_variables_value,
                      ESTIMATE = as.integer(MHMVAL00),
                      MOE = NA_real_,
                      ENDYEAR = 2000L
@@ -72,7 +79,7 @@ prepare_ltdb_data <- function(indicator_template, path){
 }
 
 
-#' @rdname hud-chas-data
+#' @rdname ltdb-data
 #' @export
 make_ltdb_data <- function(path){
 
