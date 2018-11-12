@@ -205,7 +205,8 @@ make_hud_chas_data <- function(indicator_template, zip_path, file_path){
 
 }
 
-
+#' @rdname hud-chas-data
+#' @export
 make_hud_chas_data_lut <- function(zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
