@@ -74,7 +74,7 @@ get_data_source_plan <- function(){
                                   trigger = trigger(mode = "condition", condition = FALSE)),
     hud_chas_data_prep_status = target(command = prepare_hud_chas_data(zip_path = file_out("extdata/source/hud-chas-data.zip")),
                                        trigger = trigger(mode = "condition", condition = FALSE)),
-    ltdb_data_prep_status = target(command = prepare_ltdb_data(path = file_out("extdata/source/ltdb-data.csv")),
+    ltdb_data_prep_status = target(command = prepare_ltdb_data(indicator_template, path = file_out("extdata/source/ltdb-data.csv")),
                                    trigger = trigger(mode = "condition", condition = FALSE)),
     kc_boundary_prep_status = target(prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
                                      trigger = trigger(mode = "condition", condition = FALSE)),

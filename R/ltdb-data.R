@@ -2,13 +2,14 @@
 #' @title Make A Tibble of The Project's US Census Variables from LTDB
 #' @description Return a `tibble` of all of the US Census data variables
 #'   that are obtained from the Brown University Longitudinal Tract Database (LTDB).
+#' @param indicator_template Tibble, the `indicator_template` object
 #' @param path Character, the path or connection to write to.
 #' @return a `tibble`
 #' @note Data source: \link{https://s4.ad.brown.edu/projects/diversity/Researcher/LTBDDload/DataList.aspx}
 
 #' @rdname ltdb-data
 #' @export
-prepare_ltdb_data <- function(path){
+prepare_ltdb_data <- function(indicator_template, path){
 
 
   # GET DATA ----------------------------------------------------------------
@@ -25,15 +26,38 @@ prepare_ltdb_data <- function(path){
   tract_2000_raw <- readr::read_csv(tr_2000_fp, col_types = tr_2000_coltypes) %>%
     janitor::clean_names("screaming_snake")
 
-  tract_2000_ready <- tract_2000_raw %>%
+  tract_2000 <- tract_2000_raw %>%
     dplyr::filter(STATE %in% "WA" & COUNTY %in% "King County") %>%
-    dplyr::transmute(GEOID = TRTID10,
-              NAME = TRACT,
-              VARIABLE = "B25077",
-              ESTIMATE = as.integer(MHMVAL00),
-              MOE = NA_real_,
-              ENDYEAR = 2000L
-              )
+    dplyr::transmute(GEOGRAPHY_ID = TRTID10,
+                     NAME = TRACT,
+                     VARIABLE = "B25077",
+                     ESTIMATE = as.integer(MHMVAL00),
+                     MOE = NA_real_,
+                     ENDYEAR = 2000L
+    )
+
+  # REFORMAT DATA -----------------------------------------------------------
+
+  tract_2000_ready <- indicator_template %>%
+    dplyr::full_join(tract_2000,
+                     c("GEOGRAPHY_ID",
+                       GEOGRAPHY_NAME = "NAME",
+                       "ENDYEAR",
+                       "VARIABLE",
+                       "ESTIMATE",
+                       "MOE")) %>%
+    dplyr::transmute(SOURCE = "LTDB",
+                     GEOGRAPHY_ID,
+                     GEOGRAPHY_ID_TYPE = "GEOID",
+                     GEOGRAPHY_NAME,
+                     GEOGRAPHY_TYPE = "tract",
+                     ENDYEAR,
+                     VARIABLE,
+                     VARIABLE_SUBTOTAL = VARIABLE,
+                     MEASURE_TYPE = "VALUE",
+                     ESTIMATE,
+                     MOE = NA_real_
+    )
 
   # WRITE DATA --------------------------------------------------------------
 
@@ -53,7 +77,7 @@ prepare_ltdb_data <- function(path){
 make_ltdb_data <- function(path){
 
   ltdb_data <- suppressWarnings(suppressMessages(readr::read_csv(path))) %>%
-    dplyr::mutate(GEOID = as.character(GEOID))
+    dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID))
 
   return(ltdb_data)
 

@@ -6,14 +6,18 @@
 \alias{make_ltdb_data}
 \title{Make A Tibble of The Project's HUD CHAS Variables}
 \usage{
-prepare_hud_chas_data(path)
+prepare_hud_chas_data(zip_path)
 
-make_hud_chas_data(path)
+make_hud_chas_data(indicator_template, zip_path, file_path)
 
 make_ltdb_data(path)
 }
 \arguments{
-\item{path}{Character, the path or connection to write to.}
+\item{zip_path}{Character, the path or connection to write to.}
+
+\item{indicator_template}{Tibble, the \code{indicator_template} object}
+
+\item{file_path}{Character, the file path of the file that is to be extracted}
 }
 \value{
 a \code{tibble}
@@ -25,4 +29,16 @@ that are used in the Neighborhood Change Typology model for both 5-year spans
 }
 \note{
 Data source: \link{https://www.huduser.gov/portal/datasets/cp.html}
+The 2006-2010 tract data uses the '080' geographic summary level,
+which was discontinued by the Census in 2014. Tract data from 2009-2013
+onward uses the '140' summary level.
+
+After exploring the data, it became clear that '080' can be combined to
+form '140' and this approach is implemented in \code{make_hud_chas_data()}.
+
+Links:
+\itemize{
+\item Summary level code list \link{https://factfinder.census.gov/help/en/summary_level_code_list.htm}
+\item Discontinuation of Summary Level 080 \link{https://www.census.gov/programs-surveys/acs/technical-documentation/user-notes/2013-11.html}
+}
 }

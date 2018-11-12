@@ -4,9 +4,11 @@
 \alias{prepare_ltdb_data}
 \title{Make A Tibble of The Project's US Census Variables from LTDB}
 \usage{
-prepare_ltdb_data(path)
+prepare_ltdb_data(indicator_template, path)
 }
 \arguments{
+\item{indicator_template}{Tibble, the \code{indicator_template} object}
+
 \item{path}{Character, the path or connection to write to.}
 }
 \value{
