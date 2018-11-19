@@ -243,6 +243,57 @@ get_data_cache_plan <- function(){
 
 }
 
+# VARIABLE PLAN ------------------------------------------------------
+
+#' @title Get the Variable Plan
+#' @description Use \code{\link[drake]{drake_plan}} to create the variable plan.
+#' @return a `drake` plan
+#' @export
+#' @examples
+#'
+#' # Print the plan
+#'
+#' get_variable_plan()
+#'
+#'
+#' # Make the plan, load a target, print the target
+#'
+#' \dontrun{
+#'
+#' make(get_variable_plan())
+#'
+#' loadd(parcel_tract_overlay)
+#'
+#' print(parcel_tract_overlay)
+#' }
+get_variable_plan <- function(){
+
+  pkgconfig::set_config("drake::strings_in_dots" = "literals")
+
+  var_prep_plan <- drake::drake_plan(
+    parcel_tract_overlay = make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016),
+    census_tracts_2016_trimmed = make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies),
+    present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
+    condo_unit_type_key = make_condo_unit_type_key(parcel_lut_2005, parcel_lut_2018),
+    sales_lut_key_list = make_sales_lut_key_list(parcel_lut_2018),
+    single_family_criteria = make_single_family_criteria(present_use_key),
+    condo_criteria = make_condo_criteria(condo_unit_type_key),
+    sales_criteria = make_sales_criteria(),
+    excluded_tract_geoids = make_excluded_tract_geoids()
+  )
+
+  var_plan <- drake::drake_plan(
+    # ind_prep_parcel_value = make_ind_prep_parcel_value(parcel_value),
+    tmp = c("placeholder")
+  )
+
+  variable_plan <- drake::bind_plans(var_prep_plan, var_plan)
+
+  return(variable_plan)
+
+}
+
+
 
 # INDICATOR PLAN ------------------------------------------------------
 
@@ -271,19 +322,8 @@ get_indicator_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  ind_prep_plan <- drake::drake_plan(
-    parcel_tract_overlay = make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016),
-    census_tracts_2016_trimmed = make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies),
-    present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
-    condo_unit_type_key = make_condo_unit_type_key(parcel_lut_2005, parcel_lut_2018),
-    sales_lut_key_list = make_sales_lut_key_list(parcel_lut_2018),
-    single_family_criteria = make_single_family_criteria(present_use_key),
-    condo_criteria = make_condo_criteria(condo_unit_type_key),
-    sales_criteria = make_sales_criteria(),
-    excluded_tract_geoids = make_excluded_tract_geoids()
-  )
 
-  ind_plan <- drake::drake_plan(
+  indicator_plan <- drake::drake_plan(
     # indicators_cnt = make_indicators_cnt(acs_data, hud_chas_data, acs_tables),
     # indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
     # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
@@ -327,8 +367,6 @@ get_indicator_plan <- function(){
     tmp = c("placeholder")
   )
 
-  indicator_plan <- drake::bind_plans(ind_prep_plan, ind_plan)
-
   return(indicator_plan)
 
 }
@@ -361,15 +399,23 @@ get_model_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  bates_plan <- drake::drake_plan(
+  coo_original_plan <- drake::drake_plan()
 
-
+  portland_plan <- drake::drake_plan(
     # typology = make_typology(vulnerability_indicators, demo_change_indicators, housing_market_indicators, census_tracts_2016_trimmed)
   )
 
-  original_typology_plan <- drake::drake_plan(
-    typology = make_typology(vulnerability_indicators, demo_change_indicators, housing_market_indicators, census_tracts_2016_trimmed)
+  coo_original_updated_plan <- drake::drake_plan()
+
+  original_revised <- drake::drake_plan(
+    # typology = make_typology(vulnerability_indicators, demo_change_indicators, housing_market_indicators, census_tracts_2016_trimmed)
   )
+
+  model_plan <- bind_plans(coo_original_plan,
+                           portland_plan,
+                           coo_original_updated_plan,
+                           original_revised
+                           )
 
 
   return(model_plan)
@@ -407,7 +453,9 @@ get_workflow_plan <- function(){
     get_templates_plan(),
     get_data_source_plan(),
     get_data_cache_plan(),
-    get_indicator_plan()
+    get_variable_plan(),
+    get_indicator_plan(),
+    get_model_plan()
   )
 
   return(workflow_plan)
