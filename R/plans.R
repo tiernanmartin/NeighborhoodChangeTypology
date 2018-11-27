@@ -283,7 +283,7 @@ get_variable_plan <- function(){
   )
 
   var_plan <- drake::drake_plan(
-    # ind_prep_parcel_value = make_ind_prep_parcel_value(parcel_value),
+    acs_variables = make_acs_variables(acs_data, acs_tables),
     tmp = c("placeholder")
   )
 
