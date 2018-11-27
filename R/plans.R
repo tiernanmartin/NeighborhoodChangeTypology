@@ -284,6 +284,7 @@ get_variable_plan <- function(){
 
   var_plan <- drake::drake_plan(
     acs_variables = make_acs_variables(acs_data, acs_tables),
+    hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table),
     tmp = c("placeholder")
   )
 
@@ -324,7 +325,7 @@ get_indicator_plan <- function(){
 
 
   indicator_plan <- drake::drake_plan(
-    indicators_cnt_pct = make_indicators_cnt_pct(acs_variables),
+    indicators_cnt_pct = make_indicators_cnt_pct(acs_variables, hud_chas_variables),
     # indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
     # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
     #                                                                condo_unit_type_key,

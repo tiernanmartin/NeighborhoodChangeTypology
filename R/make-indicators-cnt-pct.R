@@ -3,9 +3,10 @@
 #'   An example of the type of indicator included in this object might be
 #'   the count of renter households, while the median rent price would _not_ be included.
 #' @param acs_variables desc
+#' @param hud_chas_variables desc
 #' @return a `tibble`
 #' @export
-make_indicators_cnt_pct <- function(acs_variables){
+make_indicators_cnt_pct <- function(acs_variables, hud_chas_variables){
 
 
 
@@ -14,11 +15,14 @@ make_indicators_cnt_pct <- function(acs_variables){
   acs_cnt <- acs_variables %>%
     dplyr::filter(MEASURE_TYPE %in% "COUNT")
 
+  chas_cnt <- hud_chas_variables %>%
+    dplyr::filter(MEASURE_TYPE %in% "COUNT") # unnecessary step because they are all COUNT but I'm leaving it for clarity's sake
+
 
 # JOIN DATA ---------------------------------------------------------------
 
 
-  all_cnt_vars <- list(acs_cnt) %>%  # add the other count data variables
+  all_cnt_vars <- list(acs_cnt, chas_cnt) %>%  # add the other count data variables
     purrr::map_dfr(c)
 
 
