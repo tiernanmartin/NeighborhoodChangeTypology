@@ -55,6 +55,7 @@ prepare_factfinder_data <- function(indicator_template, acs_tables, path){
                      c(GEOGRAPHY_ID = "GEO_ID2",
                        GEOGRAPHY_NAME = "GEO_DISPLAY_LABEL",
                        "VARIABLE",
+                       VARIABLE_SUBTOTAL_DESC = "DESCRIPTION",
                        "ESTIMATE")) %>%
     dplyr::transmute(SOURCE = "FACTFINDER",
                      GEOGRAPHY_ID,
@@ -64,6 +65,7 @@ prepare_factfinder_data <- function(indicator_template, acs_tables, path){
                      ENDYEAR = 2000L,
                      VARIABLE,
                      VARIABLE_SUBTOTAL = VARIABLE,
+                     VARIABLE_SUBTOTAL_DESC,
                      MEASURE_TYPE = "VALUE",
                      ESTIMATE,
                      MOE = NA_real_

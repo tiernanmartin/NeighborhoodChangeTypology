@@ -61,6 +61,7 @@ prepare_ltdb_data <- function(indicator_template, acs_tables, path){
                      ENDYEAR,
                      VARIABLE,
                      VARIABLE_SUBTOTAL = VARIABLE,
+                     VARIABLE_SUBTOTAL_DESC,
                      MEASURE_TYPE = "VALUE",
                      ESTIMATE,
                      MOE = NA_real_

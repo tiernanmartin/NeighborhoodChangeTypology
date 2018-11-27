@@ -27,6 +27,10 @@ prepare_acs_data <- function(indicator_template, model_table, acs_tables, path){
     dplyr::inner_join(dplyr::select(acs_tables,-TOPIC), by = "INDICATOR") %>%
     dplyr::inner_join(all_census_vars, by = "VARIABLE")
 
+  variable_subtotal_descriptions <- all_census_vars %>%
+    dplyr::transmute(VARIABLE_SUBTOTAL,
+           VARIABLE_SUBTOTAL_DESC = LABEL)
+
   geographies <- c("tract","county")
 
   years <- data_key %>%
@@ -55,12 +59,15 @@ prepare_acs_data <- function(indicator_template, model_table, acs_tables, path){
     # Use `full_join()` to transform the acs data to the
     # column format in `indicator_template`
     acs_data_formatted <- indicator_template %>%
+      dplyr::select(-VARIABLE_SUBTOTAL_DESC) %>%
       dplyr::full_join(acs_data_download,
                        c(GEOGRAPHY_ID = "GEOID",
                          GEOGRAPHY_NAME = "NAME",
+                         "VARIABLE_SUBTOTAL",
                          "MEASURE_TYPE",
                          "ESTIMATE",
                          "MOE")) %>%
+      dplyr::left_join(variable_subtotal_descriptions, by = "VARIABLE_SUBTOTAL") %>%
       dplyr::transmute(SOURCE = "ACS",
                        GEOGRAPHY_ID,
                        GEOGRAPHY_ID_TYPE = "GEOID",
@@ -69,6 +76,7 @@ prepare_acs_data <- function(indicator_template, model_table, acs_tables, path){
                        ENDYEAR = years,
                        VARIABLE = stringr::str_extract(VARIABLE_SUBTOTAL,".*(?=_\\d{3})"),
                        VARIABLE_SUBTOTAL,
+                       VARIABLE_SUBTOTAL_DESC,
                        MEASURE_TYPE,
                        ESTIMATE,
                        MOE
