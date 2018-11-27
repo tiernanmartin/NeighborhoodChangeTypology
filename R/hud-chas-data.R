@@ -179,7 +179,7 @@ make_hud_chas_data <- function(indicator_template, zip_path, file_path){
                          "VARIABLE",
                          "ESTIMATE",
                          "MOE")) %>%
-    dplyr::rename(VARIABLE_SUBTOTAL = VARIABLE) %>%
+    dplyr::mutate(VARIABLE_SUBTOTAL = VARIABLE) %>%
       dplyr::transmute(SOURCE = "CHAS",
                        GEOGRAPHY_ID,
                        GEOGRAPHY_ID_TYPE = "GEOID",
@@ -188,6 +188,7 @@ make_hud_chas_data <- function(indicator_template, zip_path, file_path){
                        ENDYEAR,
                        VARIABLE = "T7",
                        VARIABLE_SUBTOTAL,
+                       VARIABLE_SUBTOTAL_DESC,
                        MEASURE_TYPE = "COUNT",
                        ESTIMATE,
                        MOE
