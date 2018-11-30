@@ -4,10 +4,12 @@
 \alias{make_indicators_cnt_pct}
 \title{Make The Count Indicators}
 \usage{
-make_indicators_cnt_pct(acs_variables)
+make_indicators_cnt_pct(acs_variables, hud_chas_variables)
 }
 \arguments{
 \item{acs_variables}{desc}
+
+\item{hud_chas_variables}{desc}
 }
 \value{
 a \code{tibble}

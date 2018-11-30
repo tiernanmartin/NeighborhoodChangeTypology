@@ -6,11 +6,12 @@
 #' @param hud_chas_data Tibble, desc
 #' @param hud_chas_data_lut Tibble, desc
 #' @param model_table Tibble, desc
+#' @param variable_template Tibble, desc
 #' @return a `tibble`
 
-#' @rdname hud-chas-variablesa
+#' @rdname hud-chas-variables
 #' @export
-make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_table){
+make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_table, variable_template){
 
   # PREPARE HUD CHAS DATA ROLES --------------------------------------------------------
 
@@ -42,9 +43,16 @@ make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_tabl
 
   # JOIN ROLES TO HUD CHAS DATA ---------------------------------------------
 
-  hud_chas_vars_ready <- hud_chas_data %>%
+  hud_chas_vars_data <- hud_chas_data %>%
     dplyr::inner_join(hud_chas_roles, by = c("SOURCE","VARIABLE_SUBTOTAL")) # this filters out any variables not in the hud_chas_roles
 
+
+  # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
+
+
+  hud_chas_vars_ready <- variable_template %>%
+    dplyr::full_join(hud_chas_vars_data,
+                     by = c("SOURCE", "GEOGRAPHY_ID", "GEOGRAPHY_ID_TYPE", "GEOGRAPHY_NAME", "GEOGRAPHY_TYPE", "ENDYEAR", "INDICATOR", "VARIABLE", "VARIABLE_SUBTOTAL", "VARIABLE_SUBTOTAL_DESC", "VARIABLE_ROLE", "MEASURE_TYPE", "ESTIMATE", "MOE"))
 
   hud_chas_variables <- hud_chas_vars_ready
 

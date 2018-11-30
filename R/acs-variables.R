@@ -2,11 +2,12 @@
 #' @description Return a `tibble` of all of the American Community Survey data variables.
 #' @param acs_data Tibble, description.
 #' @param acs_tables desc
+#' @param variable_template desc
 #' @return a `tibble`
 
 #' @rdname acs-variables
 #' @export
-make_acs_variables <- function(acs_data, acs_tables){
+make_acs_variables <- function(acs_data, acs_tables, variable_template){
 
   # PREPARE ACS DATA ROLES --------------------------------------------------------
 
@@ -150,8 +151,14 @@ make_acs_variables <- function(acs_data, acs_tables){
 
   # JOIN ROLES TO ACS DATA --------------------------------------------------
 
-  acs_vars_ready <- acs_data %>%
+  acs_vars_data <- acs_data %>%
     dplyr::full_join(acs_vars_join, by = c("SOURCE", "VARIABLE_SUBTOTAL"))
+
+  # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
+
+  acs_vars_ready <- variable_template %>%
+    dplyr::full_join(acs_vars_data,
+                     by = c("SOURCE", "GEOGRAPHY_ID", "GEOGRAPHY_ID_TYPE", "GEOGRAPHY_NAME", "GEOGRAPHY_TYPE", "ENDYEAR", "INDICATOR", "VARIABLE", "VARIABLE_SUBTOTAL", "VARIABLE_SUBTOTAL_DESC", "VARIABLE_ROLE", "MEASURE_TYPE", "ESTIMATE", "MOE"))
 
   check_acs_vars_ready <- function(){
 
@@ -160,6 +167,7 @@ make_acs_variables <- function(acs_data, acs_tables){
 
     acs_vars_ready %>% dplyr::count(INDICATOR, VARIABLE_ROLE)
   }
+
 
 
   # RETURN ------------------------------------------------------------------

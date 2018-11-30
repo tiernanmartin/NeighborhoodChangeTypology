@@ -4,12 +4,17 @@
 \alias{make_hud_chas_variables}
 \title{Make A Tibble of The Project's HUD CHAS Variables}
 \usage{
-make_hud_chas_variables(hud_chas_data, hud_chas_data_lut)
+make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table,
+  variable_template)
 }
 \arguments{
 \item{hud_chas_data}{Tibble, desc}
 
 \item{hud_chas_data_lut}{Tibble, desc}
+
+\item{model_table}{Tibble, desc}
+
+\item{variable_template}{Tibble, desc}
 }
 \value{
 a \code{tibble}
