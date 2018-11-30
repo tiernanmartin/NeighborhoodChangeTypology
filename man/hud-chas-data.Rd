@@ -8,14 +8,14 @@
 \usage{
 prepare_hud_chas_data(zip_path)
 
-make_hud_chas_data(indicator_template, zip_path, file_path)
+make_hud_chas_data(data_template, zip_path, file_path)
 
 make_hud_chas_data_lut(zip_path, file_path)
 }
 \arguments{
 \item{zip_path}{Character, the path or connection to write to.}
 
-\item{indicator_template}{Tibble, the \code{indicator_template} object}
+\item{data_template}{Tibble, the \code{data_template} object}
 
 \item{file_path}{Character, the file path of the file that is to be extracted}
 }

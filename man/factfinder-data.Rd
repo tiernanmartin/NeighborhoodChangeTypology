@@ -5,12 +5,12 @@
 \alias{make_factfinder_data}
 \title{Make A Tibble of The Project's US Census Variables from American Factfinder}
 \usage{
-prepare_factfinder_data(indicator_template, acs_tables, path)
+prepare_factfinder_data(data_template, acs_tables, path)
 
 make_factfinder_data(path)
 }
 \arguments{
-\item{indicator_template}{Tibble, the \code{indicator_template} object}
+\item{data_template}{Tibble, the \code{data_template} object}
 
 \item{acs_tables}{Tibble, the \code{acs_table} object}
 

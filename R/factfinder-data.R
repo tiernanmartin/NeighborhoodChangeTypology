@@ -2,7 +2,7 @@
 #' @title Make A Tibble of The Project's US Census Variables from American Factfinder
 #' @description Return a `tibble` of all of the US Census data variables
 #'   that are obtained from the American Factfinder user interface: \link{https://factfinder.census.gov/}
-#' @param indicator_template Tibble, the `indicator_template` object
+#' @param data_template Tibble, the `data_template` object
 #' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
 #' @return a `tibble`
@@ -10,7 +10,7 @@
 
 #' @rdname factfinder-data
 #' @export
-prepare_factfinder_data <- function(indicator_template, acs_tables, path){
+prepare_factfinder_data <- function(data_template, acs_tables, path){
 
 
   # GET DATA ----------------------------------------------------------------
@@ -50,7 +50,7 @@ prepare_factfinder_data <- function(indicator_template, acs_tables, path){
 
   # REFORMAT DATA -----------------------------------------------------------
 
- kc_median_home_value_2000_ready <-  indicator_template %>%
+ kc_median_home_value_2000_ready <-  data_template %>%
     dplyr::full_join(kc_median_home_value_2000,
                      c(GEOGRAPHY_ID = "GEO_ID2",
                        GEOGRAPHY_NAME = "GEO_DISPLAY_LABEL",

@@ -5,12 +5,12 @@
 \alias{make_ltdb_data}
 \title{Make A Tibble of The Project's US Census Variables from LTDB}
 \usage{
-prepare_ltdb_data(indicator_template, acs_tables, path)
+prepare_ltdb_data(data_template, acs_tables, path)
 
 make_ltdb_data(path)
 }
 \arguments{
-\item{indicator_template}{Tibble, the \code{indicator_template} object}
+\item{data_template}{Tibble, the \code{data_template} object}
 
 \item{acs_tables}{Tibble, the \code{acs_table} object}
 

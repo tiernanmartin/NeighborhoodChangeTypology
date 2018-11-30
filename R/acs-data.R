@@ -3,7 +3,7 @@
 #' @description Return a `tibble` of all of the American Community Survey data variables
 #'   that are used in the Neighborhood Change Typology model for both 5-year spans
 #'   (2006-2010 and 2012-2016).
-#' @param indicator_template Tibble, the `indicator_template` object
+#' @param data_template Tibble, the `data_template` object
 #' @param model_table Tibble, the `model_table` object
 #' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
@@ -11,7 +11,7 @@
 
 #' @rdname acs-data
 #' @export
-prepare_acs_data <- function(indicator_template, model_table, acs_tables, path){
+prepare_acs_data <- function(data_template, model_table, acs_tables, path){
 
 
   # GET DATA ----------------------------------------------------------------
@@ -57,8 +57,8 @@ prepare_acs_data <- function(indicator_template, model_table, acs_tables, path){
 
 
     # Use `full_join()` to transform the acs data to the
-    # column format in `indicator_template`
-    acs_data_formatted <- indicator_template %>%
+    # column format in `data_template`
+    acs_data_formatted <- data_template %>%
       dplyr::select(-VARIABLE_SUBTOTAL_DESC) %>%
       dplyr::full_join(acs_data_download,
                        c(GEOGRAPHY_ID = "GEOID",

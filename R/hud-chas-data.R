@@ -3,7 +3,7 @@
 #' @description Return a `tibble` of all of the HUD CHAS data variables
 #'   that are used in the Neighborhood Change Typology model for both 5-year spans
 #'   (2006-2010 and 2011-2015).
-#' @param indicator_template Tibble, the `indicator_template` object
+#' @param data_template Tibble, the `data_template` object
 #' @param zip_path Character, the path or connection to write to.
 #' @param file_path Character, the file path of the file that is to be extracted
 #' @return a `tibble`
@@ -74,7 +74,7 @@ prepare_hud_chas_data <- function(zip_path){
 
 #' @rdname hud-chas-data
 #' @export
-make_hud_chas_data <- function(indicator_template, zip_path, file_path){
+make_hud_chas_data <- function(data_template, zip_path, file_path){
 
 
   # LOAD DATA ---------------------------------------------------------------
@@ -170,7 +170,7 @@ make_hud_chas_data <- function(indicator_template, zip_path, file_path){
 
   # REFORMAT DATA -----------------------------------------------------------
 
-  hud_chas_table7_all_long_ready <- indicator_template %>%
+  hud_chas_table7_all_long_ready <- data_template %>%
     dplyr::full_join(hud_chas_table7_all_long,
                        c(GEOGRAPHY_ID = "GEOID",
                          GEOGRAPHY_NAME = "NAME",

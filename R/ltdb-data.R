@@ -2,7 +2,7 @@
 #' @title Make A Tibble of The Project's US Census Variables from LTDB
 #' @description Return a `tibble` of all of the US Census data variables
 #'   that are obtained from the Brown University Longitudinal Tract Database (LTDB).
-#' @param indicator_template Tibble, the `indicator_template` object
+#' @param data_template Tibble, the `data_template` object
 #' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
 #' @return a `tibble`
@@ -10,7 +10,7 @@
 
 #' @rdname ltdb-data
 #' @export
-prepare_ltdb_data <- function(indicator_template, acs_tables, path){
+prepare_ltdb_data <- function(data_template, acs_tables, path){
 
 
   # GET DATA ----------------------------------------------------------------
@@ -45,7 +45,7 @@ prepare_ltdb_data <- function(indicator_template, acs_tables, path){
 
   # REFORMAT DATA -----------------------------------------------------------
 
-  tract_2000_ready <- indicator_template %>%
+  tract_2000_ready <- data_template %>%
     dplyr::full_join(tract_2000,
                      c("GEOGRAPHY_ID",
                        GEOGRAPHY_NAME = "NAME",
