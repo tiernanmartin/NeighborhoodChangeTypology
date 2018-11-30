@@ -288,6 +288,7 @@ get_variable_plan <- function(){
     acs_variables = make_acs_variables(acs_data, acs_tables, variable_template),
     hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table, variable_template),
     ltdb_variables = make_ltdb_variables(ltdb_data, variable_template),
+    factfinder_variables = make_factfinder_variables(factfinder_data, variable_template),
     tmp = c("placeholder")
   )
 

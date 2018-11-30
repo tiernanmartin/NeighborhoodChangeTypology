@@ -89,7 +89,8 @@ prepare_factfinder_data <- function(data_template, acs_tables, path){
 make_factfinder_data <- function(path){
 
   factfinder_data <- suppressWarnings(suppressMessages(readr::read_csv(path))) %>%
-    dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID))
+    dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID),
+                  MOE = as.numeric(MOE))
 
   return(factfinder_data)
 
