@@ -27,6 +27,8 @@ get_templates_plan <- function(){
 
   templates_plan <- drake::drake_plan(
     model_table = make_model_table(),
+    data_template = make_data_template(),
+    variable_template = make_variable_template(),
     indicator_template = make_indicator_template()
 
   )
@@ -70,13 +72,13 @@ get_data_source_plan <- function(){
 
   prep_plan <- drake::drake_plan(
     acs_tables = make_acs_tables(),
-    acs_data_prep_status = target(command = prepare_acs_data(indicator_template, model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
+    acs_data_prep_status = target(command = prepare_acs_data(data_template, model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
     hud_chas_data_prep_status = target(command = prepare_hud_chas_data(zip_path = file_out("extdata/source/hud-chas-data.zip")),
                                        trigger = trigger(mode = "condition", condition = FALSE)),
-    ltdb_data_prep_status = target(command = prepare_ltdb_data(indicator_template, acs_tables, path = file_out("extdata/source/ltdb-data.csv")),
+    ltdb_data_prep_status = target(command = prepare_ltdb_data(data_template, acs_tables, path = file_out("extdata/source/ltdb-data.csv")),
                                    trigger = trigger(mode = "condition", condition = FALSE)),
-    factfinder_data_prep_status = target(command = prepare_factfinder_data(indicator_template, acs_tables, path = file_out("extdata/source/factfinder-data.csv")),
+    factfinder_data_prep_status = target(command = prepare_factfinder_data(data_template, acs_tables, path = file_out("extdata/source/factfinder-data.csv")),
                                    trigger = trigger(mode = "condition", condition = FALSE)),
     kc_boundary_prep_status = target(prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
                                      trigger = trigger(mode = "condition", condition = FALSE)),
@@ -196,7 +198,7 @@ get_data_cache_plan <- function(){
 
   ready_plan <- drake::drake_plan(
     acs_data = make_acs_data(path = file_in("extdata/osf/acs-data.csv")),
-    hud_chas_data = make_hud_chas_data(indicator_template,
+    hud_chas_data = make_hud_chas_data(data_template,
                                        zip_path = file_in("extdata/osf/hud-chas-data.zip"),
                                        file_path = file_out("extdata/osf/hud-chas-data.csv")),
     hud_chas_data_lut = make_hud_chas_data_lut(zip_path = file_in("extdata/osf/hud-chas-data.zip"),
@@ -283,8 +285,9 @@ get_variable_plan <- function(){
   )
 
   var_plan <- drake::drake_plan(
-    acs_variables = make_acs_variables(acs_data, acs_tables),
-    hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table),
+    acs_variables = make_acs_variables(acs_data, acs_tables, variable_template),
+    hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table, variable_template),
+    ltdb_variables = make_ltdb_variables(ltdb_data, variable_template),
     tmp = c("placeholder")
   )
 
