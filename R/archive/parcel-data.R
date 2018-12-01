@@ -6,7 +6,6 @@
 #' @param path Character, the path or connection to write to.
 #' @param zip_path Character, the file path of the archive file
 #' @param file_path Character, the file path of the file that is to be extracted
-#' @param data_template Tibble, desc
 #' @return a `tibble`
 
 #' @rdname parcel-data
