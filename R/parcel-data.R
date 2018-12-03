@@ -144,23 +144,38 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
 
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
-make_parcel_value <- function(zip_path, file_path){
+make_parcel_value <- function(data_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
-  parcel_value_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+  parcel_value_filter <- suppressWarnings(suppressMessages(readr::read_csv("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_ValueHistory_V.csv"))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::filter(TAX_STATUS %in% "T") %>% # The object takes up too much memory! Need to filter it down.
+    dplyr::filter(TAX_YR %in% c(2005, 2010, 2018))
 
-  parcel_value_ready <- parcel_value_raw %>%
-    dplyr::filter(TAX_STATUS %in% "T") %>%
-    dplyr::filter(TAX_YR %in% c(2005, 2010, 2018)) %>%
-    dplyr::transmute(PIN = make_pin(MAJOR, MINOR),
-                     VALUE_LAND = LAND_VAL,
-                     VALUE_IMPROVEMENT = IMPS_VAL,
-                     VALUE_TOTAL = VALUE_LAND + VALUE_IMPROVEMENT,
-                     TAX_YEAR = TAX_YR)
+
+  parcel_value_long <- parcel_value_filter %>%
+    dplyr::rename(VALUE_LAND = LAND_VAL,
+                  VALUE_IMPROVEMENT = IMPS_VAL,
+                  APPRAISED_VALUE_LAND = APPR_LAND_VAL,
+                  APPRAISED_VALUE_IMPROVEMENT = APPR_IMPS_VAL,
+                  APPRAISED_VALUE_IMPROVEMENT_INCR = APPR_IMP_INCR
+                  ) %>%
+    tidyr::gather(VARIABLE, ESTIMATE, VALUE_LAND, VALUE_IMPROVEMENT, APPRAISED_VALUE_LAND, APPRAISED_VALUE_IMPROVEMENT, APPRAISED_VALUE_IMPROVEMENT_INCR) %>%
+    dplyr::rename_at(dplyr::vars(-dplyr::matches("VARIABLE|ESTIMATE")), dplyr::funs(stringr::str_c("META_",.)))
+
+  parcel_value_ready <- data_template %>%
+    dplyr::full_join(parcel_value_long, by = c("VARIABLE",
+                                       "ESTIMATE",
+                                       ENDYEAR = "META_TAX_YR")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+           GEOGRAPHY_ID = make_pin(META_MAJOR, META_MINOR),
+           GEOGRAPHY_ID_TYPE = "PIN",
+           GEOGRAPHY_NAME = NA_character_,
+           MEASURE_TYPE = "VALUE")
+
 
   parcel_value <- parcel_value_ready
 
@@ -168,7 +183,7 @@ make_parcel_value <- function(zip_path, file_path){
 
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_parcel_sales <- function(zip_path, file_path){
 
@@ -184,7 +199,7 @@ make_parcel_sales <- function(zip_path, file_path){
 
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_condo_info_2005 <- function(zip_path, file_path){
 
@@ -197,7 +212,7 @@ make_condo_info_2005 <- function(zip_path, file_path){
   return(condo_info_2005)
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_condo_info_2010 <- function(zip_path, file_path){
 
@@ -210,7 +225,7 @@ make_condo_info_2010 <- function(zip_path, file_path){
   return(condo_info_2010)
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_condo_info_2018 <- function(zip_path, file_path){
 
@@ -223,7 +238,7 @@ make_condo_info_2018 <- function(zip_path, file_path){
   return(condo_info_2018)
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_parcel_info_2005 <- function(zip_path, file_path){
 
@@ -235,7 +250,7 @@ make_parcel_info_2005 <- function(zip_path, file_path){
   return(parcel_info_2005)
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_parcel_info_2010 <- function(zip_path, file_path){
 
@@ -248,7 +263,7 @@ make_parcel_info_2010 <- function(zip_path, file_path){
 
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_parcel_info_2018 <- function(zip_path, file_path){
 
@@ -262,7 +277,7 @@ make_parcel_info_2018 <- function(zip_path, file_path){
   return(parcel_info_2018)
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_parcel_lut_2005 <- function(zip_path, file_path){
 
@@ -276,7 +291,7 @@ make_parcel_lut_2005 <- function(zip_path, file_path){
 
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_parcel_lut_2018 <- function(zip_path, file_path){
 
@@ -288,7 +303,7 @@ make_parcel_lut_2018 <- function(zip_path, file_path){
   return(parcel_lut_2018)
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_res_bldg_2018 <- function(zip_path, file_path){
 
@@ -300,7 +315,7 @@ make_res_bldg_2018 <- function(zip_path, file_path){
   return(res_bldg_2018)
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_res_bldg_2010 <- function(zip_path, file_path){
 
@@ -315,7 +330,7 @@ make_res_bldg_2010 <- function(zip_path, file_path){
   return(res_bldg_2010)
 }
 
-#' @rdname acs-data
+#' @rdname parcel-data
 #' @export
 make_res_bldg_2005 <- function(zip_path, file_path){
 
