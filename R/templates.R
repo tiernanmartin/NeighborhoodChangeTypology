@@ -33,6 +33,22 @@ return(data_template)
 
 #' @rdname templates
 #' @export
+make_metadata_template <- function(){
+
+metadata_template <- tibble::tibble(SOURCE = NA_character_,
+                          GEOGRAPHY_ID = NA_character_,
+                     GEOGRAPHY_ID_TYPE = NA_character_,
+                        GEOGRAPHY_NAME = NA_character_,
+                        GEOGRAPHY_TYPE = NA_character_,
+                               ENDYEAR = NA_integer_
+                      ) %>% dplyr::slice(0)
+
+return(metadata_template)
+
+}
+
+#' @rdname templates
+#' @export
 make_variable_template <- function(){
 
 variable_template <- tibble::tibble(SOURCE = NA_character_,

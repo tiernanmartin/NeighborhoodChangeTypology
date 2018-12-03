@@ -2,11 +2,14 @@
 % Please edit documentation in R/templates.R
 \name{make_data_template}
 \alias{make_data_template}
+\alias{make_metadata_template}
 \alias{make_variable_template}
 \alias{make_indicator_template}
 \title{Make Template Objects}
 \usage{
 make_data_template()
+
+make_metadata_template()
 
 make_variable_template()
 
