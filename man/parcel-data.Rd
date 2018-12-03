@@ -4,46 +4,46 @@
 \alias{prepare_parcel_data}
 \alias{make_parcel_value}
 \alias{make_parcel_sales}
-\alias{make_condo_info_2005}
-\alias{make_condo_info_2010}
-\alias{make_condo_info_2018}
 \alias{make_parcel_info_2005}
 \alias{make_parcel_info_2010}
 \alias{make_parcel_info_2018}
 \alias{make_parcel_lut_2005}
 \alias{make_parcel_lut_2018}
-\alias{make_res_bldg_2018}
-\alias{make_res_bldg_2010}
+\alias{make_condo_info_2005}
+\alias{make_condo_info_2010}
+\alias{make_condo_info_2018}
 \alias{make_res_bldg_2005}
+\alias{make_res_bldg_2010}
+\alias{make_res_bldg_2018}
 \title{Make A Tibble of The Project's Tax Assessor Variables}
 \usage{
 prepare_parcel_data(model_table, acs_tables, zip_path)
 
 make_parcel_value(data_template, zip_path, file_path)
 
-make_parcel_sales(zip_path, file_path)
+make_parcel_sales(data_template, zip_path, file_path)
 
-make_condo_info_2005(zip_path, file_path)
+make_parcel_info_2005(metadata_template, zip_path, file_path)
 
-make_condo_info_2010(zip_path, file_path)
+make_parcel_info_2010(metadata_template, zip_path, file_path)
 
-make_condo_info_2018(zip_path, file_path)
+make_parcel_info_2018(metadata_template, zip_path, file_path)
 
-make_parcel_info_2005(zip_path, file_path)
+make_parcel_lut_2005(metadata_template, zip_path, file_path)
 
-make_parcel_info_2010(zip_path, file_path)
+make_parcel_lut_2018(metadata_template, zip_path, file_path)
 
-make_parcel_info_2018(zip_path, file_path)
+make_condo_info_2005(metadata_template, zip_path, file_path)
 
-make_parcel_lut_2005(zip_path, file_path)
+make_condo_info_2010(metadata_template, zip_path, file_path)
 
-make_parcel_lut_2018(zip_path, file_path)
+make_condo_info_2018(metadata_template, zip_path, file_path)
 
-make_res_bldg_2018(zip_path, file_path)
+make_res_bldg_2005(metadata_template, zip_path, file_path)
 
-make_res_bldg_2010(zip_path, file_path)
+make_res_bldg_2010(metadata_template, zip_path, file_path)
 
-make_res_bldg_2005(zip_path, file_path)
+make_res_bldg_2018(metadata_template, zip_path, file_path)
 }
 \arguments{
 \item{model_table}{Tibble, the \code{model_table} object}
@@ -55,6 +55,8 @@ make_res_bldg_2005(zip_path, file_path)
 \item{data_template}{Tibble, desc}
 
 \item{file_path}{Character, the file path of the file that is to be extracted}
+
+\item{metadata_template}{Tibble, desc}
 
 \item{path}{Character, the path or connection to write to.}
 }

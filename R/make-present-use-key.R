@@ -16,9 +16,9 @@ make_present_use_key <- function(parcel_lut_2005, parcel_lut_2018){
   # Present Use LU Items Only (#102)
 
   present_use_key <- dplyr::bind_rows(parcel_lut_2005, parcel_lut_2018) %>%
-    dplyr::filter(LU_TYPE %in% 102) %>%
-    dplyr::transmute(PRESENT_USE = LU_ITEM,
-              PRESENT_USE_DESC = LU_DESCRIPTION) %>%
-    dplyr::arrange(PRESENT_USE) %>%
+    dplyr::filter(META_LU_TYPE %in% 102) %>%
+    dplyr::transmute(META_PRESENT_USE = META_LU_ITEM,
+              META_PRESENT_USE_DESC = META_LU_DESCRIPTION) %>%
+    dplyr::arrange(META_PRESENT_USE) %>%
     dplyr::distinct()
 }

@@ -7,6 +7,7 @@
 #' @param zip_path Character, the file path of the archive file
 #' @param file_path Character, the file path of the file that is to be extracted
 #' @param data_template Tibble, desc
+#' @param metadata_template Tibble, desc
 #' @return a `tibble`
 
 #' @rdname parcel-data
@@ -117,18 +118,18 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
   )
 
   file_paths <- list("EXTR_RPSale.csv",
-                    "EXTR_ValueHistory_V.csv",
-                    "EXTR_Parcel_2018.csv",
-                    "EXTR_CondoUnit2_2018.csv",
-                    "EXTR_LookUp_2018.csv",
-                    "EXTR_ResBldg_2018.csv",
-                    "EXTR_Parcel_2005.csv",
-                    "EXTR_Condo_Unit_2005.csv",
-                    "EXTR_LookUp_2005.csv",
-                    "EXTR_ResBldg_2005.csv",
-                    "EXTR_Parcel_2010.csv",
-                    "EXTR_ResBldg_2010.csv",
-                    "EXTR_Condo_Unit_2010.csv"
+                     "EXTR_ValueHistory_V.csv",
+                     "EXTR_Parcel_2018.csv",
+                     "EXTR_CondoUnit2_2018.csv",
+                     "EXTR_LookUp_2018.csv",
+                     "EXTR_ResBldg_2018.csv",
+                     "EXTR_Parcel_2005.csv",
+                     "EXTR_Condo_Unit_2005.csv",
+                     "EXTR_LookUp_2005.csv",
+                     "EXTR_ResBldg_2005.csv",
+                     "EXTR_Parcel_2010.csv",
+                     "EXTR_ResBldg_2010.csv",
+                     "EXTR_Condo_Unit_2010.csv"
   ) %>% purrr::map_chr(~ file.path(target_dir,.x))
 
   purrr::walk2(files, file_paths, readr::write_csv)
@@ -162,19 +163,19 @@ make_parcel_value <- function(data_template, zip_path, file_path){
                   APPRAISED_VALUE_LAND = APPR_LAND_VAL,
                   APPRAISED_VALUE_IMPROVEMENT = APPR_IMPS_VAL,
                   APPRAISED_VALUE_IMPROVEMENT_INCR = APPR_IMP_INCR
-                  ) %>%
+    ) %>%
     tidyr::gather(VARIABLE, ESTIMATE, VALUE_LAND, VALUE_IMPROVEMENT, APPRAISED_VALUE_LAND, APPRAISED_VALUE_IMPROVEMENT, APPRAISED_VALUE_IMPROVEMENT_INCR) %>%
     dplyr::rename_at(dplyr::vars(-dplyr::matches("VARIABLE|ESTIMATE")), dplyr::funs(stringr::str_c("META_",.)))
 
   parcel_value_ready <- data_template %>%
     dplyr::full_join(parcel_value_long, by = c("VARIABLE",
-                                       "ESTIMATE",
-                                       ENDYEAR = "META_TAX_YR")) %>%
+                                               "ESTIMATE",
+                                               ENDYEAR = "META_TAX_YR")) %>%
     dplyr::mutate(SOURCE = "ASSESSOR",
-           GEOGRAPHY_ID = make_pin(META_MAJOR, META_MINOR),
-           GEOGRAPHY_ID_TYPE = "PIN",
-           GEOGRAPHY_NAME = NA_character_,
-           MEASURE_TYPE = "VALUE")
+                  GEOGRAPHY_ID = make_pin(META_MAJOR, META_MINOR),
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  MEASURE_TYPE = "VALUE")
 
 
   parcel_value <- parcel_value_ready
@@ -185,7 +186,7 @@ make_parcel_value <- function(data_template, zip_path, file_path){
 
 #' @rdname parcel-data
 #' @export
-make_parcel_sales <- function(zip_path, file_path){
+make_parcel_sales <- function(data_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
@@ -201,63 +202,44 @@ make_parcel_sales <- function(zip_path, file_path){
 
 #' @rdname parcel-data
 #' @export
-make_condo_info_2005 <- function(zip_path, file_path){
+make_parcel_info_2005 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
-  condo_info_2005 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+  parcel_info_2005_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
     janitor::clean_names(case = "screaming_snake") %>%
-    dplyr::rename(FOOTAGE = FT)
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
 
-  return(condo_info_2005)
-}
 
-#' @rdname parcel-data
-#' @export
-make_condo_info_2010 <- function(zip_path, file_path){
-
-  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
-
-  condo_info_2010 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake") %>%
-    dplyr::rename(FOOTAGE = FT)
-
-  return(condo_info_2010)
-}
-
-#' @rdname parcel-data
-#' @export
-make_condo_info_2018 <- function(zip_path, file_path){
-
-  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
-
-  condo_info_2018 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake") %>%
-    dplyr::rename(UNITTYPE = UNIT_TYPE) # this facilitates a downstream join with the 2005 and 2010 condo data
-
-  return(condo_info_2018)
-}
-
-#' @rdname parcel-data
-#' @export
-make_parcel_info_2005 <- function(zip_path, file_path){
-
-  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
-
-  parcel_info_2005 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+  parcel_info_2005 <- metadata_template %>%
+    dplyr::full_join(parcel_info_2005_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2005L)
 
   return(parcel_info_2005)
 }
 
 #' @rdname parcel-data
 #' @export
-make_parcel_info_2010 <- function(zip_path, file_path){
+make_parcel_info_2010 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
-  parcel_info_2010 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+  parcel_info_2010_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+
+  parcel_info_2010 <- metadata_template %>%
+    dplyr::full_join(parcel_info_2010_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2018L)
 
   return(parcel_info_2010)
 
@@ -265,21 +247,32 @@ make_parcel_info_2010 <- function(zip_path, file_path){
 
 #' @rdname parcel-data
 #' @export
-make_parcel_info_2018 <- function(zip_path, file_path){
+make_parcel_info_2018 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
-  parcel_info_2018 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+  parcel_info_2018_raw <- suppressWarnings(suppressMessages(readr::read_csv("extdata/osf/kc-assessor-parcels-2005-2010-2018/EXTR_Parcel_2018.csv"))) %>%
     janitor::clean_names(case = "screaming_snake") %>%
     dplyr::rename(PRESENTUSE = PRESENT_USE,
-                  SQFTLOT = SQ_FT_LOT)
+                  SQFTLOT = SQ_FT_LOT) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.))) %>%
+    dplyr::mutate(META_PIN = make_pin(META_MAJOR, META_MINOR))
+
+
+  parcel_info_2018 <- metadata_template %>%
+    dplyr::full_join(parcel_info_2018_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2018L)
 
   return(parcel_info_2018)
 }
 
 #' @rdname parcel-data
 #' @export
-make_parcel_lut_2005 <- function(zip_path, file_path){
+make_parcel_lut_2005 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
@@ -287,63 +280,170 @@ make_parcel_lut_2005 <- function(zip_path, file_path){
     janitor::clean_names(case = "screaming_snake") %>%
     dplyr::rename(LU_TYPE = LUTYPE,
                   LU_ITEM = LUITEM,
-                  LU_DESCRIPTION = LUDESCRIPT)
+                  LU_DESCRIPTION = LUDESCRIPT) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+  return(parcel_lut_2005)
 
 }
 
 #' @rdname parcel-data
 #' @export
-make_parcel_lut_2018 <- function(zip_path, file_path){
+make_parcel_lut_2018 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
   parcel_lut_2018 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
 
   return(parcel_lut_2018)
 }
 
 #' @rdname parcel-data
 #' @export
-make_res_bldg_2018 <- function(zip_path, file_path){
+make_condo_info_2005 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
-  res_bldg_2018 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
-    janitor::clean_names(case = "screaming_snake")
+  condo_info_2005_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(FOOTAGE = FT,
+                  UNIT_TYPE = UNITTYPE) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
 
-  return(res_bldg_2018)
+
+  condo_info_2005 <- metadata_template %>%
+    dplyr::full_join(condo_info_2005_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2005L)
+
+  return(condo_info_2005)
 }
 
 #' @rdname parcel-data
 #' @export
-make_res_bldg_2010 <- function(zip_path, file_path){
+make_condo_info_2010 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
-  res_bldg_2010 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+  condo_info_2010_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(FOOTAGE = FT,
+                  UNIT_TYPE = UNITTYPE) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+
+  condo_info_2010 <- metadata_template %>%
+    dplyr::full_join(condo_info_2010_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2010L)
+
+  return(condo_info_2010)
+}
+
+#' @rdname parcel-data
+#' @export
+make_condo_info_2018 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  condo_info_2018_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.))) %>%
+    dplyr::mutate(META_PIN = make_pin(META_MAJOR, META_MINOR))
+
+
+  condo_info_2018 <- metadata_template %>%
+    dplyr::full_join(condo_info_2018_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2018L)
+
+  return(condo_info_2018)
+}
+
+#' @rdname parcel-data
+#' @export
+make_res_bldg_2005 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  res_bldg_2005_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
     janitor::clean_names(case = "screaming_snake") %>%
     dplyr::rename(SQ_FT_TOT_LIVING = SQFTTOTLIV,
                   BLDG_NBR = BLDGNBR,
-                  YR_BUILT = YRBUILT)
+                  YR_BUILT = YRBUILT) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+  res_bldg_2005 <- metadata_template %>%
+    dplyr::full_join(res_bldg_2005_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2005L)
+
+  return(res_bldg_2005)
+}
+
+#' @rdname parcel-data
+#' @export
+make_res_bldg_2010 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  res_bldg_2010_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(SQ_FT_TOT_LIVING = SQFTTOTLIV,
+                  BLDG_NBR = BLDGNBR,
+                  YR_BUILT = YRBUILT) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+  res_bldg_2010 <- metadata_template %>%
+    dplyr::full_join(res_bldg_2010_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2010L)
 
   return(res_bldg_2010)
 }
 
 #' @rdname parcel-data
 #' @export
-make_res_bldg_2005 <- function(zip_path, file_path){
+make_res_bldg_2018 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
-  res_bldg_2005 <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+  res_bldg_2018_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
     janitor::clean_names(case = "screaming_snake") %>%
-    dplyr::rename(SQ_FT_TOT_LIVING = SQFTTOTLIV,
-                  BLDG_NBR = BLDGNBR,
-                  YR_BUILT = YRBUILT)
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.))) %>%
+    dplyr::mutate(META_PIN = make_pin(META_MAJOR, META_MINOR))
 
-  return(res_bldg_2005)
+  res_bldg_2018 <- metadata_template %>%
+    dplyr::full_join(res_bldg_2018_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  ENDYEAR = 2018L)
+
+  return(res_bldg_2018)
 }
+
+
+
+
 
 
 
