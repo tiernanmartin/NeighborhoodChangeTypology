@@ -256,7 +256,7 @@ make_parcel_info_2010 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  ENDYEAR = 2018L)
+                  ENDYEAR = 2010L)
 
   return(parcel_info_2010)
 
