@@ -265,15 +265,224 @@ make_parcel_sales_variables <- function(parcel_sales,
                             "MOE")) %>%
     dplyr::mutate(INDICATOR = "SALE PRICE",
                   VARIABLE_ROLE = dplyr::case_when(
-      META_SALE_MEETS_CRITERIA_LGL ~ "include",
-      TRUE ~ "omit"
-    ))
+                    META_SALE_MEETS_CRITERIA_LGL ~ "include",
+                    TRUE ~ "omit"
+                  ))
 
   parcel_sales_variables <- sales_ready
 
   # RETURN ------------------------------------------------------------------
 
   return(parcel_sales_variables)
+
+
+}
+
+#' @rdname parcel-variables
+#' @export
+make_parcel_value_variables <- function(present_use_key,
+                                        condo_unit_type_key,
+                                        single_family_criteria,
+                                        condo_criteria,
+                                        cpi,
+                                        parcel_value,
+                                        parcel_info_2005,
+                                        parcel_info_2010,
+                                        parcel_info_2018,
+                                        condo_info_2005,
+                                        condo_info_2010,
+                                        condo_info_2018,
+                                        variable_template
+){
+
+
+  # PREP: PARCEL ------------------------------------------------------------
+
+  # Create the function that will prepare each year's parcel data,
+  # and the two lists to map over
+
+  prep_parcels  <- function(p, tax_year){
+
+    p %>% dplyr::transmute(SOURCE,
+                           GEOGRAPHY_ID,
+                           GEOGRAPHY_ID_TYPE,
+                           GEOGRAPHY_NAME,
+                           GEOGRAPHY_TYPE,
+                           ENDYEAR,
+                           META_PRESENT_USE = META_PRESENTUSE,
+                           META_SQFT_LOT = units::set_units(META_SQFTLOT,"ft^2"),
+                           META_TAX_YEAR = tax_year)
+
+  }
+
+  p <- list( parcel_info_2005,
+             parcel_info_2010,
+             parcel_info_2018)
+
+  tax_year <- list(2005,2010,2018)
+
+
+  # Run the function on all three years of parcel data and then bind the results together
+
+  p_all <- purrr::pmap_dfr(list(p, tax_year), prep_parcels) %>%
+    dplyr::left_join(present_use_key, by = "META_PRESENT_USE") %>%
+    dplyr::transmute(SOURCE,
+                     GEOGRAPHY_ID,
+                     GEOGRAPHY_ID_TYPE,
+                     GEOGRAPHY_NAME,
+                     GEOGRAPHY_TYPE,
+                     ENDYEAR,
+                     META_PRESENT_USE = META_PRESENT_USE_DESC,
+                     META_SQFT_LOT,
+                     META_TAX_YEAR)
+
+
+  # PREP: CONDO -------------------------------------------------------------
+
+  condo_list <- list(condo_info_2005,
+                     condo_info_2010,
+                     condo_info_2018)
+
+
+  prep_condos <- function(condo, tax_year){
+    condo %>%
+      dplyr::transmute(SOURCE,
+                       GEOGRAPHY_ID,
+                       GEOGRAPHY_ID_TYPE,
+                       GEOGRAPHY_NAME,
+                       GEOGRAPHY_TYPE,
+                       ENDYEAR,
+                       META_CONDO_UNIT_TYPE = META_UNIT_TYPE)
+  }
+
+  condo_all <- purrr::pmap_dfr(list(condo_list, tax_year), prep_condos) %>%
+    dplyr::left_join(condo_unit_type_key, by = "META_CONDO_UNIT_TYPE") %>%
+    dplyr::transmute(SOURCE,
+                     GEOGRAPHY_ID,
+                     GEOGRAPHY_ID_TYPE,
+                     GEOGRAPHY_NAME,
+                     GEOGRAPHY_TYPE,
+                     ENDYEAR,
+                     META_CONDO_UNIT_TYPE = META_CONDO_UNIT_TYPE_DESC)
+
+
+
+  # CONVERT TO 2018 DOLLARS -------------------------------------------------
+
+
+  # Prepare parcel_value:
+  #
+  #   1. where a parcel has multiple values for a given year, add them together
+  #   2. convert to 2018 dollars (inflation adjustment)
+
+  convert_to_2018_dollars <- function(value, year){
+
+    adj_rate <- cpi[as.character(2018)]/cpi[as.character(year)]
+
+    as.integer(round(as.double(value * adj_rate) ,digits = -2) )
+  }
+
+  parcel_value_all_variables <- parcel_value %>%
+    dplyr::group_by(SOURCE,
+                    GEOGRAPHY_ID,
+                    GEOGRAPHY_ID_TYPE,
+                    GEOGRAPHY_NAME,
+                    GEOGRAPHY_TYPE,
+                    ENDYEAR,
+                    VARIABLE) %>%
+    dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
+                     MOE = dplyr::first(MOE)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(VARIABLE = stringr::str_c(VARIABLE,"_2018"),
+                  ESTIMATE = purrr::map2_int(ESTIMATE, ENDYEAR, convert_to_2018_dollars))
+
+  parcel_value_total_wide <- parcel_value_all_variables %>%
+    tidyr::spread(VARIABLE, ESTIMATE) %>%
+    dplyr::mutate(VALUE_TOTAL_2018 = VALUE_LAND_2018 + VALUE_IMPROVEMENT_2018)
+
+  parcel_value_ready <- parcel_value_total_wide
+
+
+  # ASSIGN ROLES BY CRITERIA ------------------------------------------------
+
+  # Create indicators telling the type of residential property as well as
+  # whether the criteria have been met (see `single_family_criteria` or `condo_criteria`)
+
+  message(paste0("The following process takes ~ 1 hour, 10 minutes - check back at: ",Sys.time() +4303))
+
+
+  p_grouped_id_year <- list(p_all, condo_all) %>%
+    purrr::reduce(dplyr::bind_rows) %>%  # rowbind parcels and condo units
+    dplyr::left_join(parcel_value_ready,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "ENDYEAR")) %>%  # join the value history data
+    tidyr::complete(GEOGRAPHY_ID, ENDYEAR) %>%   # make sure each PIN has all three tax years (even if there isn't data from each year)
+    dplyr::group_by(GEOGRAPHY_ID, ENDYEAR)   # by record by year
+
+
+  p_criteria <- p_grouped_id_year %>%
+    dplyr::mutate(META_SF_LGL = all(META_PRESENT_USE %in% single_family_criteria$present_uses,
+                                    dplyr::between(META_SQFT_LOT,
+                                                   as.double(single_family_criteria$parcel_area$lower),
+                                                   as.double(units::set_units(single_family_criteria$parcel_area$upper,"ft^2"))),
+                                    VALUE_IMPROVEMENT_2018 >= single_family_criteria$min_impr_value),
+                  META_CONDO_LGL = all(META_CONDO_UNIT_TYPE %in% condo_criteria$condo_unit_types,
+                                       VALUE_IMPROVEMENT_2018 >= condo_criteria$min_impr_value)
+    ) %>%
+    dplyr::ungroup()
+
+  p_complete_records <- p_criteria %>%
+    dplyr::mutate(META_HOME_TYPE = dplyr::case_when(  # create a single variable with the type of residence
+      META_CONDO_LGL ~ "condo",
+      META_SF_LGL ~ "single family",
+      TRUE ~ NA_character_)) %>%
+    dplyr::group_by(GEOGRAPHY_ID) %>% # by record
+    dplyr::mutate(META_SF_COMPLETE_LGL = all(META_SF_LGL), # these records are complete (i.e., data for all three years)
+                  META_CONDO_COMPLETE_LGL = all(META_CONDO_LGL))  %>%
+    dplyr::group_by(GEOGRAPHY_ID, ENDYEAR) %>%
+    dplyr::arrange(dplyr::desc(VALUE_TOTAL_2018)) %>%
+    dplyr::slice(1) %>%
+    dplyr::ungroup()
+
+p_long <- p_complete_records %>%
+  tidyr::gather(VARIABLE, ESTIMATE, matches("VALUE")) %>%
+  dplyr::filter(VARIABLE %in% "VALUE_TOTAL_2018") %>%
+  dplyr::mutate(MOE = NA_real_)
+
+
+# REFORMAT ----------------------------------------------------------------
+
+
+
+parcel_value_ready <- variable_template %>%
+    dplyr::full_join(p_long,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "ENDYEAR",
+                            "VARIABLE",
+                            "ESTIMATE",
+                            "MOE")) %>%
+    dplyr::mutate(INDICATOR = "VALUE",
+                  VARIABLE_ROLE = dplyr::case_when(
+                    META_SF_COMPLETE_LGL ~ "include",
+                    META_CONDO_COMPLETE_LGL ~ "omit",  # note: this can be included at a later date
+                    TRUE ~ "omit"
+                  ),
+                  MEASURE_TYPE = "VALUE")
+
+  parcel_value_variables <- parcel_value_ready
+
+
+# RETURN ------------------------------------------------------------------
+
+  return(parcel_value_variables)
 
 
 }

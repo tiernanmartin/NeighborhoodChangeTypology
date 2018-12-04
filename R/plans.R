@@ -321,6 +321,19 @@ get_variable_plan <- function(){
                                         res_bldg_2010,
                                         res_bldg_2018,
                                         model_table,
+                                        variable_template),
+    parcel_value_variables = make_parcel_value_variables(present_use_key,
+                                        condo_unit_type_key,
+                                        single_family_criteria,
+                                        condo_criteria,
+                                        cpi,
+                                        parcel_value,
+                                        parcel_info_2005,
+                                        parcel_info_2010,
+                                        parcel_info_2018,
+                                        condo_info_2005,
+                                        condo_info_2010,
+                                        condo_info_2018,
                                         variable_template)
   )
 

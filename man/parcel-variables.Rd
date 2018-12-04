@@ -2,6 +2,7 @@
 % Please edit documentation in R/parcel-variables.R
 \name{make_parcel_sales_variables}
 \alias{make_parcel_sales_variables}
+\alias{make_parcel_value_variables}
 \title{Make Parcel Variables}
 \usage{
 make_parcel_sales_variables(parcel_sales, sales_lut_key_list, sales_criteria,
@@ -9,6 +10,11 @@ make_parcel_sales_variables(parcel_sales, sales_lut_key_list, sales_criteria,
   cpi, parcel_info_2005, parcel_info_2010, parcel_info_2018, condo_info_2005,
   condo_info_2010, condo_info_2018, res_bldg_2005, res_bldg_2010, res_bldg_2018,
   model_table, variable_template)
+
+make_parcel_value_variables(present_use_key, condo_unit_type_key,
+  single_family_criteria, condo_criteria, cpi, parcel_value, parcel_info_2005,
+  parcel_info_2010, parcel_info_2018, condo_info_2005, condo_info_2010,
+  condo_info_2018, variable_template)
 }
 \arguments{
 \item{parcel_sales}{Tibble, Temporary description}
