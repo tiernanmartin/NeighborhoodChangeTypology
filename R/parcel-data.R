@@ -190,9 +190,24 @@ make_parcel_sales <- function(data_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
 
-  parcel_sales_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path)))
+  parcel_sales_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake")
 
-  parcel_sales_ready <- parcel_sales_raw # more can be added here if necessary
+  parcel_sales_long <- parcel_sales_raw %>%
+    dplyr::mutate(ENDYEAR = as.integer(stringr::str_extract(DOCUMENT_DATE, "\\d{4}$"))) %>%
+    tidyr::gather(VARIABLE, ESTIMATE, SALE_PRICE) %>%
+    dplyr::rename_at(dplyr::vars(-dplyr::matches("VARIABLE|ESTIMATE")), dplyr::funs(stringr::str_c("META_",.)))
+
+
+  parcel_sales_ready <-  data_template %>%
+    dplyr::full_join(parcel_sales_long, by = c("VARIABLE",
+                                               "ESTIMATE",
+                                               ENDYEAR = "META_ENDYEAR")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID = make_pin(META_MAJOR, META_MINOR),
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  MEASURE_TYPE = "VALUE")
 
   parcel_sales <- parcel_sales_ready
 
