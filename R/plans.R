@@ -303,7 +303,25 @@ get_variable_plan <- function(){
     hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table, variable_template),
     ltdb_variables = make_ltdb_variables(ltdb_data, variable_template),
     factfinder_variables = make_factfinder_variables(factfinder_data, variable_template),
-    tmp = c("placeholder")
+    parcel_sales_variables = make_parcel_sales_variables(parcel_sales,
+                                        sales_lut_key_list,
+                                        sales_criteria,
+                                        present_use_key,
+                                        single_family_criteria,
+                                        condo_unit_type_key,
+                                        condo_criteria,
+                                        cpi,
+                                        parcel_info_2005,
+                                        parcel_info_2010,
+                                        parcel_info_2018,
+                                        condo_info_2005,
+                                        condo_info_2010,
+                                        condo_info_2018,
+                                        res_bldg_2005,
+                                        res_bldg_2010,
+                                        res_bldg_2018,
+                                        model_table,
+                                        variable_template)
   )
 
   variable_plan <- drake::bind_plans(var_prep_plan, var_plan)
