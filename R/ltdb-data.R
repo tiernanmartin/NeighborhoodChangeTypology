@@ -86,6 +86,7 @@ make_ltdb_data <- function(path){
 
   ltdb_data <- suppressWarnings(suppressMessages(readr::read_csv(path))) %>%
     dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID),
+                  VARIABLE_SUBTOTAL_DESC = as.character(VARIABLE_SUBTOTAL_DESC),
                   MOE = as.numeric(MOE))
 
   return(ltdb_data)
