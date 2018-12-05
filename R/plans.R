@@ -343,8 +343,6 @@ get_variable_plan <- function(){
 
 }
 
-
-
 # INDICATOR PLAN ------------------------------------------------------
 
 #' @title Get the Indicator Plan
@@ -374,7 +372,12 @@ get_indicator_plan <- function(){
 
 
   indicator_plan <- drake::drake_plan(
-    indicators_cnt_pct = make_indicators_cnt_pct(acs_variables, hud_chas_variables),
+    indicators_cnt_pct = make_indicators_cnt_pct(acs_variables,
+                                                 hud_chas_variables,
+                                                 parcel_value_variables,
+                                                 parcel_sales_variables,
+                                                 parcel_tract_overlay),
+
     # indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
     # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
     #                                                                condo_unit_type_key,
