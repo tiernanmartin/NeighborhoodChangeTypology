@@ -2,7 +2,7 @@
 #' @title Make A Tibble of The Project's ACS Variables
 #' @description Return a `tibble` of all of the American Community Survey data variables
 #'   that are used in the Neighborhood Change Typology model for both 5-year spans
-#'   (2006-2010 and 2012-2016).
+#'   (2006-2010 and 2013-2017).
 #' @param data_template Tibble, the `data_template` object
 #' @param model_table Tibble, the `model_table` object
 #' @param acs_tables Tibble, the `acs_table` object
@@ -16,7 +16,7 @@ prepare_acs_data <- function(data_template, model_table, acs_tables, path){
 
   # GET DATA ----------------------------------------------------------------
 
-  all_census_vars <- tidycensus::load_variables(2016, "acs5", cache = TRUE) %>%
+  all_census_vars <- tidycensus::load_variables(2017, "acs5", cache = TRUE) %>%
     dplyr::transmute(VARIABLE = stringr::str_extract(name,".*(?=_\\d{3})"), # regex lookahead for '_001'
                      VARIABLE_SUBTOTAL = name,
                      LABEL = label,

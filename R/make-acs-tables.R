@@ -13,8 +13,8 @@ make_acs_tables <- function(){
                     "B19001",      "INCOME",       "COUNT",     "HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2015 INFLATION-ADJUSTED DOLLARS)",                                     "Households",
                     "B25033",      "TENURE",       "COUNT",      "TOTAL POPULATION IN OCCUPIED HOUSING UNITS BY TENURE BY UNITS IN STRUCTURE",     "Total population in occupied housing units",
                     "B25106", "COST BURDEN",       "COUNT", "TENURE BY HOUSING COSTS AS A COUNTAGE OF HOUSEHOLD INCOME IN THE PAST 12 MONTHS",                         "Occupied Housing Units",
-                    "B25058",        "RENT",       "VALUE",                                                  "MEDIAN CONTRACT RENT (DOLLARS)", "Renter-occupied housing units paying cash rent",
-                    "B25077",       "VALUE",       "VALUE",                                                          "MEDIAN VALUE (DOLLARS)",                   "Owner-occupied housing units"
+                    "B25058",        "RENT",      "MEDIAN",                                                  "MEDIAN CONTRACT RENT (DOLLARS)", "Renter-occupied housing units paying cash rent",
+                    "B25077",       "VALUE",      "MEDIAN",                                                          "MEDIAN VALUE (DOLLARS)",                   "Owner-occupied housing units"
                     )
 return(acs_tables)
 }

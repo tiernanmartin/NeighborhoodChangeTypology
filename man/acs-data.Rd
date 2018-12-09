@@ -24,5 +24,5 @@ a \code{tibble}
 \description{
 Return a \code{tibble} of all of the American Community Survey data variables
 that are used in the Neighborhood Change Typology model for both 5-year spans
-(2006-2010 and 2012-2016).
+(2006-2010 and 2013-2017).
 }
