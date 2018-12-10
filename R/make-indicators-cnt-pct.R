@@ -53,7 +53,7 @@ make_indicators_cnt_pct <- function(acs_variables,
                   MOE = 0L,
                   ESTIMATE = dplyr::if_else(VARIABLE_ROLE %in% c("include"),1L,0L), # count of included sales (single-family criteria)
                   MEASURE_TYPE = "COUNT") %>%
-    dplyr::select(-GEOID, -RNUM, -dplyr::matches("^META")) %>%
+    dplyr::select(-GEOID, -dplyr::matches("^META")) %>%
     dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE)) %>%
     dplyr::group_by_at(dplyr::vars(-VARIABLE_ROLE, -VARIABLE_SUBTOTAL,-VARIABLE_SUBTOTAL_DESC,-ESTIMATE,-MOE)) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),

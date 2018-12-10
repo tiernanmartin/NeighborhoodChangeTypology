@@ -24,7 +24,8 @@ make_single_family_criteria <- function(present_use_key){
       "parcel_area" = list(
         "upper" = units::set_units(5, "acre"),
         "lower" = units::set_units(3000, "ft^2")
-      )
+      ),
+      "buildings_on_property" = 2L
     )
 
   return(single_family_criteria)
