@@ -5,16 +5,12 @@
 \alias{make_parcel_value_variables}
 \title{Make Parcel Variables}
 \usage{
-make_parcel_sales_variables(parcel_sales, sales_lut_key_list, sales_criteria,
-  present_use_key, single_family_criteria, condo_unit_type_key, condo_criteria,
-  cpi, parcel_info_2005, parcel_info_2010, parcel_info_2018, condo_info_2005,
-  condo_info_2010, condo_info_2018, res_bldg_2005, res_bldg_2010, res_bldg_2018,
-  model_table, variable_template)
+make_parcel_sales_variables(parcel_sales, parcel_all_metadata,
+  sales_lut_key_list, sales_criteria, single_family_criteria, condo_criteria,
+  cpi, variable_template)
 
-make_parcel_value_variables(present_use_key, condo_unit_type_key,
-  single_family_criteria, condo_criteria, cpi, parcel_value, parcel_info_2005,
-  parcel_info_2010, parcel_info_2018, condo_info_2005, condo_info_2010,
-  condo_info_2018, variable_template)
+make_parcel_value_variables(parcel_all_metadata, single_family_criteria,
+  condo_criteria, cpi, parcel_value, variable_template)
 }
 \arguments{
 \item{parcel_sales}{Tibble, Temporary description}
@@ -23,15 +19,15 @@ make_parcel_value_variables(present_use_key, condo_unit_type_key,
 
 \item{sales_criteria}{Tibble, Temporary description}
 
-\item{present_use_key}{Tibble, Temporary description}
-
 \item{single_family_criteria}{Tibble, Temporary description}
-
-\item{condo_unit_type_key}{Tibble, Temporary description}
 
 \item{condo_criteria}{Tibble, Temporary description}
 
 \item{cpi}{Tibble, Temporary description}
+
+\item{present_use_key}{Tibble, Temporary description}
+
+\item{condo_unit_type_key}{Tibble, Temporary description}
 
 \item{parcel_info_2005}{Tibble, Temporary description.}
 
@@ -39,9 +35,9 @@ make_parcel_value_variables(present_use_key, condo_unit_type_key,
 
 \item{parcel_info_2018}{Tibble, Temporary description.}
 
-\item{condo_info_2005}{Tibble, Temporary description.}
-
 \item{condo_info_2010}{Tibble, Temporary description.}
+
+\item{condo_info_2005}{Tibble, Temporary description.}
 
 \item{condo_info_2018}{Tibble, Temporary description.}
 
