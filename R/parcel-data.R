@@ -176,7 +176,8 @@ make_parcel_value <- function(data_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  MEASURE_TYPE = "VALUE")
+                  MEASURE_TYPE = "VALUE",
+                  MOE = 0)
 
 
   parcel_value <- parcel_value_ready
@@ -209,7 +210,8 @@ make_parcel_sales <- function(data_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  MEASURE_TYPE = "VALUE")
+                  MEASURE_TYPE = "VALUE",
+                  MOE = 0)
 
   parcel_sales <- parcel_sales_ready
 
