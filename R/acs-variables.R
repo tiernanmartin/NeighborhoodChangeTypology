@@ -99,7 +99,7 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
   burden_own_vars_join <- all_vars %>%
     dplyr::filter(INDICATOR %in% "COST BURDEN") %>%
     dplyr::transmute(SOURCE,
-                     INDICATOR = "COST BURDEN OWN",
+                     INDICATOR = "COST_BURDEN_OWN",
                      VARIABLE_SUBTOTAL,
                      VARIABLE_ROLE = dplyr::case_when(
                        VARIABLE_SUBTOTAL_DESC %in% "Estimate!!Total!!Owner-occupied housing units" ~ "total",
@@ -112,7 +112,7 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
   burden_rent_vars_join <- all_vars %>%
     dplyr::filter(INDICATOR %in% "COST BURDEN") %>%
     dplyr::transmute(SOURCE,
-                     INDICATOR = "COST BURDEN RENT",
+                     INDICATOR = "COST_BURDEN_RENT",
                      VARIABLE_SUBTOTAL,
                      VARIABLE_ROLE = dplyr::case_when(
                        VARIABLE_SUBTOTAL_DESC %in% "Estimate!!Total!!Renter-occupied housing units" ~ "total",

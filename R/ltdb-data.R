@@ -62,7 +62,7 @@ prepare_ltdb_data <- function(data_template, acs_tables, path){
                      VARIABLE,
                      VARIABLE_SUBTOTAL = VARIABLE,
                      VARIABLE_SUBTOTAL_DESC,
-                     MEASURE_TYPE = "VALUE",
+                     MEASURE_TYPE = "MEDIAN",
                      ESTIMATE,
                      MOE = NA_real_
     )
