@@ -22,152 +22,6 @@
 
 #' @rdname parcel-variables
 #' @export
-make_parcel_all_metadata <- function(present_use_key,
-                                     condo_unit_type_key,
-                                     parcel_tract_overlay,
-                                     parcel_info_2005,
-                                     parcel_info_2010,
-                                     parcel_info_2018,
-                                     condo_info_2005,
-                                     condo_info_2010,
-                                     condo_info_2018,
-                                     res_bldg_2005,
-                                     res_bldg_2010,
-                                     res_bldg_2018,
-                                     variable_template){
-
-  # PREP: RES_BLDG ----------------------------------------------------------
-
-
-parcel_list <- list(parcel_info_2005, parcel_info_2010, parcel_info_2018)
-
-prep_parcel <- function(x){
-  x %>%
-    dplyr::rename(META_PRESENT_USE = META_PRESENTUSE) %>%
-    dplyr::left_join(present_use_key, by = "META_PRESENT_USE") %>%
-    dplyr::transmute(SOURCE,
-                     GEOGRAPHY_ID,
-                     GEOGRAPHY_ID_TYPE,
-                     GEOGRAPHY_NAME,
-                     GEOGRAPHY_TYPE,
-                     ENDYEAR,
-                     META_PRESENT_USE = META_PRESENT_USE_DESC
-    )
-
-}
-
-
-p_all <- purrr::map_dfr(parcel_list, prep_parcel)
-
-prep_res_bldg <- function(x){
-
-  x %>% dplyr::transmute(SOURCE,
-                         GEOGRAPHY_ID,
-                         GEOGRAPHY_ID_TYPE,
-                         GEOGRAPHY_NAME,
-                         GEOGRAPHY_TYPE,
-                         ENDYEAR,
-                         META_PROPERTY_CATEGORY = "res",
-                         META_BLDG_NBR,
-                         META_SQ_FT = units::set_units(META_SQ_FT_TOT_LIVING,"ft^2")) %>%
-    dplyr::group_by(GEOGRAPHY_ID, ENDYEAR) %>%
-    dplyr::mutate(META_NBR_BUILDINGS = dplyr::n()) %>%
-    dplyr::ungroup()
-
-
-}
-
-res_bldg_list <- list(res_bldg_2005, res_bldg_2010, res_bldg_2018)
-
-res_bldg_all <- purrr::map_dfr(res_bldg_list, prep_res_bldg)  %>%
-  dplyr::left_join(p_all, by = c("SOURCE",
-                                 "GEOGRAPHY_ID",
-                                 "GEOGRAPHY_ID_TYPE",
-                                 "GEOGRAPHY_NAME",
-                                 "GEOGRAPHY_TYPE",
-                                 "ENDYEAR"))
-
-
-
-# PREP: CONDO_UNIT --------------------------------------------------------
-
-prep_condo_unit <- function(x){
-
-  x %>%
-    dplyr::left_join(condo_unit_type_key, by = c(META_UNIT_TYPE = "META_CONDO_UNIT_TYPE")) %>%
-    dplyr::transmute(SOURCE,
-                     GEOGRAPHY_ID,
-                     GEOGRAPHY_ID_TYPE,
-                     GEOGRAPHY_NAME,
-                     GEOGRAPHY_TYPE,
-                     ENDYEAR,
-                     META_PROPERTY_CATEGORY = "condo",
-                     META_CONDO_UNIT_TYPE = META_CONDO_UNIT_TYPE_DESC,
-                     META_NBR_BUILDINGS = 1L,
-                     META_SQ_FT = units::set_units(META_FOOTAGE,"ft^2"))
-}
-
-condo_list <- list(condo_info_2005, condo_info_2010, condo_info_2018)
-
-condo_unit_all <- purrr::map_dfr(condo_list, prep_condo_unit)
-
-
-
-# PREP: PROPERTY ----------------------------------------------------------
-
-
-# Note: this makes it possible to filter out PRESENT_USE or CONDO_UNIT_TYPE cases
-#       that need to be excluded from the analysis (e.g., commerical condos)
-
-prop_all_type <- dplyr::bind_rows(res_bldg_all,
-                                  condo_unit_all) %>%
-  dplyr::mutate(META_PRESENT_USE = dplyr::case_when(
-    META_PROPERTY_CATEGORY %in% "condo" ~ "not res",
-    TRUE ~ META_PRESENT_USE
-  ),
-  META_CONDO_UNIT_TYPE = dplyr::case_when(
-    META_PROPERTY_CATEGORY %in% "res" ~ "not condo",
-    TRUE ~ META_CONDO_UNIT_TYPE
-  )
-  )
-
-# Note: join the tract GEOID to each record
-
-prop_all_geoid <- prop_all_type %>%
-  dplyr::left_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID = "PIN")) %>%
-  dplyr::rename(META_TRACT_GEOID = GEOID)
-
-prop_all_ready <- prop_all_geoid
-
-# ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
-
-
-parcel_all_metadata_ready <- variable_template %>% # drop the columns related to the VARIABLE, ESTIMATE, or MOE
-  dplyr::select(SOURCE,
-                GEOGRAPHY_ID,
-                GEOGRAPHY_ID_TYPE,
-                GEOGRAPHY_NAME,
-                GEOGRAPHY_TYPE,
-                ENDYEAR) %>%
-  dplyr::full_join(prop_all_ready,
-                   by = c("SOURCE",
-                          "GEOGRAPHY_ID",
-                          "GEOGRAPHY_ID_TYPE",
-                          "GEOGRAPHY_NAME",
-                          "GEOGRAPHY_TYPE",
-                          "ENDYEAR"))
-
-
-parcel_all_metadata <- parcel_all_metadata_ready
-
-  # RETURN ------------------------------------------------------------------
-
-  return(parcel_all_metadata)
-
-
-}
-
-
 make_parcel_sales_variables <- function(parcel_sales,
                                         parcel_all_metadata,
                                         sales_lut_key_list,
@@ -249,26 +103,31 @@ make_parcel_sales_variables <- function(parcel_sales,
     tidyr::spread(VARIABLE, ESTIMATE) %>%
     dplyr::mutate(SALE_PRICE_2018_SQFT = dplyr::case_when(
       is.na(SALE_PRICE_2018) ~ NA_real_,
-      TRUE ~ round(SALE_PRICE_2018/META_SQ_FT, 2)
+      TRUE ~ round(SALE_PRICE_2018/META_LIVING_SQ_FT, 2)
     )) %>% dplyr::select(-RNUM)
 
   sales_all_long <- sales_all_wide %>%
     dplyr::mutate(
       META_USE_TYPE_SF_LGL = META_PRESENT_USE %in% single_family_criteria$present_uses & META_PROPERTY_CATEGORY %in% "res",
       META_USE_TYPE_CONDO_LGL = META_CONDO_UNIT_TYPE %in% condo_criteria$condo_unit_types & META_PROPERTY_CATEGORY %in% "condo",
-      META_USE_TYPE_LGL = META_USE_TYPE_SF_LGL | META_USE_TYPE_CONDO_LGL
+      META_USE_TYPE_LGL = META_USE_TYPE_SF_LGL | META_USE_TYPE_CONDO_LGL,
+      META_PROP_CLASS_SF_LGL = META_PROPERTY_CLASS %in% "Res-Improved property",
+      META_PROP_CLASS_CONDO_LGL = META_PROPERTY_CLASS %in% "C/I-Condominium",
+      META_PROP_CLASS_LGL = META_PROP_CLASS_SF_LGL | META_PROP_CLASS_CONDO_LGL
     ) %>%
     dplyr::mutate(
-      META_SQFT_LGL = !is.na(META_SQ_FT) & META_SQ_FT >= sales_criteria$min_footage,
+      META_SQFT_LGL = !is.na(META_LIVING_SQ_FT) & META_LIVING_SQ_FT >= sales_criteria$min_footage,
       META_PRICE_LGL = !is.na(SALE_PRICE_2018) & SALE_PRICE_2018 >= sales_criteria$min_sale_price,
       META_USE_LGL = META_PRINCIPAL_USE %in% sales_criteria$principal_use,
-      META_PROP_CLASS_LGL = META_PROPERTY_CLASS %in% sales_criteria$property_class,
       META_PROP_TYPE_LGL = META_PROPERTY_TYPE %in% sales_criteria$property_type,
       META_REASON_LGL = META_SALE_REASON %in% sales_criteria$sale_reason,
       META_NBR_BLDG_LGL = META_NBR_BUILDINGS <= sales_criteria$buildings_on_property,
-      META_YEAR_LGL = ENDYEAR %in% sales_criteria$date
+      META_YEAR_LGL = ENDYEAR %in% sales_criteria$date,
+      META_SALE_CRITERIA_LGL = META_SQFT_LGL & META_PRICE_LGL & META_USE_LGL &  META_PROP_TYPE_LGL & META_REASON_LGL & META_NBR_BLDG_LGL & META_YEAR_LGL
     ) %>%
-    dplyr::mutate(META_SALE_MEETS_CRITERIA_LGL =  META_USE_TYPE_LGL & META_SQFT_LGL & META_PRICE_LGL & META_USE_LGL & META_PROP_CLASS_LGL & META_PROP_TYPE_LGL & META_REASON_LGL & META_NBR_BLDG_LGL & META_YEAR_LGL) %>%
+    dplyr::mutate(META_SALE_MEETS_CRITERIA_SF_LGL = META_USE_TYPE_SF_LGL & META_PROP_CLASS_SF_LGL & META_SALE_CRITERIA_LGL,
+                  META_SALE_MEETS_CRITERIA_CONDO_LGL = META_USE_TYPE_CONDO_LGL & META_PROP_CLASS_CONDO_LGL & META_SALE_CRITERIA_LGL,
+                  META_SALE_MEETS_CRITERIA_ALL_LGL =  META_USE_TYPE_LGL & META_PROP_CLASS_LGL & META_SALE_CRITERIA_LGL) %>%
     tidyr::gather(VARIABLE, ESTIMATE, SALE_PRICE_2018, SALE_PRICE_2018_SQFT) %>%
     dplyr::mutate(MOE = NA_real_)
 
@@ -286,7 +145,7 @@ make_parcel_sales_variables <- function(parcel_sales,
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
 
 
-  sales_ready <- variable_template %>%
+  sales_reformat <- variable_template %>%
     dplyr::full_join(sales_all_long,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
@@ -299,15 +158,30 @@ make_parcel_sales_variables <- function(parcel_sales,
                             "VARIABLE_SUBTOTAL_DESC",
                             "MEASURE_TYPE",
                             "ESTIMATE",
-                            "MOE")) %>%
-    dplyr::mutate(INDICATOR = "SALE PRICE",
-                  VARIABLE_ROLE = dplyr::case_when(
-                    META_SALE_MEETS_CRITERIA_LGL ~ "include",
-                    TRUE ~ "omit"
-                  ))
+                            "MOE"))
 
 
-  parcel_sales_variables <- sales_ready
+  # ASSIGN VARIABLE ROLES ---------------------------------------------------
+
+
+  sale_var_roles <- sales_reformat %>%
+    dplyr::mutate(VARIABLE_ALT_1 = "SF_ONLY",
+                  VARIABLE_ALT_2 = "CONDO_ONLY",
+                  VARIABLE_ALT_3 = "ALL") %>%
+    tidyr::gather(VAR, VARIABLE_ALT, dplyr::starts_with("VARIABLE_ALT")) %>%
+    dplyr::select(-VAR) %>%
+    dplyr::mutate(INDICATOR = "SALE_PRICE",
+                  MEASURE_TYPE = "VALUE") %>%
+    dplyr::mutate(VARIABLE_ROLE = dplyr::case_when(
+      VARIABLE_ALT %in% "SF_ONLY" & META_SALE_MEETS_CRITERIA_SF_LGL ~ "include",
+      VARIABLE_ALT %in% "CONDO_ONLY" & META_SALE_MEETS_CRITERIA_CONDO_LGL ~ "include",
+      VARIABLE_ALT %in% "ALL" & META_SALE_MEETS_CRITERIA_ALL_LGL ~ "include",
+      TRUE ~ "omit"
+    )) %>%
+    tidyr::unite("VARIABLE", c("VARIABLE","VARIABLE_ALT"))
+
+
+  parcel_sales_variables <- sale_var_roles
 
   # RETURN ------------------------------------------------------------------
 
@@ -318,95 +192,13 @@ make_parcel_sales_variables <- function(parcel_sales,
 
 #' @rdname parcel-variables
 #' @export
-make_parcel_value_variables <- function(present_use_key,
-                                        condo_unit_type_key,
+make_parcel_value_variables <- function(parcel_all_metadata,
                                         single_family_criteria,
                                         condo_criteria,
                                         cpi,
                                         parcel_value,
-                                        parcel_info_2005,
-                                        parcel_info_2010,
-                                        parcel_info_2018,
-                                        condo_info_2005,
-                                        condo_info_2010,
-                                        condo_info_2018,
                                         variable_template
 ){
-
-
-  # PREP: PARCEL ------------------------------------------------------------
-
-  # Create the function that will prepare each year's parcel data,
-  # and the two lists to map over
-
-  prep_parcels  <- function(p, tax_year){
-
-    p %>% dplyr::transmute(SOURCE,
-                           GEOGRAPHY_ID,
-                           GEOGRAPHY_ID_TYPE,
-                           GEOGRAPHY_NAME,
-                           GEOGRAPHY_TYPE,
-                           ENDYEAR,
-                           META_RECORD_TYPE = "parcel",
-                           META_PRESENT_USE = META_PRESENTUSE,
-                           META_SQFT_LOT = units::set_units(META_SQFTLOT,"ft^2"),
-                           META_TAX_YEAR = tax_year)
-
-  }
-
-  p <- list( parcel_info_2005,
-             parcel_info_2010,
-             parcel_info_2018)
-
-  tax_year <- list(2005,2010,2018)
-
-
-  # Run the function on all three years of parcel data and then bind the results together
-
-  p_all <- purrr::pmap_dfr(list(p, tax_year), prep_parcels) %>%
-    dplyr::left_join(present_use_key, by = "META_PRESENT_USE") %>%
-    dplyr::transmute(SOURCE,
-                     GEOGRAPHY_ID,
-                     GEOGRAPHY_ID_TYPE,
-                     GEOGRAPHY_NAME,
-                     GEOGRAPHY_TYPE,
-                     ENDYEAR,
-                     META_RECORD_TYPE,
-                     META_PRESENT_USE = META_PRESENT_USE_DESC,
-                     META_SQFT_LOT,
-                     META_TAX_YEAR)
-
-
-  # PREP: CONDO -------------------------------------------------------------
-
-  condo_list <- list(condo_info_2005,
-                     condo_info_2010,
-                     condo_info_2018)
-
-
-  prep_condos <- function(condo, tax_year){
-    condo %>%
-      dplyr::transmute(SOURCE,
-                       GEOGRAPHY_ID,
-                       GEOGRAPHY_ID_TYPE,
-                       GEOGRAPHY_NAME,
-                       GEOGRAPHY_TYPE,
-                       ENDYEAR,
-                       META_RECORD_TYPE = "condo",
-                       META_CONDO_UNIT_TYPE = META_UNIT_TYPE)
-  }
-
-  condo_all <- purrr::pmap_dfr(list(condo_list, tax_year), prep_condos) %>%
-    dplyr::left_join(condo_unit_type_key, by = "META_CONDO_UNIT_TYPE") %>%
-    dplyr::transmute(SOURCE,
-                     GEOGRAPHY_ID,
-                     GEOGRAPHY_ID_TYPE,
-                     GEOGRAPHY_NAME,
-                     GEOGRAPHY_TYPE,
-                     ENDYEAR,
-                     META_RECORD_TYPE,
-                     META_CONDO_UNIT_TYPE = META_CONDO_UNIT_TYPE_DESC)
-
 
 
   # CONVERT TO 2018 DOLLARS -------------------------------------------------
@@ -415,6 +207,8 @@ make_parcel_value_variables <- function(present_use_key,
   # Prepare parcel_value:
   #
   #   1. where a parcel has multiple values for a given year, add them together
+  #      (this will create huge values for properties with many buildings
+  #       but they will filtererd out by single_family_criteria$buildings_on_property)
   #   2. convert to 2018 dollars (inflation adjustment)
 
   convert_to_2018_dollars <- function(value, year){
@@ -450,57 +244,56 @@ make_parcel_value_variables <- function(present_use_key,
   # Create indicators telling the type of residential property as well as
   # whether the criteria have been met (see `single_family_criteria` or `condo_criteria`)
 
-  message(paste0("The following process takes ~ 1 hour, 10 minutes - check back at: ",Sys.time() +4303))
 
+  p_metadata_and_value <- parcel_all_metadata %>%
+    dplyr::inner_join(parcel_value_ready,  # warning: this is a filtering join
+                      by = c("SOURCE",
+                             "GEOGRAPHY_ID",
+                             "GEOGRAPHY_ID_TYPE",
+                             "GEOGRAPHY_NAME",
+                             "GEOGRAPHY_TYPE",
+                             "ENDYEAR"))
 
-  p_grouped_id_year <- list(p_all, condo_all) %>%
-    purrr::reduce(dplyr::bind_rows) %>%  # rowbind parcels and condo units
-    dplyr::left_join(parcel_value_ready,
-                     by = c("SOURCE",
-                            "GEOGRAPHY_ID",
-                            "GEOGRAPHY_ID_TYPE",
-                            "GEOGRAPHY_NAME",
-                            "GEOGRAPHY_TYPE",
-                            "ENDYEAR")) %>%  # join the value history data
-    tidyr::complete(GEOGRAPHY_ID, ENDYEAR) %>%   # make sure each PIN has all three tax years (even if there isn't data from each year)
-    dplyr::group_by(GEOGRAPHY_ID, ENDYEAR)   # by record by year
+  p_criteria <- p_metadata_and_value %>%
+    dplyr::mutate(META_USE_TYPE_SF_LGL = META_PRESENT_USE %in% single_family_criteria$present_uses & META_PROPERTY_CATEGORY %in% "res",
+                  META_NBR_BLDG_LGL = META_NBR_BUILDINGS <= single_family_criteria$buildings_on_property,
+                  META_SQ_FT = dplyr::between(META_LOT_SQ_FT,
+                                              as.double(single_family_criteria$parcel_area$lower),
+                                              as.double(units::set_units(single_family_criteria$parcel_area$upper,"ft^2"))),
+                  META_IMPR_VALUE_SF_LGL = VALUE_IMPROVEMENT_2018 >= single_family_criteria$min_impr_value,
+                  META_USE_TYPE_CONDO_LGL = META_CONDO_UNIT_TYPE %in% condo_criteria$condo_unit_types & META_PROPERTY_CATEGORY %in% "condo",
+                  META_IMPR_VALUE_CONDO_LGL = VALUE_IMPROVEMENT_2018 >= condo_criteria$min_impr_value,
+                  META_MEETS_CRITERIA_SF_LGL = META_USE_TYPE_SF_LGL & META_NBR_BLDG_LGL & META_SQ_FT & META_IMPR_VALUE_SF_LGL,
+                  META_MEETS_CRITERIA_CONDO_LGL = META_USE_TYPE_CONDO_LGL & META_IMPR_VALUE_CONDO_LGL,
+                  META_MEETS_CRITERIA_ALL_LGL = META_MEETS_CRITERIA_SF_LGL | META_MEETS_CRITERIA_CONDO_LGL,
+                  META_HOME_TYPE = dplyr::case_when(  # create a single variable with the type of residence
+                    META_MEETS_CRITERIA_CONDO_LGL ~ "condo",
+                    META_MEETS_CRITERIA_SF_LGL ~ "single family",
+                    TRUE ~ NA_character_)
+    )
 
+  # note: having complete records isn't necessary for an indicators but it may be useful to know anyway
 
-  p_criteria <- p_grouped_id_year %>%
-    dplyr::mutate(META_SF_LGL = all(META_PRESENT_USE %in% single_family_criteria$present_uses,
-                                    dplyr::between(META_SQFT_LOT,
-                                                   as.double(single_family_criteria$parcel_area$lower),
-                                                   as.double(units::set_units(single_family_criteria$parcel_area$upper,"ft^2"))),
-                                    VALUE_IMPROVEMENT_2018 >= single_family_criteria$min_impr_value),
-                  META_CONDO_LGL = all(META_CONDO_UNIT_TYPE %in% condo_criteria$condo_unit_types,
-                                       VALUE_IMPROVEMENT_2018 >= condo_criteria$min_impr_value)
-    ) %>%
-    dplyr::ungroup()
-
-  p_complete_records <- p_criteria %>%
-    dplyr::mutate(META_HOME_TYPE = dplyr::case_when(  # create a single variable with the type of residence
-      META_CONDO_LGL ~ "condo",
-      META_SF_LGL ~ "single family",
-      TRUE ~ NA_character_)) %>%
-    dplyr::group_by(GEOGRAPHY_ID) %>% # by record
-    dplyr::mutate(META_SF_COMPLETE_LGL = all(META_SF_LGL), # these records are complete (i.e., data for all three years)
-                  META_CONDO_COMPLETE_LGL = all(META_CONDO_LGL))  %>%
+  p_complete <- p_criteria %>%
     dplyr::group_by(GEOGRAPHY_ID, ENDYEAR) %>%
     dplyr::arrange(dplyr::desc(VALUE_TOTAL_2018)) %>%
-    dplyr::slice(1) %>%
+    dplyr::slice(1) %>% # take the highest value record for each PIN and year
+    dplyr::ungroup() %>%
+    dplyr::group_by(GEOGRAPHY_ID) %>% # by record
+    dplyr::mutate(META_SF_COMPLETE_LGL = all(dplyr::n() == 3L) & all(META_MEETS_CRITERIA_SF_LGL), # these records are complete (i.e., data for all three years)
+                  META_CONDO_COMPLETE_LGL = all(dplyr::n() == 3L) & all(META_MEETS_CRITERIA_CONDO_LGL))  %>%
     dplyr::ungroup()
 
-  p_long <- p_complete_records %>%
-    tidyr::gather(VARIABLE, ESTIMATE, matches("VALUE")) %>%
-    dplyr::filter(VARIABLE %in% "VALUE_TOTAL_2018") %>%
-    dplyr::mutate(MOE = NA_real_)
+  p_long <- p_complete %>%
+    tidyr::gather(VARIABLE, ESTIMATE, dplyr::matches("VALUE")) %>%
+    dplyr::filter(VARIABLE %in% "VALUE_TOTAL_2018")
 
 
-  # REFORMAT ----------------------------------------------------------------
+  # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
 
 
 
-  parcel_value_ready <- variable_template %>%
+  parcel_value_reformat <- variable_template %>%
     dplyr::full_join(p_long,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
@@ -510,16 +303,28 @@ make_parcel_value_variables <- function(present_use_key,
                             "ENDYEAR",
                             "VARIABLE",
                             "ESTIMATE",
-                            "MOE")) %>%
-    dplyr::mutate(INDICATOR = "VALUE",
-                  VARIABLE_ROLE = dplyr::case_when(
-                    META_SF_COMPLETE_LGL ~ "include",
-                    META_CONDO_COMPLETE_LGL ~ "omit",  # note: this can be included at a later date
-                    TRUE ~ "omit"
-                  ),
-                  MEASURE_TYPE = "VALUE")
+                            "MOE"))
 
-  parcel_value_variables <- parcel_value_ready
+
+  # ASSIGN VARIABLE ROLES ---------------------------------------------------
+
+  p_var_roles <- parcel_value_reformat %>%
+    dplyr::mutate(VARIABLE_ALT_1 = "SF_ONLY",
+                  VARIABLE_ALT_2 = "CONDO_ONLY",
+                  VARIABLE_ALT_3 = "ALL") %>%
+    tidyr::gather(VAR, VARIABLE_ALT, dplyr::starts_with("VARIABLE_ALT")) %>%
+    dplyr::select(-VAR) %>%
+    dplyr::mutate(INDICATOR = "VALUE",
+                  MEASURE_TYPE = "VALUE") %>%
+    dplyr::mutate(VARIABLE_ROLE = dplyr::case_when(
+      VARIABLE_ALT %in% "SF_ONLY" & META_MEETS_CRITERIA_SF_LGL ~ "include",
+      VARIABLE_ALT %in% "CONDO_ONLY" & META_MEETS_CRITERIA_CONDO_LGL ~ "include",
+      VARIABLE_ALT %in% "ALL" & META_MEETS_CRITERIA_ALL_LGL ~ "include",
+      TRUE ~ "omit"
+    )) %>%
+    tidyr::unite("VARIABLE", c("VARIABLE","VARIABLE_ALT"))
+
+  parcel_value_variables <- p_var_roles
 
 
   # RETURN ------------------------------------------------------------------
@@ -528,3 +333,4 @@ make_parcel_value_variables <- function(present_use_key,
 
 
 }
+
