@@ -6,7 +6,7 @@
 \usage{
 make_indicators_cnt_pct(acs_variables, hud_chas_variables,
   parcel_value_variables, parcel_sales_variables, parcel_tract_overlay,
-  indicator_template)
+  county_tract_all_metadata, indicator_template)
 }
 \arguments{
 \item{acs_variables}{desc}
@@ -18,6 +18,8 @@ make_indicators_cnt_pct(acs_variables, hud_chas_variables,
 \item{parcel_sales_variables}{desc}
 
 \item{parcel_tract_overlay}{desc}
+
+\item{county_tract_all_metadata}{desc}
 
 \item{indicator_template}{desc}
 }
