@@ -29,8 +29,21 @@ make_indicators_cnt_pct <- function(acs_variables,
   chas_cnt <- hud_chas_variables %>%
     dplyr::filter(MEASURE_TYPE %in% "COUNT") # unnecessary step because they are all COUNT but I'm leaving it for clarity's sake
 
+  # Note: there is an issue with the condo record PINs.
+  #  In order to successfully join the parcels to census tracts,
+  #  the 2005 condo PINs need to be converted from their condo unit PIN
+  #  to the condo complex PIN. This is done by replacing the last four
+  #  digits of the unit PIN with "0000".
+
+  convert_to_complex_pin <- function(x){stringr::str_replace(x,".{4}$","0000")}
+
   parcel_value_cnt <- parcel_value_variables %>%
-    dplyr::left_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID = "PIN")) %>%
+    dplyr::mutate(GEOGRAPHY_ID_JOIN = dplyr::case_when(
+      META_PROPERTY_CATEGORY %in% "condo" ~ convert_to_complex_pin(GEOGRAPHY_ID),
+      TRUE ~ GEOGRAPHY_ID
+    )) %>%
+    dplyr::left_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID_JOIN = "PIN")) %>%
+    dplyr::select(-GEOGRAPHY_ID_JOIN) %>%
     dplyr::mutate(SOURCE = "ASSESSOR",
                   GEOGRAPHY_ID = GEOID,
                   VARIABLE = stringr::str_c("SALE_RATE_",stringr::str_extract(VARIABLE,"ALL|SF_ONLY|CONDO_ONLY")),
@@ -58,9 +71,13 @@ make_indicators_cnt_pct <- function(acs_variables,
     dplyr::left_join(county_tract_all_metadata, by = "GEOGRAPHY_ID")
 
 
-  # pick up here
   parcel_sales_cnt <- parcel_sales_variables %>%
-    dplyr::left_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID = "PIN")) %>%
+    dplyr::mutate(GEOGRAPHY_ID_JOIN = dplyr::case_when(
+      META_PROPERTY_CATEGORY %in% "condo" ~ convert_to_complex_pin(GEOGRAPHY_ID),
+      TRUE ~ GEOGRAPHY_ID
+    )) %>%
+    dplyr::left_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID_JOIN = "PIN")) %>%
+    dplyr::select(-GEOGRAPHY_ID_JOIN) %>%
     dplyr::mutate(SOURCE = "ASSESSOR",
                   GEOGRAPHY_ID = GEOID,
                   GEOGRAPHY_ID_TYPE = "tract",
@@ -122,7 +139,7 @@ make_indicators_cnt_pct <- function(acs_variables,
                      TOTAL_MOE,
                      PROPORTION_ESTIMATE = dplyr::case_when(
                        COUNT_ESTIMATE <= 0 ~ 0,
-                       TOTAL_ESTIMATE <= 0 ~ 0,
+                       TOTAL_ESTIMATE <= 0 ~ NA_real_,
                        COUNT_ESTIMATE/TOTAL_ESTIMATE > 1 ~ 1,
                        TRUE ~ COUNT_ESTIMATE/TOTAL_ESTIMATE
                      ),
