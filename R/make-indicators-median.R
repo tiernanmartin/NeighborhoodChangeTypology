@@ -50,9 +50,8 @@ make_indicators_median <- function(acs_variables,
     dplyr::left_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID_JOIN = "PIN")) %>% # filter out parcels whose PINs don't match any tract GEOID
     dplyr::select(-GEOGRAPHY_ID_JOIN)  %>%
     dplyr::mutate(GEOGRAPHY_ID = GEOID,
-                  GEOGRAPHY_ID_TYPE = "tract",
-                  VARIABLE = stringr::str_c("MEDIAN_", VARIABLE),
-                  INDICATOR = "ASSESSED_VALUE",
+                  GEOGRAPHY_ID_TYPE = "GEOID",
+                  GEOGRAPHY_TYPE = "tract",
                   MEASURE_TYPE = "MEDIAN") %>%
     dplyr::select(-GEOID, -dplyr::matches("^META"))
 
@@ -97,12 +96,12 @@ make_indicators_median <- function(acs_variables,
   # check the data distribution by ENDYEAR and VARIABLE (histogram)
   check_parcel_median_distribution <- function(){
     p_no_outliers <- parcel_median_with_n %>%
-      filter((VARIABLE %in% "MEDIAN_SALE_PRICE_2018_ALL" & ESTIMATE < 2e6) |
-               (VARIABLE %in% "MEDIAN_VALUE_TOTAL_2018_ALL" & ESTIMATE < 2e6) |
-               (VARIABLE %in% "MEDIAN_SALE_PRICE_2018_SQFT_ALL" & ESTIMATE < 750))
+      filter((VARIABLE %in% "SALE_PRICE_2018_ALL" & ESTIMATE < 2e6) |
+               (VARIABLE %in% "VALUE_TOTAL_2018_ALL" & ESTIMATE < 2e6) |
+               (VARIABLE %in% "SALE_PRICE_2018_SQFT_ALL" & ESTIMATE < 750))
 
     label_data <- p_no_outliers %>%
-      dplyr::mutate(X_VAR = if_else(VARIABLE %in% "MEDIAN_SALE_PRICE_2018_SQFT_ALL",600,1.5e6),
+      dplyr::mutate(X_VAR = if_else(VARIABLE %in% "SALE_PRICE_2018_SQFT_ALL",600,1.5e6),
                     Y_VAR = 75) %>%
       dplyr::group_by(ENDYEAR, VARIABLE) %>%
       dplyr::summarise(MEDIAN = median(ESTIMATE, na.rm = TRUE),
@@ -132,13 +131,25 @@ make_indicators_median <- function(acs_variables,
                                 parcel_median) %>%
     purrr::map_dfr(c)
 
+ # REDEFINE VARIABLE COLUMN ------------------------------------------------
+
+
+  # create unique, human-readable variable names
+
+  indicator_variable <- indicators_median_all %>%
+    dplyr::mutate(VARIABLE = dplyr::case_when(
+      SOURCE %in% "ASSESSOR" ~  stringr::str_c(MEASURE_TYPE, VARIABLE, sep = "_"),
+      TRUE ~ stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_")
+    ))
+
+
 
 # REFORMAT ----------------------------------------------------------------
 
 # Note: this just makes sure that the columns have the same order as the indicator_template
 
   indicators_median_ready <- indicator_template %>%
-    dplyr::full_join(indicators_median_all,
+    dplyr::full_join(indicator_variable,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",

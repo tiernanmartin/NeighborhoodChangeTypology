@@ -105,7 +105,7 @@ make_indicators_cnt_pct <- function(acs_variables,
     dplyr::mutate(VARIABLE_ROLE = "COUNT")
 
   all_geog_value_sales_cnt <- list(all_geog_value_cnt,
-                                 all_geog_sales_cnt) %>%
+                                   all_geog_sales_cnt) %>%
     purrr::map_dfr(c)
 
 
@@ -151,6 +151,9 @@ make_indicators_cnt_pct <- function(acs_variables,
     ) %>%
     dplyr::ungroup()
 
+
+  # CONVERT TO LONG FORMAT --------------------------------------------------
+
   indicator_values_long <- indicator_values %>%
     tidyr::gather(MEASURE_TYPE, VALUE, dplyr::matches("ESTIMATE|MOE")) %>%
     tidyr::separate(MEASURE_TYPE, into = c("MEASURE_TYPE","EST_OR_MOE"), sep = "_") %>%
@@ -160,11 +163,28 @@ make_indicators_cnt_pct <- function(acs_variables,
     indicator_values_long %>% dplyr::group_by(MEASURE_TYPE, INDICATOR, VARIABLE) %>% dplyr::select(ESTIMATE) %>% skimr::skim()
   }
 
+  # REDEFINE VARIABLE COLUMN ------------------------------------------------
+
+
+  # create unique, human-readable variable names
+
+  indicator_variable <- indicator_values_long %>%
+    dplyr::mutate(VARIABLE = dplyr::case_when(
+      SOURCE %in% "ASSESSOR" ~  stringr::str_c(MEASURE_TYPE, VARIABLE, sep = "_"),
+      TRUE ~ stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_")
+    ))
+
+
+
+
+  # REFORMAT ----------------------------------------------------------------
+
+
 
   # Note: this just makes sure that the columns have the same order as the indicator_template
 
   indicator_values_ready <- indicator_template %>%
-    dplyr::full_join(indicator_values_long,
+    dplyr::full_join(indicator_variable,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
@@ -190,7 +210,7 @@ show_hist_facet_indicators_cnt_pct <- function(){
 
   indicators_cnt_pct %>%
     dplyr::filter(MEASURE_TYPE %in% "PERCENT") %>%
-    dplyr::mutate(LABEL = glue::glue("{VARIABLE} ({SOURCE})")) %>%
+    dplyr::mutate(LABEL = VARIABLE) %>%
     dplyr::group_by(ENDYEAR, LABEL) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
