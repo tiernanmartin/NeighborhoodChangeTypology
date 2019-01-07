@@ -8,6 +8,7 @@
 #' @param parcel_value_variables desc
 #' @param parcel_sales_variables desc
 #' @param parcel_tract_overlay desc
+#' @param county_tract_all_metadata desc
 #' @param indicator_template desc
 #' @return a `tibble`
 #' @export
@@ -17,10 +18,8 @@ make_indicators_median <- function(acs_variables,
                                    parcel_value_variables,
                                    parcel_sales_variables,
                                    parcel_tract_overlay,
+                                   county_tract_all_metadata,
                                    indicator_template){
-
-# START HERE
-# update to reflect the three sales-related variables (same types of changes that were made to indicators-cnt-pct)
 
   # PREPARE DATA --------------------------------------------------------
 
@@ -33,7 +32,7 @@ make_indicators_median <- function(acs_variables,
     dplyr::filter(VARIABLE_ROLE %in% "include") %>%
     dplyr::select(-dplyr::matches("VARIABLE_"))
 
-  # Note: there is an issue with the condo record PINs.
+   # Note: there is an issue with the condo record PINs.
   #  In order to successfully join the parcels to census tracts,
   #  the 2005 condo PINs need to be converted from their condo unit PIN
   #  to the condo complex PIN. This is done by replacing the last four
@@ -41,21 +40,36 @@ make_indicators_median <- function(acs_variables,
 
   convert_to_complex_pin <- function(x){stringr::str_replace(x,".{4}$","0000")}
 
-  parcel_median_with_n <- list(parcel_value_variables,
+  parcel_value_sales_median <- list(parcel_value_variables,
                                parcel_sales_variables) %>%
     purrr::map_dfr(c) %>%
     dplyr::mutate(GEOGRAPHY_ID_JOIN = dplyr::case_when(
       META_PROPERTY_CATEGORY %in% "condo" ~ convert_to_complex_pin(GEOGRAPHY_ID),
       TRUE ~ GEOGRAPHY_ID
     )) %>%
-    dplyr::inner_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID_JOIN = "PIN")) %>% # filter out parcels whose PINs don't match any tract GEOID
+    dplyr::left_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID_JOIN = "PIN")) %>% # filter out parcels whose PINs don't match any tract GEOID
     dplyr::select(-GEOGRAPHY_ID_JOIN)  %>%
     dplyr::mutate(GEOGRAPHY_ID = GEOID,
                   GEOGRAPHY_ID_TYPE = "tract",
                   VARIABLE = stringr::str_c("MEDIAN_", VARIABLE),
-                  INDICATOR = "VALUE",
+                  INDICATOR = "ASSESSED_VALUE",
                   MEASURE_TYPE = "MEDIAN") %>%
-    dplyr::select(-GEOID, -dplyr::matches("^META")) %>%
+    dplyr::select(-GEOID, -dplyr::matches("^META"))
+
+  # create duplicates of the parcel variables that will be summarized
+  # at the county level (instead of the tract level)
+
+  county_value_sales_median <- parcel_value_sales_median %>%
+    dplyr::mutate(GEOGRAPHY_ID = "53033") %>%
+    dplyr::select(-GEOGRAPHY_ID_TYPE,-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE) %>%
+    dplyr::left_join(county_tract_all_metadata, by = "GEOGRAPHY_ID")
+
+
+# CALCULATE MEDIAN --------------------------------------------------------
+
+  parcel_median_with_n <- list(parcel_value_sales_median,
+                                     county_value_sales_median) %>%
+    purrr::map_dfr(c) %>%
     dplyr::group_by_at(dplyr::vars(-VARIABLE_SUBTOTAL,-VARIABLE_SUBTOTAL_DESC,-ESTIMATE,-MOE)) %>%
     dplyr::summarise(ESTIMATE = as.integer(round(median(ESTIMATE, na.rm = TRUE),0)),
                      N = n(),
@@ -64,6 +78,8 @@ make_indicators_median <- function(acs_variables,
     dplyr::ungroup() %>%
     dplyr::filter(VARIABLE_ROLE %in% "include") %>%
     dplyr::select(-dplyr::matches("VARIABLE_"))
+
+# CHECK RESULTS -----------------------------------------------------------
 
   check_parcel_median_with_n <- function(){
 
@@ -116,10 +132,37 @@ make_indicators_median <- function(acs_variables,
                                 parcel_median) %>%
     purrr::map_dfr(c)
 
-  indicators_median <- indicators_median_all
+
+# REFORMAT ----------------------------------------------------------------
+
+# Note: this just makes sure that the columns have the same order as the indicator_template
+
+  indicators_median_ready <- indicator_template %>%
+    dplyr::full_join(indicators_median_all,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "ENDYEAR",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
+
+  indicators_median <- indicators_median_ready
 
 # RETURN ------------------------------------------------------------------
 
   return(indicators_median)
 
 }
+
+check_parcel_median <- function(){
+    indicators_median %>%
+    ggplot2::ggplot(ggplot2::aes(x = ESTIMATE)) +
+      ggplot2::geom_histogram() +
+      ggplot2::scale_x_continuous(labels = scales::comma) +
+      ggplot2::facet_grid(ENDYEAR ~ VARIABLE, scales = "free")
+  }

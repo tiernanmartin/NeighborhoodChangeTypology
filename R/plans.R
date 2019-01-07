@@ -377,13 +377,14 @@ get_indicator_plan <- function(){
                                                  parcel_tract_overlay,
                                                  county_tract_all_metadata,
                                                  indicator_template),
-    # indicators_median = make_indicators_median(acs_variables,
-    #                                            ltdb_variables,
-    #                                            factfinder_variables,
-    #                                            parcel_value_variables,
-    #                                            parcel_sales_variables,
-    #                                            parcel_tract_overlay,
-    #                                            indicator_template),
+    indicators_median = make_indicators_median(acs_variables,
+                                               ltdb_variables,
+                                               factfinder_variables,
+                                               parcel_value_variables,
+                                               parcel_sales_variables,
+                                               parcel_tract_overlay,
+                                               county_tract_all_metadata,
+                                               indicator_template),
 
     # indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
     # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
@@ -426,6 +427,11 @@ get_indicator_plan <- function(){
     # demo_change_indicators = make_demo_change_indicators(acs_indicators),
     tmp = c("placeholder")
   )
+
+  # sample_size_plan <- drake::drake_plan(
+  #   sample_metadata = make_sample_metadata(indicators_cnt_pct,
+  #                                          indicators_median)
+  # )
 
   return(indicator_plan)
 
