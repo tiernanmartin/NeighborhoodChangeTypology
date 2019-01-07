@@ -385,6 +385,11 @@ get_indicator_plan <- function(){
                                                parcel_tract_overlay,
                                                county_tract_all_metadata,
                                                indicator_template),
+    sample_size_metadata = make_sample_size_metadata(indicators_cnt_pct,
+                                 indicators_median),
+    indicators = make_indicators(indicators_cnt_pct,
+                                 indicators_median,
+                                 sample_size_metadata),
 
     # indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
     # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
