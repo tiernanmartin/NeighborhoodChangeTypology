@@ -49,7 +49,7 @@ make_indicators_cnt_pct <- function(acs_variables,
                   VARIABLE = stringr::str_c("SALE_RATE_",stringr::str_extract(VARIABLE,"ALL|SF_ONLY|CONDO_ONLY")),
                   INDICATOR = "SALE_RATE",
                   MOE = 0L,
-                  ESTIMATE = dplyr::if_else(VARIABLE_ROLE %in% c("include"),1L,0L), # count of included parcels (single-family criteria)
+                  ESTIMATE = dplyr::if_else(VARIABLE_ROLE %in% c("include"),1L,0L),
                   MEASURE_TYPE = "COUNT") %>%
     dplyr::select(-GEOID,-GEOGRAPHY_ID_TYPE,-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE,  -dplyr::matches("^META")) %>%
     dplyr::left_join(county_tract_all_metadata, by = "GEOGRAPHY_ID")
@@ -137,13 +137,13 @@ make_indicators_cnt_pct <- function(acs_variables,
                      COUNT_MOE,
                      TOTAL_ESTIMATE ,
                      TOTAL_MOE,
-                     PROPORTION_ESTIMATE = dplyr::case_when(
+                     PERCENT_ESTIMATE = dplyr::case_when(
                        COUNT_ESTIMATE <= 0 ~ 0,
                        TOTAL_ESTIMATE <= 0 ~ NA_real_,
                        COUNT_ESTIMATE/TOTAL_ESTIMATE > 1 ~ 1,
                        TRUE ~ COUNT_ESTIMATE/TOTAL_ESTIMATE
                      ),
-                     PROPORTION_MOE = tidycensus::moe_prop(
+                     PERCENT_MOE = tidycensus::moe_prop(
                        num = COUNT_ESTIMATE,
                        denom = TOTAL_ESTIMATE,
                        moe_num = COUNT_MOE,
@@ -189,7 +189,7 @@ show_hist_facet_indicators_cnt_pct <- function(){
 
 
   indicators_cnt_pct %>%
-    dplyr::filter(MEASURE_TYPE %in% "PROPORTION") %>%
+    dplyr::filter(MEASURE_TYPE %in% "PERCENT") %>%
     dplyr::mutate(LABEL = glue::glue("{VARIABLE} ({SOURCE})")) %>%
     dplyr::group_by(ENDYEAR, LABEL) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE)) %>%
