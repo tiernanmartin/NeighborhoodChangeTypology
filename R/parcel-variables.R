@@ -314,7 +314,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
                   VARIABLE_ALT_3 = "ALL") %>%
     tidyr::gather(VAR, VARIABLE_ALT, dplyr::starts_with("VARIABLE_ALT")) %>%
     dplyr::select(-VAR) %>%
-    dplyr::mutate(INDICATOR = "VALUE",
+    dplyr::mutate(INDICATOR = "ASSESSED_VALUE",
                   MEASURE_TYPE = "VALUE") %>%
     dplyr::mutate(VARIABLE_ROLE = dplyr::case_when(
       VARIABLE_ALT %in% "SF_ONLY" & META_MEETS_CRITERIA_SF_LGL ~ "include",
