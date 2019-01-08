@@ -47,14 +47,42 @@ make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_tabl
     dplyr::inner_join(hud_chas_roles, by = c("SOURCE","VARIABLE_SUBTOTAL")) # this filters out any variables not in the hud_chas_roles
 
 
+  # CREATE VARIABLE_DESC ----------------------------------------------------
+
+  hud_chas_vars_desc <- hud_chas_vars_data %>%
+     dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_"))
+
+
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
 
 
   hud_chas_vars_ready <- variable_template %>%
-    dplyr::full_join(hud_chas_vars_data,
-                     by = c("SOURCE", "GEOGRAPHY_ID", "GEOGRAPHY_ID_TYPE", "GEOGRAPHY_NAME", "GEOGRAPHY_TYPE", "ENDYEAR", "INDICATOR", "VARIABLE", "VARIABLE_SUBTOTAL", "VARIABLE_SUBTOTAL_DESC", "VARIABLE_ROLE", "MEASURE_TYPE", "ESTIMATE", "MOE"))
+    dplyr::full_join(hud_chas_vars_desc,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "ENDYEAR",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "VARIABLE_DESC",
+                            "VARIABLE_SUBTOTAL",
+                            "VARIABLE_SUBTOTAL_DESC",
+                            "VARIABLE_ROLE",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
 
   hud_chas_variables <- hud_chas_vars_ready
+
+  check_hud_chas_vars_ready <- function(){
+
+    # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
+    # If any NA's are showing up then something needs to be fixed
+
+     hud_chas_variables %>% dplyr::count(ENDYEAR,INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE)
+  }
 
   # RETURN ------------------------------------------------------------------
 

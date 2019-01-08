@@ -89,7 +89,7 @@ make_parcel_sales_variables <- function(parcel_sales,
   }
 
   sales_2018_dollars <- sales_prep %>%
-    dplyr::mutate(VARIABLE = "SALE_PRICE_2018",
+    dplyr::mutate(VARIABLE = "SP", # SP is my shorthand for "assessed total value"
                   ESTIMATE = purrr::map2_dbl(ESTIMATE, ENDYEAR, convert_to_2018_dollars))  # note: the original SALE_PRICE variable is dropped
 
 
@@ -97,13 +97,18 @@ make_parcel_sales_variables <- function(parcel_sales,
   # ASSIGN ROLES BY CRITERIA ------------------------------------------------------
 
   sales_all_wide <- sales_2018_dollars %>%
-    dplyr::inner_join(parcel_all_metadata, by = c("SOURCE", "GEOGRAPHY_ID", "GEOGRAPHY_ID_TYPE", "GEOGRAPHY_NAME", "GEOGRAPHY_TYPE", "ENDYEAR")) %>%
+    dplyr::inner_join(parcel_all_metadata, by = c("SOURCE",
+                                                  "GEOGRAPHY_ID",
+                                                  "GEOGRAPHY_ID_TYPE",
+                                                  "GEOGRAPHY_NAME",
+                                                  "GEOGRAPHY_TYPE",
+                                                  "ENDYEAR")) %>%
     dplyr::select(-MOE) %>%
     dplyr::mutate(RNUM = dplyr::row_number()) %>%
     tidyr::spread(VARIABLE, ESTIMATE) %>%
-    dplyr::mutate(SALE_PRICE_2018_SQFT = dplyr::case_when(
-      is.na(SALE_PRICE_2018) ~ NA_real_,
-      TRUE ~ round(SALE_PRICE_2018/META_LIVING_SQ_FT, 2)
+    dplyr::mutate(SP_SQFT = dplyr::case_when(
+      is.na(SP) ~ NA_real_,
+      TRUE ~ round(SP/META_LIVING_SQ_FT, 2)
     )) %>% dplyr::select(-RNUM)
 
   sales_all_long <- sales_all_wide %>%
@@ -117,7 +122,7 @@ make_parcel_sales_variables <- function(parcel_sales,
     ) %>%
     dplyr::mutate(
       META_SQFT_LGL = !is.na(META_LIVING_SQ_FT) & META_LIVING_SQ_FT >= sales_criteria$min_footage,
-      META_PRICE_LGL = !is.na(SALE_PRICE_2018) & SALE_PRICE_2018 >= sales_criteria$min_sale_price,
+      META_PRICE_LGL = !is.na(SP) & SP >= sales_criteria$min_sale_price,
       META_USE_LGL = META_PRINCIPAL_USE %in% sales_criteria$principal_use,
       META_PROP_TYPE_LGL = META_PROPERTY_TYPE %in% sales_criteria$property_type,
       META_REASON_LGL = META_SALE_REASON %in% sales_criteria$sale_reason,
@@ -128,7 +133,7 @@ make_parcel_sales_variables <- function(parcel_sales,
     dplyr::mutate(META_SALE_MEETS_CRITERIA_SF_LGL = META_USE_TYPE_SF_LGL & META_PROP_CLASS_SF_LGL & META_SALE_CRITERIA_LGL,
                   META_SALE_MEETS_CRITERIA_CONDO_LGL = META_USE_TYPE_CONDO_LGL & META_PROP_CLASS_CONDO_LGL & META_SALE_CRITERIA_LGL,
                   META_SALE_MEETS_CRITERIA_ALL_LGL =  META_USE_TYPE_LGL & META_PROP_CLASS_LGL & META_SALE_CRITERIA_LGL) %>%
-    tidyr::gather(VARIABLE, ESTIMATE, SALE_PRICE_2018, SALE_PRICE_2018_SQFT) %>%
+    tidyr::gather(VARIABLE, ESTIMATE, SP, SP_SQFT) %>%
     dplyr::mutate(MOE = NA_real_)
 
 
@@ -140,45 +145,53 @@ make_parcel_sales_variables <- function(parcel_sales,
       skimr::skim()
   }
 
-
-
-  # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
-
-
-  sales_reformat <- variable_template %>%
-    dplyr::full_join(sales_all_long,
-                     by = c("SOURCE",
-                            "GEOGRAPHY_ID",
-                            "GEOGRAPHY_ID_TYPE",
-                            "GEOGRAPHY_NAME",
-                            "GEOGRAPHY_TYPE",
-                            "ENDYEAR",
-                            "VARIABLE",
-                            "VARIABLE_SUBTOTAL",
-                            "VARIABLE_SUBTOTAL_DESC",
-                            "MEASURE_TYPE",
-                            "ESTIMATE",
-                            "MOE"))
-
-
   # ASSIGN VARIABLE ROLES ---------------------------------------------------
 
 
-  sale_var_roles <- sales_reformat %>%
-    dplyr::mutate(VARIABLE_ALT_1 = "SF_ONLY",
-                  VARIABLE_ALT_2 = "CONDO_ONLY",
+  sale_var_roles <- sales_all_long %>%
+    dplyr::mutate(VARIABLE_ALT_1 = "SF",
+                  VARIABLE_ALT_2 = "CONDO",
                   VARIABLE_ALT_3 = "ALL") %>%
     tidyr::gather(VAR, VARIABLE_ALT, dplyr::starts_with("VARIABLE_ALT")) %>%
     dplyr::select(-VAR) %>%
     dplyr::mutate(INDICATOR = "SALE_PRICE",
                   MEASURE_TYPE = "VALUE") %>%
     dplyr::mutate(VARIABLE_ROLE = dplyr::case_when(
-      VARIABLE_ALT %in% "SF_ONLY" & META_SALE_MEETS_CRITERIA_SF_LGL ~ "include",
-      VARIABLE_ALT %in% "CONDO_ONLY" & META_SALE_MEETS_CRITERIA_CONDO_LGL ~ "include",
+      VARIABLE_ALT %in% "SF" & META_SALE_MEETS_CRITERIA_SF_LGL ~ "include",
+      VARIABLE_ALT %in% "CONDO" & META_SALE_MEETS_CRITERIA_CONDO_LGL ~ "include",
       VARIABLE_ALT %in% "ALL" & META_SALE_MEETS_CRITERIA_ALL_LGL ~ "include",
       TRUE ~ "omit"
     )) %>%
     tidyr::unite("VARIABLE", c("VARIABLE","VARIABLE_ALT"))
+
+
+  # CREATE VARIABLE_DESC ----------------------------------------------------
+
+  sale_var_desc <- sale_var_roles %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE,stringr::str_replace(VARIABLE, "SP","SALE_PRICE"), sep = "_")
+    )
+
+
+  # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
+
+
+  sales_reformat <- variable_template %>%
+    dplyr::full_join(sale_var_desc,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "ENDYEAR",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "VARIABLE_DESC",
+                            "VARIABLE_SUBTOTAL",
+                            "VARIABLE_SUBTOTAL_DESC",
+                            "VARIABLE_ROLE",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
 
 
   parcel_sales_variables <- sale_var_roles
@@ -225,7 +238,10 @@ make_parcel_value_variables <- function(parcel_all_metadata,
                     GEOGRAPHY_NAME,
                     GEOGRAPHY_TYPE,
                     ENDYEAR,
-                    VARIABLE) %>%
+                    VARIABLE,
+                    VARIABLE_SUBTOTAL,
+                    VARIABLE_SUBTOTAL_DESC,
+                    MEASURE_TYPE) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
                      MOE = dplyr::first(MOE)) %>%
     dplyr::ungroup() %>%
@@ -234,7 +250,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
 
   parcel_value_total_wide <- parcel_value_all_variables %>%
     tidyr::spread(VARIABLE, ESTIMATE) %>%
-    dplyr::mutate(VALUE_TOTAL_2018 = VALUE_LAND_2018 + VALUE_IMPROVEMENT_2018)
+    dplyr::mutate(ATV = VALUE_LAND_2018 + VALUE_IMPROVEMENT_2018) # ATV is my shorthand for "assessed total value"
 
   parcel_value_ready <- parcel_value_total_wide
 
@@ -276,7 +292,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
 
   p_complete <- p_criteria %>%
     dplyr::group_by(GEOGRAPHY_ID, ENDYEAR) %>%
-    dplyr::arrange(dplyr::desc(VALUE_TOTAL_2018)) %>%
+    dplyr::arrange(dplyr::desc(ATV)) %>%
     dplyr::slice(1) %>% # take the highest value record for each PIN and year
     dplyr::ungroup() %>%
     dplyr::group_by(GEOGRAPHY_ID) %>% # by record
@@ -285,8 +301,34 @@ make_parcel_value_variables <- function(parcel_all_metadata,
     dplyr::ungroup()
 
   p_long <- p_complete %>%
-    tidyr::gather(VARIABLE, ESTIMATE, dplyr::matches("VALUE")) %>%
-    dplyr::filter(VARIABLE %in% "VALUE_TOTAL_2018")
+    tidyr::gather(VARIABLE, ESTIMATE, dplyr::matches("ATV")) %>%
+    dplyr::filter(VARIABLE %in% "ATV")
+
+
+  # ASSIGN VARIABLE ROLES ---------------------------------------------------
+
+  p_var_roles <- p_long %>%
+    dplyr::mutate(VARIABLE_ALT_1 = "SF",
+                  VARIABLE_ALT_2 = "CONDO",
+                  VARIABLE_ALT_3 = "ALL") %>%
+    tidyr::gather(VAR, VARIABLE_ALT, dplyr::starts_with("VARIABLE_ALT")) %>%
+    dplyr::select(-VAR) %>%
+    dplyr::mutate(INDICATOR = "ASSESSED_VALUE",
+                  MEASURE_TYPE = "VALUE") %>%
+    dplyr::mutate(VARIABLE_ROLE = dplyr::case_when(
+      VARIABLE_ALT %in% "SF" & META_MEETS_CRITERIA_SF_LGL ~ "include",
+      VARIABLE_ALT %in% "CONDO" & META_MEETS_CRITERIA_CONDO_LGL ~ "include",
+      VARIABLE_ALT %in% "ALL" & META_MEETS_CRITERIA_ALL_LGL ~ "include",
+      TRUE ~ "omit"
+    )) %>%
+    tidyr::unite("VARIABLE", c("VARIABLE","VARIABLE_ALT"))
+
+
+  # CREATE VARIABLE_DESC ----------------------------------------------------
+
+  p_var_desc <- p_var_roles %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE,stringr::str_replace(VARIABLE, "ATV","ASSESSED_TOTAL_VALUE"), sep = "_")
+    )
 
 
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
@@ -294,37 +336,35 @@ make_parcel_value_variables <- function(parcel_all_metadata,
 
 
   parcel_value_reformat <- variable_template %>%
-    dplyr::full_join(p_long,
+    dplyr::full_join(p_var_desc,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
                             "GEOGRAPHY_TYPE",
                             "ENDYEAR",
+                            "INDICATOR",
                             "VARIABLE",
+                            "VARIABLE_DESC",
+                            "VARIABLE_SUBTOTAL",
+                            "VARIABLE_SUBTOTAL_DESC",
+                            "VARIABLE_ROLE",
+                            "MEASURE_TYPE",
                             "ESTIMATE",
                             "MOE"))
 
+  parcel_value_variables <- parcel_value_reformat
 
-  # ASSIGN VARIABLE ROLES ---------------------------------------------------
+  # CHECK DATA --------------------------------------------------------------
 
-  p_var_roles <- parcel_value_reformat %>%
-    dplyr::mutate(VARIABLE_ALT_1 = "SF_ONLY",
-                  VARIABLE_ALT_2 = "CONDO_ONLY",
-                  VARIABLE_ALT_3 = "ALL") %>%
-    tidyr::gather(VAR, VARIABLE_ALT, dplyr::starts_with("VARIABLE_ALT")) %>%
-    dplyr::select(-VAR) %>%
-    dplyr::mutate(INDICATOR = "ASSESSED_VALUE",
-                  MEASURE_TYPE = "VALUE") %>%
-    dplyr::mutate(VARIABLE_ROLE = dplyr::case_when(
-      VARIABLE_ALT %in% "SF_ONLY" & META_MEETS_CRITERIA_SF_LGL ~ "include",
-      VARIABLE_ALT %in% "CONDO_ONLY" & META_MEETS_CRITERIA_CONDO_LGL ~ "include",
-      VARIABLE_ALT %in% "ALL" & META_MEETS_CRITERIA_ALL_LGL ~ "include",
-      TRUE ~ "omit"
-    )) %>%
-    tidyr::unite("VARIABLE", c("VARIABLE","VARIABLE_ALT"))
 
-  parcel_value_variables <- p_var_roles
+  check_parcel_value_variable <- function(){
+
+    # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
+    # If any NA's are showing up then something needs to be fixed
+
+     parcel_value_variables %>% dplyr::count(ENDYEAR,INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE)
+  }
 
 
   # RETURN ------------------------------------------------------------------

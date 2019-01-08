@@ -154,24 +154,53 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
   acs_vars_data <- acs_data %>%
     dplyr::full_join(acs_vars_join, by = c("SOURCE", "VARIABLE_SUBTOTAL"))
 
+  # REFINE VARIABLE AND CREATE VARIABLE_DESC --------------------------------
+
+  acs_vars_data <- acs_vars_data %>%
+    dplyr::mutate(VARIABLE = dplyr::case_when(
+      INDICATOR %in% "COST_BURDEN_OWN" ~ stringr::str_c(VARIABLE,"_OWN"),
+      INDICATOR %in% "COST_BURDEN_RENT" ~ stringr::str_c(VARIABLE,"_RENT"),
+      TRUE ~ VARIABLE
+    )) %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_"))
+
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
 
   acs_vars_ready <- variable_template %>%
     dplyr::full_join(acs_vars_data,
-                     by = c("SOURCE", "GEOGRAPHY_ID", "GEOGRAPHY_ID_TYPE", "GEOGRAPHY_NAME", "GEOGRAPHY_TYPE", "ENDYEAR", "INDICATOR", "VARIABLE", "VARIABLE_SUBTOTAL", "VARIABLE_SUBTOTAL_DESC", "VARIABLE_ROLE", "MEASURE_TYPE", "ESTIMATE", "MOE"))
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "ENDYEAR",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "VARIABLE_DESC",
+                            "VARIABLE_SUBTOTAL",
+                            "VARIABLE_SUBTOTAL_DESC",
+                            "VARIABLE_ROLE",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
+
+ acs_variables <- acs_vars_ready
+
+# CHECK DATA --------------------------------------------------------------
+
 
   check_acs_vars_ready <- function(){
 
     # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
     # If any NA's are showing up then something needs to be fixed
 
-    acs_vars_ready %>% dplyr::count(INDICATOR, VARIABLE_ROLE)
+     acs_variables %>% dplyr::count(ENDYEAR,INDICATOR, VARIABLE, VARIABLE_ROLE)
   }
 
 
 
   # RETURN ------------------------------------------------------------------
 
-  return(acs_vars_ready)
+  return(acs_variables)
 
 }
