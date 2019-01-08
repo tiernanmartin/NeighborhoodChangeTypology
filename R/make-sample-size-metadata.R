@@ -11,8 +11,8 @@ make_sample_size_metadata <- function(indicators_cnt_pct,
 
 
   sample_size_min <- tibble::tribble(
-    ~SAMPLE_VARIABLE, ~SAMPLE_SIZE_MIN,
-    "B01003", 1250L,
+    ~SAMPLE_VARIABLE_DESC, ~SAMPLE_SIZE_MIN,
+    "TOTAL_POPULATION", 1250L,
     "TOTAL_SALE_RATE_ALL", 50L,
     "TOTAL_SALE_RATE_CONDO_ONLY", 50L,
     "TOTAL_SALE_RATE_SF_ONLY", 50L,
@@ -25,15 +25,15 @@ make_sample_size_metadata <- function(indicators_cnt_pct,
     list(indicators_cnt_pct,
          indicators_median) %>%
     purrr::map_dfr(c) %>%
-    dplyr::select(MEASURE_TYPE, SOURCE, INDICATOR, VARIABLE) %>%
+    dplyr::select(MEASURE_TYPE, SOURCE, INDICATOR, VARIABLE, VARIABLE_DESC) %>%
     dplyr::distinct()
 
   sample_variable <- indicator_cols %>%
-    dplyr::mutate(SAMPLE_VARIABLE = dplyr::case_when(
+    dplyr::mutate(SAMPLE_VARIABLE_DESC = dplyr::case_when(
       MEASURE_TYPE %in% c("COUNT", "TOTAL") ~ NA_character_,
-      MEASURE_TYPE %in% "PERCENT" & SOURCE %in% c("ACS", "CHAS") ~ "B01003",
+      MEASURE_TYPE %in% "PERCENT" & SOURCE %in% c("ACS", "CHAS") ~ "TOTAL_POPULATION",
       MEASURE_TYPE %in% "PERCENT" & SOURCE %in% "ASSESSOR" ~ NA_character_,
-      MEASURE_TYPE %in% "MEDIAN" & SOURCE %in% c("ACS", "LTDB","FACTFINDER") ~ "B01003",
+      MEASURE_TYPE %in% "MEDIAN" & SOURCE %in% c("ACS", "LTDB","FACTFINDER") ~ "TOTAL_POPULATION",
       MEASURE_TYPE %in% "MEDIAN" & INDICATOR %in% "ASSESSED_VALUE" & stringr::str_detect(VARIABLE,"ALL") ~ "TOTAL_SALE_RATE_ALL",
       MEASURE_TYPE %in% "MEDIAN" & INDICATOR %in% "ASSESSED_VALUE" & stringr::str_detect(VARIABLE,"CONDO") ~ "TOTAL_SALE_RATE_CONDO_ONLY",
       MEASURE_TYPE %in% "MEDIAN"  & INDICATOR %in% "ASSESSED_VALUE" & stringr::str_detect(VARIABLE,"SF") ~ "TOTAL_SALE_RATE_SF_ONLY",
@@ -44,7 +44,7 @@ make_sample_size_metadata <- function(indicators_cnt_pct,
     ))
 
   sample_size_metadata_ready <- sample_variable %>%
-    dplyr::left_join(sample_size_min, by = "SAMPLE_VARIABLE")
+    dplyr::left_join(sample_size_min, by = "SAMPLE_VARIABLE_DESC")
 
 
  sample_size_metadata <- sample_size_metadata_ready

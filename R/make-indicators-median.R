@@ -30,7 +30,7 @@ make_indicators_median <- function(acs_variables,
     purrr::map_dfr(c) %>%
     dplyr::filter(MEASURE_TYPE %in% "MEDIAN") %>%
     dplyr::filter(VARIABLE_ROLE %in% "include") %>%
-    dplyr::select(-dplyr::matches("VARIABLE_"))
+    dplyr::select(-dplyr::matches("VARIABLE_SUBTOTAL|VARIABLE_ROLE"))
 
    # Note: there is an issue with the condo record PINs.
   #  In order to successfully join the parcels to census tracts,
@@ -75,8 +75,9 @@ make_indicators_median <- function(acs_variables,
                      NAS = sum(is.na(ESTIMATE)),
                      MOE = NA_real_) %>%
     dplyr::ungroup() %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_replace(VARIABLE_DESC,"^VALUE","MEDIAN")) %>%
     dplyr::filter(VARIABLE_ROLE %in% "include") %>%
-    dplyr::select(-dplyr::matches("VARIABLE_"))
+    dplyr::select(-dplyr::matches("VARIABLE_SUBTOTAL|VARIABLE_ROLE"))
 
 # CHECK RESULTS -----------------------------------------------------------
 
@@ -131,25 +132,13 @@ make_indicators_median <- function(acs_variables,
                                 parcel_median) %>%
     purrr::map_dfr(c)
 
- # REDEFINE VARIABLE COLUMN ------------------------------------------------
-
-
-  # create unique, human-readable variable names
-
-  indicator_variable <- indicators_median_all %>%
-    dplyr::mutate(VARIABLE = dplyr::case_when(
-      SOURCE %in% "ASSESSOR" ~  stringr::str_c(MEASURE_TYPE, VARIABLE, sep = "_"),
-      TRUE ~ stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_")
-    ))
-
-
 
 # REFORMAT ----------------------------------------------------------------
 
 # Note: this just makes sure that the columns have the same order as the indicator_template
 
   indicators_median_ready <- indicator_template %>%
-    dplyr::full_join(indicator_variable,
+    dplyr::full_join(indicators_median_all,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
@@ -158,6 +147,7 @@ make_indicators_median <- function(acs_variables,
                             "ENDYEAR",
                             "INDICATOR",
                             "VARIABLE",
+                            "VARIABLE_DESC",
                             "MEASURE_TYPE",
                             "ESTIMATE",
                             "MOE"))
@@ -175,5 +165,5 @@ check_parcel_median <- function(){
     ggplot2::ggplot(ggplot2::aes(x = ESTIMATE)) +
       ggplot2::geom_histogram() +
       ggplot2::scale_x_continuous(labels = scales::comma) +
-      ggplot2::facet_grid(ENDYEAR ~ VARIABLE, scales = "free")
+      ggplot2::facet_grid(ENDYEAR ~ VARIABLE_DESC, scales = "free")
   }

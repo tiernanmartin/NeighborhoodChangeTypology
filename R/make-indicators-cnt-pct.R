@@ -46,7 +46,8 @@ make_indicators_cnt_pct <- function(acs_variables,
     dplyr::select(-GEOGRAPHY_ID_JOIN) %>%
     dplyr::mutate(SOURCE = "ASSESSOR",
                   GEOGRAPHY_ID = GEOID,
-                  VARIABLE = stringr::str_c("SALE_RATE_",stringr::str_extract(VARIABLE,"ALL|SF_ONLY|CONDO_ONLY")),
+                  VARIABLE = stringr::str_c("SR_",stringr::str_extract(VARIABLE,"ALL|SF|CONDO")),
+                  VARIABLE_DESC = stringr::str_c("SALE_RATE_",stringr::str_extract(VARIABLE,"ALL|SF|CONDO")),
                   INDICATOR = "SALE_RATE",
                   MOE = 0L,
                   ESTIMATE = dplyr::if_else(VARIABLE_ROLE %in% c("include"),1L,0L),
@@ -62,7 +63,7 @@ make_indicators_cnt_pct <- function(acs_variables,
   all_geog_value_cnt <- list(parcel_value_cnt, parcel_value_county_cnt) %>%
     purrr::map_dfr(c) %>%
     dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE)) %>%
-    dplyr::group_by(SOURCE, GEOGRAPHY_ID, GEOGRAPHY_ID_TYPE, VARIABLE, INDICATOR, ENDYEAR) %>%
+    dplyr::group_by(SOURCE, GEOGRAPHY_ID, GEOGRAPHY_ID_TYPE, VARIABLE,VARIABLE_DESC, INDICATOR, ENDYEAR) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
                      MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
@@ -81,7 +82,8 @@ make_indicators_cnt_pct <- function(acs_variables,
     dplyr::mutate(SOURCE = "ASSESSOR",
                   GEOGRAPHY_ID = GEOID,
                   GEOGRAPHY_ID_TYPE = "tract",
-                  VARIABLE = stringr::str_c("SALE_RATE_",stringr::str_extract(VARIABLE,"ALL|SF_ONLY|CONDO_ONLY")),
+                  VARIABLE = stringr::str_c("SR_",stringr::str_extract(VARIABLE,"ALL|SF|CONDO")),
+                  VARIABLE_DESC = stringr::str_c("SALE_RATE_",stringr::str_extract(VARIABLE,"ALL|SF|CONDO")),
                   INDICATOR = "SALE_RATE",
                   MOE = 0L,
                   ESTIMATE = dplyr::if_else(VARIABLE_ROLE %in% c("include"),1L,0L), # count of included sales (single-family criteria)
@@ -98,7 +100,7 @@ make_indicators_cnt_pct <- function(acs_variables,
   all_geog_sales_cnt <- list(parcel_sales_cnt, parcel_sales_county_cnt) %>%
     purrr::map_dfr(c) %>%
     dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE)) %>%
-    dplyr::group_by(SOURCE, GEOGRAPHY_ID, GEOGRAPHY_ID_TYPE, GEOGRAPHY_TYPE, GEOGRAPHY_NAME, VARIABLE, INDICATOR, ENDYEAR) %>%
+    dplyr::group_by(SOURCE, GEOGRAPHY_ID, GEOGRAPHY_ID_TYPE, GEOGRAPHY_TYPE, GEOGRAPHY_NAME, VARIABLE, VARIABLE_DESC, INDICATOR, ENDYEAR) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
                      MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
@@ -114,8 +116,6 @@ make_indicators_cnt_pct <- function(acs_variables,
 
   all_cnt_vars <- list(acs_cnt, chas_cnt, all_geog_value_sales_cnt) %>%
     purrr::map_dfr(c)
-
-
 
 
   # CALCULATE COUNT AND PERCENT ---------------------------------------------
@@ -163,16 +163,14 @@ make_indicators_cnt_pct <- function(acs_variables,
     indicator_values_long %>% dplyr::group_by(MEASURE_TYPE, INDICATOR, VARIABLE) %>% dplyr::select(ESTIMATE) %>% skimr::skim()
   }
 
-  # REDEFINE VARIABLE COLUMN ------------------------------------------------
+  # REDEFINE VARIABLE DESC COLUMN ------------------------------------------------
 
 
   # create unique, human-readable variable names
 
-  indicator_variable <- indicator_values_long %>%
-    dplyr::mutate(VARIABLE = dplyr::case_when(
-      SOURCE %in% "ASSESSOR" ~  stringr::str_c(MEASURE_TYPE, VARIABLE, sep = "_"),
-      TRUE ~ stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_")
-    ))
+  indicator_variable_desc <- indicator_values_long %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, VARIABLE_DESC, sep = "_")
+    )
 
 
 
@@ -184,7 +182,7 @@ make_indicators_cnt_pct <- function(acs_variables,
   # Note: this just makes sure that the columns have the same order as the indicator_template
 
   indicator_values_ready <- indicator_template %>%
-    dplyr::full_join(indicator_variable,
+    dplyr::full_join(indicator_variable_desc,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
@@ -193,6 +191,7 @@ make_indicators_cnt_pct <- function(acs_variables,
                             "ENDYEAR",
                             "INDICATOR",
                             "VARIABLE",
+                            "VARIABLE_DESC",
                             "MEASURE_TYPE",
                             "ESTIMATE",
                             "MOE"))
@@ -210,7 +209,7 @@ show_hist_facet_indicators_cnt_pct <- function(){
 
   indicators_cnt_pct %>%
     dplyr::filter(MEASURE_TYPE %in% "PERCENT") %>%
-    dplyr::mutate(LABEL = VARIABLE) %>%
+    dplyr::mutate(LABEL = VARIABLE_DESC) %>%
     dplyr::group_by(ENDYEAR, LABEL) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
