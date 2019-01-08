@@ -162,7 +162,7 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
       INDICATOR %in% "COST_BURDEN_RENT" ~ stringr::str_c(VARIABLE,"_RENT"),
       TRUE ~ VARIABLE
     )) %>%
-    dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_"))
+    dplyr::mutate(VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"))
 
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
 

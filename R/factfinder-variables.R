@@ -13,7 +13,7 @@ make_factfinder_variables <- function(factfinder_data, variable_template){
 
   factfinder_variables_roles <- factfinder_data %>%
     dplyr::mutate(INDICATOR = "VALUE",
-                  VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_"),
+                  VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
                   VARIABLE_ROLE = "include") # there's only one variable and it is a value variable so its ROLE is "include"
 
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------

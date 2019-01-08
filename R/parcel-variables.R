@@ -168,7 +168,7 @@ make_parcel_sales_variables <- function(parcel_sales,
   # CREATE VARIABLE_DESC ----------------------------------------------------
 
   sale_var_desc <- sale_var_roles %>%
-    dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE,stringr::str_replace(VARIABLE, "SP","SALE_PRICE"), sep = "_")
+    dplyr::mutate(VARIABLE_DESC = stringr::str_replace(VARIABLE, "SP","SALE_PRICE")
     )
 
 
@@ -330,7 +330,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
   # CREATE VARIABLE_DESC ----------------------------------------------------
 
   p_var_desc <- p_var_roles %>%
-    dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE,stringr::str_replace(VARIABLE, "ATV","ASSESSED_TOTAL_VALUE"), sep = "_")
+    dplyr::mutate(VARIABLE_DESC = stringr::str_replace(VARIABLE, "ATV","ASSESSED_TOTAL_VALUE")
     )
 
 

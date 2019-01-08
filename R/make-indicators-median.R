@@ -133,12 +133,23 @@ make_indicators_median <- function(acs_variables,
     purrr::map_dfr(c)
 
 
+  # REDEFINE VARIABLE DESC COLUMN ------------------------------------------------
+
+
+  # create unique, human-readable variable names
+
+  indicator_median_desc <- indicators_median_all %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, VARIABLE_DESC, sep = "_")
+    )
+
+
+
 # REFORMAT ----------------------------------------------------------------
 
 # Note: this just makes sure that the columns have the same order as the indicator_template
 
   indicators_median_ready <- indicator_template %>%
-    dplyr::full_join(indicators_median_all,
+    dplyr::full_join(indicator_median_desc,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",

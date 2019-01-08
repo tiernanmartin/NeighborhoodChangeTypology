@@ -50,7 +50,7 @@ make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_tabl
   # CREATE VARIABLE_DESC ----------------------------------------------------
 
   hud_chas_vars_desc <- hud_chas_vars_data %>%
-     dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, INDICATOR, SOURCE, sep = "_"))
+     dplyr::mutate(VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"))
 
 
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
