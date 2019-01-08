@@ -250,7 +250,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
 
   parcel_value_total_wide <- parcel_value_all_variables %>%
     tidyr::spread(VARIABLE, ESTIMATE) %>%
-    dplyr::mutate(ATV = VALUE_LAND_2018 + VALUE_IMPROVEMENT_2018) # ATV is my shorthand for "assessed total value"
+    dplyr::mutate(ASSESSED_TOTAL_VALUE = VALUE_LAND_2018 + VALUE_IMPROVEMENT_2018)
 
   parcel_value_ready <- parcel_value_total_wide
 
@@ -292,7 +292,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
 
   p_complete <- p_criteria %>%
     dplyr::group_by(GEOGRAPHY_ID, ENDYEAR) %>%
-    dplyr::arrange(dplyr::desc(ATV)) %>%
+    dplyr::arrange(dplyr::desc(ASSESSED_TOTAL_VALUE)) %>%
     dplyr::slice(1) %>% # take the highest value record for each PIN and year
     dplyr::ungroup() %>%
     dplyr::group_by(GEOGRAPHY_ID) %>% # by record
@@ -300,9 +300,12 @@ make_parcel_value_variables <- function(parcel_all_metadata,
                   META_CONDO_COMPLETE_LGL = all(dplyr::n() == 3L) & all(META_MEETS_CRITERIA_CONDO_LGL))  %>%
     dplyr::ungroup()
 
+  # convert the data back to long format and select only the ASSESSED_TOTAL_VALUE rows
+
   p_long <- p_complete %>%
-    tidyr::gather(VARIABLE, ESTIMATE, dplyr::matches("ATV")) %>%
-    dplyr::filter(VARIABLE %in% "ATV")
+    tidyr::gather(VARIABLE, ESTIMATE, dplyr::matches("VALUE")) %>%
+    dplyr::filter(VARIABLE %in% "ASSESSED_TOTAL_VALUE") %>%
+    dplyr::mutate(VARIABLE = "ATV")  # ATV is shorthand for ASSESSED_TOTAL_VALUE
 
 
   # ASSIGN VARIABLE ROLES ---------------------------------------------------
