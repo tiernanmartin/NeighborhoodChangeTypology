@@ -194,7 +194,7 @@ make_parcel_sales_variables <- function(parcel_sales,
                             "MOE"))
 
 
-  parcel_sales_variables <- sale_var_roles
+  parcel_sales_variables <- sales_reformat
 
   # RETURN ------------------------------------------------------------------
 
