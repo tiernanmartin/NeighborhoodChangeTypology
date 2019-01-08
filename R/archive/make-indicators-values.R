@@ -92,65 +92,15 @@ make_indicators_values <- function(acs_variables,
     dplyr::select(-N, -NAS)
 
 
-  #  parcel_sales_cnt <- parcel_sales_variables %>%
-  #    dplyr::left_join(parcel_tract_overlay, by = c(GEOGRAPHY_ID = "PIN")) %>%
-  #    dplyr::mutate(GEOGRAPHY_ID = GEOID,
-  #                  GEOGRAPHY_ID_TYPE = "tract",
-  #                  VARIABLE = "SALE_RATE",
-  #                  INDICATOR = "SALE_RATE",
-  #                  VARIABLE_ROLE = "count",
-  #                  MOE = 0L,
-  #                  ESTIMATE = 1L, # count of sales
-  #                  MEASURE_TYPE = "COUNT") %>%
-  #    dplyr::select(-GEOID, -RNUM, -dplyr::matches("^META")) %>%
-  #    dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE)) %>%
-  #    dplyr::group_by_at(dplyr::vars(-VARIABLE_SUBTOTAL,-VARIABLE_SUBTOTAL_DESC,-ESTIMATE,-MOE)) %>%
-  #    dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
-  #                     MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
-  #    dplyr::ungroup() %>%
-  #    dplyr::mutate(VARIABLE_ROLE = "COUNT")
-  #
-  # parcel_value_sales_cnt <- list(parcel_value_cnt, parcel_sales_cnt) %>%
-  #   purrr::map_dfr(c)
+# JOIN --------------------------------------------------------------------
 
-
-  # JOIN DATA ---------------------------------------------------------------
-
-
-  all_cnt_vars <- list(acs_cnt, chas_cnt, parcel_value_sales_cnt) %>%  # add the other count data variables
+  indicators_median_all <- list(acs_median,
+                                parcel_median) %>%
     purrr::map_dfr(c)
 
+# RETURN ------------------------------------------------------------------
 
-  # CALCULATE COUNT AND PERCENT ---------------------------------------------
-
-
-  indicator_values <- all_cnt_vars %>%
-    dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE)) %>%
-    dplyr::group_by_at(dplyr::vars(-VARIABLE_SUBTOTAL,-VARIABLE_SUBTOTAL_DESC,-ESTIMATE,-MOE)) %>%
-    dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
-                     MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(!VARIABLE_ROLE %in% "OMIT") %>%
-    tidyr::gather(TYPE, VALUE, ESTIMATE, MOE) %>%
-    tidyr::unite(PROP_TYPE, VARIABLE_ROLE, TYPE) %>%
-    tidyr::spread(PROP_TYPE, VALUE) %>%
-    dplyr::group_by_at(dplyr::vars(-COUNT_ESTIMATE,-COUNT_MOE,-TOTAL_ESTIMATE,-TOTAL_MOE)) %>%
-    dplyr::summarise(COUNT_ESTIMATE,
-                     COUNT_MOE,
-                     TOTAL_ESTIMATE,
-                     TOTAL_MOE,
-                     PROPORTION_ESTIMATE = COUNT_ESTIMATE/TOTAL_ESTIMATE,
-                     PROPORTION_MOE = tidycensus::moe_prop(
-                       num = COUNT_ESTIMATE,
-                       denom = TOTAL_ESTIMATE,
-                       moe_num = COUNT_MOE,
-                       moe_denom = TOTAL_MOE)
-    ) %>%
-    dplyr::ungroup()
-
-  indicators_cnt_pct <- indicator_values
-
-  return(indicators_cnt_pct)
+  return(indicators_median)
 
 }
 
