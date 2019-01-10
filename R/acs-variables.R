@@ -31,6 +31,15 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
 
   # FIGURE OUT THE VARIABLE_ROLE INDICATORS
 
+  population_vars_join <- all_vars %>%
+    dplyr::filter(INDICATOR %in% "POPULATION") %>%
+    dplyr::transmute(SOURCE,
+                     INDICATOR,
+                     VARIABLE_SUBTOTAL,
+                     VARIABLE_ROLE = "total"
+    )
+
+
   race_vars_join <- all_vars %>%
     dplyr::filter(INDICATOR %in% "RACE") %>%
     dplyr::transmute(SOURCE,
@@ -138,7 +147,8 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
                      VARIABLE_ROLE = "include"
     )
 
-  acs_vars_join <- list(race_vars_join,
+  acs_vars_join <- list(population_vars_join,
+                        race_vars_join,
                         ed_vars_join,
                         inc_vars_join,
                         tenure_vars_join,

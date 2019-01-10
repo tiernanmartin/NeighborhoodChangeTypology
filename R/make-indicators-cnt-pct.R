@@ -172,9 +172,6 @@ make_indicators_cnt_pct <- function(acs_variables,
     dplyr::mutate(VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, VARIABLE_DESC, sep = "_")
     )
 
-
-
-
   # REFORMAT ----------------------------------------------------------------
 
 

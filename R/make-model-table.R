@@ -73,7 +73,9 @@ make_model_table <- function(){
     "COO_REVISED",     "HOUSING MARKET",     "PERCENT",      "SALE RATE", "ASSESSOR",    2010L,
     "COO_REVISED",     "HOUSING MARKET",     "PERCENT",      "SALE RATE", "ASSESSOR",    2018L,
   "OTHER",     "VULENERABILITY",     "PERCENT",    "COST BURDEN",      "ACS",    2017L,
-  "OTHER",     "VULENERABILITY",     "PERCENT",    "COST BURDEN",      "ACS",    2011L
+  "OTHER",     "VULENERABILITY",     "PERCENT",    "COST BURDEN",      "ACS",    2011L,
+  "OTHER",     "MISCELLANEOUS",     "COUNT",    "POPULATION",      "ACS",    2010L,
+  "OTHER",     "MISCELLANEOUS",     "COUNT",    "POPULATION",      "ACS",    2017L
   )
 
 

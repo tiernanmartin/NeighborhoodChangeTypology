@@ -8,6 +8,7 @@ make_acs_tables <- function(){
 
   acs_tables <- tibble::tribble(
                        ~VARIABLE,    ~INDICATOR, ~MEASURE_TYPE,                                                                            ~TOPIC,                                        ~UNIVERSE,
+                       "B01003",        "POPULATION",       "COUNT",                                                                "TOTAL POPULATION",                               "Total population",
                     "B03002",        "RACE",       "COUNT",                                               "HISPANIC OR LATINO ORIGIN BY RACE",                               "Total population",
                     "B15002",   "EDUCATION",       "COUNT",              "SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER",                   "Population 25 years and over",
                     "B19001",      "INCOME",       "COUNT",     "HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2015 INFLATION-ADJUSTED DOLLARS)",                                     "Households",
