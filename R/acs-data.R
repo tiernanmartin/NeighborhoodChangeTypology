@@ -50,7 +50,8 @@ prepare_acs_data <- function(data_template, model_table, acs_tables, path){
                                              year = years,
                                              state = "53",
                                              county = "033",
-                                             survey = "acs5") %>%
+                                             survey = "acs5",
+                                             geometry = FALSE) %>%
       janitor::clean_names(case = "screaming_snake") %>%
       dplyr::rename(VARIABLE_SUBTOTAL = VARIABLE) %>% # VARIABLE is reserved for the ACS table name (e.g., B03002)
       dplyr::left_join(variables_types, by = "VARIABLE_SUBTOTAL")
