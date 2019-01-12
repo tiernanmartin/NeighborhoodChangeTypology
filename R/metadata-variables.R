@@ -164,15 +164,87 @@ make_parcel_all_metadata <- function(present_use_key,
 
 
 }
+#' @rdname metadata-variables
+#' @export
+make_community_metadata <- function(){
+
+
+  # Note: this object is intended to be joined to the census tract data (by = GEOGRAPHY_ID)
+  # and then summarized by GEOGRAPHY_COMMUNITY_NAME
+
+  # COO Communities
+
+  community_geography_geoids <- tibble::tribble(
+    ~GEOGRAPHY_ID, ~GEOGRAPHY_COMMUNITY_NAME,
+    "53033010001",          "Rainier Valley",
+    "53033010300",          "Rainier Valley",
+    "53033010401",          "Rainier Valley",
+    "53033011001",          "Rainier Valley",
+    "53033011002",          "Rainier Valley",
+    "53033011101",          "Rainier Valley",
+    "53033011102",          "Rainier Valley",
+    "53033011700",          "Rainier Valley",
+    "53033011800",          "Rainier Valley",
+    "53033011900",          "Rainier Valley",
+    "53033026600",            "White Center",
+    "53033026700",            "White Center",
+    "53033026500",            "White Center",
+    "53033026801",            "White Center",
+    "53033026802",            "White Center",
+    "53033027000",            "White Center",
+    "53033026200",          "Seatac/Tukwila",
+    "53033027300",          "Seatac/Tukwila",
+    "53033028000",          "Seatac/Tukwila",
+    "53033028100",          "Seatac/Tukwila",
+    "53033028300",          "Seatac/Tukwila",
+    "53033028402",          "Seatac/Tukwila",
+    "53033028403",          "Seatac/Tukwila",
+    "53033028500",          "Seatac/Tukwila",
+    "53033028700",          "Seatac/Tukwila",
+    "53033028801",          "Seatac/Tukwila",
+    "53033028802",          "Seatac/Tukwila",
+    "53033029101",          "Seatac/Tukwila",
+    "53033026100",          "Seatac/Tukwila",
+    "53033026200",          "Seatac/Tukwila",
+    "53033026300",          "Seatac/Tukwila",
+    "53033026400",          "Seatac/Tukwila",
+    "53033027100",          "Seatac/Tukwila",
+    "53033027200",          "Seatac/Tukwila",
+    "53033027300",          "Seatac/Tukwila",
+    "53033028100",          "Seatac/Tukwila",
+    "53033028200",          "Seatac/Tukwila",
+    "53033028300",          "Seatac/Tukwila",
+    "53033028802",          "Seatac/Tukwila"
+  )
+
+  community_metadata <- community_geography_geoids %>%
+    dplyr::mutate(GEOGRAPHY_COMMUNITY_ID = dplyr::case_when(
+      GEOGRAPHY_COMMUNITY_NAME %in% "Rainier Valley" ~ "RV",
+      GEOGRAPHY_COMMUNITY_NAME %in% "White Center" ~ "WC",
+      GEOGRAPHY_COMMUNITY_NAME %in% "Seatac/Tukwila" ~ "STC_TUK"
+    ),
+                  GEOGRAPHY_COMMUNITY_ID_TYPE = "abbr",
+                  GEOGRAPHY_COMMUNITY_TYPE = "community")
+
+  return(community_metadata)
+
+}
 
 #' @rdname metadata-variables
 #' @export
-make_county_tract_all_metadata <- function(acs_data){
+make_county_community_tract_all_metadata <- function(acs_data, community_metadata){
 
 
 # PREPARE DATA ------------------------------------------------------------
 
-  county_tract_all_metadata <-  acs_data %>%
+  comm_ready <- community_metadata %>%
+    dplyr::select(-GEOGRAPHY_ID) %>% # remove the tract GEOID
+    dplyr::rename_all(dplyr::funs(stringr::str_remove(.,"_COMMUNITY"))) %>%  # rename columns to match `variable_template`
+    dplyr::distinct()
+
+  county_community_tract_all_metadata <- list(acs_data,
+                                              comm_ready) %>%
+    purrr::map_dfr(c) %>%
     dplyr::select(GEOGRAPHY_ID,
                   GEOGRAPHY_ID_TYPE,
                   GEOGRAPHY_NAME,
@@ -181,6 +253,6 @@ make_county_tract_all_metadata <- function(acs_data){
 
   # RETURN ------------------------------------------------------------------
 
-  return(county_tract_all_metadata)
+  return(county_community_tract_all_metadata)
 
 }

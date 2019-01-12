@@ -2,7 +2,8 @@
 % Please edit documentation in R/metadata-variables.R
 \name{make_parcel_all_metadata}
 \alias{make_parcel_all_metadata}
-\alias{make_county_tract_all_metadata}
+\alias{make_community_metadata}
+\alias{make_county_community_tract_all_metadata}
 \title{Prepare Variable Metadata Objects}
 \usage{
 make_parcel_all_metadata(present_use_key, condo_unit_type_key,
@@ -10,7 +11,9 @@ make_parcel_all_metadata(present_use_key, condo_unit_type_key,
   condo_info_2005, condo_info_2010, condo_info_2018, res_bldg_2005,
   res_bldg_2010, res_bldg_2018, variable_template)
 
-make_county_tract_all_metadata(acs_data)
+make_community_metadata()
+
+make_county_community_tract_all_metadata(acs_data, community_metadata)
 }
 \arguments{
 \item{present_use_key}{desc}
