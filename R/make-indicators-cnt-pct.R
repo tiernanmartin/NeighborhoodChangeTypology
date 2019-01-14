@@ -7,7 +7,8 @@
 #' @param parcel_value_variables desc
 #' @param parcel_sales_variables desc
 #' @param parcel_tract_overlay desc
-#' @param county_tract_all_metadata desc
+#' @param county_community_tract_all_metadata desc
+#' @param community_metadata desc
 #' @param indicator_template desc
 #' @return a `tibble`
 #' @export
@@ -16,7 +17,8 @@ make_indicators_cnt_pct <- function(acs_variables,
                                     parcel_value_variables,
                                     parcel_sales_variables,
                                     parcel_tract_overlay,
-                                    county_tract_all_metadata,
+                                    county_community_tract_all_metadata,
+                                    community_metadata,
                                     indicator_template){
 
 
@@ -26,8 +28,32 @@ make_indicators_cnt_pct <- function(acs_variables,
   acs_cnt <- acs_variables %>%
     dplyr::filter(MEASURE_TYPE %in% "COUNT")
 
+  acs_community_cnt <- acs_cnt %>%
+    dplyr::left_join(community_metadata, by = "GEOGRAPHY_ID") %>%
+    dplyr::mutate(GEOGRAPHY_ID = GEOGRAPHY_COMMUNITY_ID,
+                  GEOGRAPHY_ID_TYPE = GEOGRAPHY_COMMUNITY_ID_TYPE,
+                  GEOGRAPHY_NAME = GEOGRAPHY_COMMUNITY_NAME,
+                  GEOGRAPHY_TYPE = GEOGRAPHY_COMMUNITY_TYPE) %>%
+    dplyr::group_by(SOURCE, GEOGRAPHY_ID, GEOGRAPHY_ID_TYPE, GEOGRAPHY_TYPE, GEOGRAPHY_NAME, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE, INDICATOR, ENDYEAR) %>%
+    dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
+                     MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
+    dplyr::ungroup()
+
+
   chas_cnt <- hud_chas_variables %>%
     dplyr::filter(MEASURE_TYPE %in% "COUNT") # unnecessary step because they are all COUNT but I'm leaving it for clarity's sake
+
+  chas_community_cnt <- chas_cnt %>%
+    dplyr::left_join(community_metadata, by = "GEOGRAPHY_ID") %>%
+    dplyr::mutate(GEOGRAPHY_ID = GEOGRAPHY_COMMUNITY_ID,
+                  GEOGRAPHY_ID_TYPE = GEOGRAPHY_COMMUNITY_ID_TYPE,
+                  GEOGRAPHY_NAME = GEOGRAPHY_COMMUNITY_NAME,
+                  GEOGRAPHY_TYPE = GEOGRAPHY_COMMUNITY_TYPE) %>%
+    dplyr::group_by(SOURCE, GEOGRAPHY_ID, GEOGRAPHY_ID_TYPE, GEOGRAPHY_TYPE, GEOGRAPHY_NAME, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE, INDICATOR, ENDYEAR) %>%
+    dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
+                     MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
+    dplyr::ungroup()
+
 
   # Note: there is an issue with the condo record PINs.
   #  In order to successfully join the parcels to census tracts,
@@ -53,14 +79,21 @@ make_indicators_cnt_pct <- function(acs_variables,
                   ESTIMATE = dplyr::if_else(VARIABLE_ROLE %in% c("include"),1L,0L),
                   MEASURE_TYPE = "COUNT") %>%
     dplyr::select(-GEOID,-GEOGRAPHY_ID_TYPE,-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE,  -dplyr::matches("^META")) %>%
-    dplyr::left_join(county_tract_all_metadata, by = "GEOGRAPHY_ID")
+    dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
+
+  parcel_value_community_cnt <- parcel_value_cnt %>%
+    dplyr::left_join(community_metadata, by = "GEOGRAPHY_ID") %>%
+    dplyr::mutate(GEOGRAPHY_ID = GEOGRAPHY_COMMUNITY_ID,
+                  GEOGRAPHY_ID_TYPE = GEOGRAPHY_COMMUNITY_ID_TYPE,
+                  GEOGRAPHY_NAME = GEOGRAPHY_COMMUNITY_NAME,
+                  GEOGRAPHY_TYPE = GEOGRAPHY_COMMUNITY_TYPE)
 
   parcel_value_county_cnt <- parcel_value_cnt %>%
     dplyr::mutate(GEOGRAPHY_ID = "53033") %>%
     dplyr::select(-GEOGRAPHY_ID_TYPE,-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE) %>%
-    dplyr::left_join(county_tract_all_metadata, by = "GEOGRAPHY_ID")
+    dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
-  all_geog_value_cnt <- list(parcel_value_cnt, parcel_value_county_cnt) %>%
+  all_geog_value_cnt <- list(parcel_value_cnt, parcel_value_community_cnt, parcel_value_county_cnt) %>%
     purrr::map_dfr(c) %>%
     dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE)) %>%
     dplyr::group_by(SOURCE, GEOGRAPHY_ID, GEOGRAPHY_ID_TYPE, VARIABLE,VARIABLE_DESC, INDICATOR, ENDYEAR) %>%
@@ -69,7 +102,7 @@ make_indicators_cnt_pct <- function(acs_variables,
     dplyr::ungroup() %>%
     dplyr::mutate(VARIABLE_ROLE = "TOTAL") %>%
     dplyr::select(-GEOGRAPHY_ID_TYPE) %>%
-    dplyr::left_join(county_tract_all_metadata, by = "GEOGRAPHY_ID")
+    dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
 
   parcel_sales_cnt <- parcel_sales_variables %>%
@@ -89,15 +122,22 @@ make_indicators_cnt_pct <- function(acs_variables,
                   ESTIMATE = dplyr::if_else(VARIABLE_ROLE %in% c("include"),1L,0L), # count of included sales (single-family criteria)
                   MEASURE_TYPE = "COUNT") %>%
     dplyr::select(-GEOID,-GEOGRAPHY_ID_TYPE,-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE,  -dplyr::matches("^META")) %>%
-    dplyr::left_join(county_tract_all_metadata, by = "GEOGRAPHY_ID")
+    dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
+
+  parcel_sales_community_cnt <- parcel_sales_cnt %>%
+    dplyr::left_join(community_metadata, by = "GEOGRAPHY_ID") %>%
+    dplyr::mutate(GEOGRAPHY_ID = GEOGRAPHY_COMMUNITY_ID,
+                  GEOGRAPHY_ID_TYPE = GEOGRAPHY_COMMUNITY_ID_TYPE,
+                  GEOGRAPHY_NAME = GEOGRAPHY_COMMUNITY_NAME,
+                  GEOGRAPHY_TYPE = GEOGRAPHY_COMMUNITY_TYPE)
 
   parcel_sales_county_cnt <- parcel_sales_cnt %>%
     dplyr::mutate(GEOGRAPHY_ID = "53033") %>%
     dplyr::select(-GEOGRAPHY_ID_TYPE,-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE) %>%
-    dplyr::left_join(county_tract_all_metadata, by = "GEOGRAPHY_ID")
+    dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
-  all_geog_sales_cnt <- list(parcel_sales_cnt, parcel_sales_county_cnt) %>%
+  all_geog_sales_cnt <- list(parcel_sales_cnt, parcel_sales_community_cnt, parcel_sales_county_cnt) %>%
     purrr::map_dfr(c) %>%
     dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE)) %>%
     dplyr::group_by(SOURCE, GEOGRAPHY_ID, GEOGRAPHY_ID_TYPE, GEOGRAPHY_TYPE, GEOGRAPHY_NAME, VARIABLE, VARIABLE_DESC, INDICATOR, ENDYEAR) %>%
@@ -114,7 +154,7 @@ make_indicators_cnt_pct <- function(acs_variables,
   # JOIN DATA ---------------------------------------------------------------
 
 
-  all_cnt_vars <- list(acs_cnt, chas_cnt, all_geog_value_sales_cnt) %>%
+  all_cnt_vars <- list(acs_cnt, acs_community_cnt, chas_cnt, chas_community_cnt, all_geog_value_sales_cnt) %>%
     purrr::map_dfr(c)
 
 
@@ -160,7 +200,7 @@ make_indicators_cnt_pct <- function(acs_variables,
     tidyr::spread(EST_OR_MOE, VALUE)
 
   skim_inds_long <- function(){
-    indicator_values_long %>% dplyr::group_by(MEASURE_TYPE, INDICATOR, VARIABLE) %>% dplyr::select(ESTIMATE) %>% skimr::skim()
+    indicator_values_long %>% dplyr::group_by(GEOGRAPHY_TYPE, MEASURE_TYPE, VARIABLE_DESC) %>% dplyr::select(ESTIMATE) %>% skimr::skim()
   }
 
   # REDEFINE VARIABLE DESC COLUMN ------------------------------------------------
