@@ -49,13 +49,13 @@ prepare_hud_chas_data <- function(zip_path){
 
 
   filepath_copy_tbl <- tibble::tribble(
-                                                    ~from,                                               ~to,
-         "extdata/source/2006thru2010-050-csv/Table7.csv", file.path(target_dir,"hud-chas-050-20062010-table7.csv"),
-         "extdata/source/2006thru2010-080-csv/Table7.csv", file.path(target_dir,"hud-chas-080-20062010-table7.csv"),
-     "extdata/source/2011thru2015-050-csv/050/Table7.csv", file.path(target_dir,"hud-chas-050-20112015-table7.csv"),
-     "extdata/source/2011thru2015-140-csv/140/Table7.csv", file.path(target_dir,"hud-chas-140-20112015-table7.csv"),
-     "extdata/source/2006thru2010-050-csv/hud-chas-datadictionary-table7.csv", file.path(target_dir,"hud-chas-datadictionary-table7.csv")
-     )
+    ~from,                                               ~to,
+    "extdata/source/2006thru2010-050-csv/Table7.csv", file.path(target_dir,"hud-chas-050-20062010-table7.csv"),
+    "extdata/source/2006thru2010-080-csv/Table7.csv", file.path(target_dir,"hud-chas-080-20062010-table7.csv"),
+    "extdata/source/2011thru2015-050-csv/050/Table7.csv", file.path(target_dir,"hud-chas-050-20112015-table7.csv"),
+    "extdata/source/2011thru2015-140-csv/140/Table7.csv", file.path(target_dir,"hud-chas-140-20112015-table7.csv"),
+    "extdata/source/2006thru2010-050-csv/hud-chas-datadictionary-table7.csv", file.path(target_dir,"hud-chas-datadictionary-table7.csv")
+  )
 
 
   purrr::pwalk(filepath_copy_tbl, file.copy) # copies the file paths to new, renamed files
@@ -108,34 +108,50 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
   }
 
   county_2006_2010 <- read_chas_csv(county_2006_2010_fp) %>%
-    dplyr::mutate(ENDYEAR = 2010L,
+    dplyr::mutate(DATE_BEGIN = get_date_begin(2010L - 4L), # creates the first day of the 5-year span
+                  DATE_END = get_date_end(2010L), # creates the last day of the 5-year span
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "five years",
                   ST =  stringr::str_extract(GEOID,"(?<=US).{2}"),
                   CNTY = stringr::str_extract(GEOID,"(?<=US.{2}).{3}"),
                   GEOGRAPHY_TYPE = "county") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character) %>% # convert Date cols to character
     dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
-    dplyr::select(ENDYEAR, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
+    dplyr::select(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
 
   tr_2006_2010 <- read_chas_csv(tr_2006_2010_fp) %>%
-    dplyr::mutate(ENDYEAR = 2010L,
+    dplyr::mutate(DATE_BEGIN = get_date_begin(2010L - 4L), # creates the first day of the 5-year span
+                  DATE_END = get_date_end(2010L), # creates the last day of the 5-year span
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "five years",
                   ST =  stringr::str_extract(GEOID,"(?<=US).{2}"),
                   CNTY = stringr::str_extract(GEOID,"(?<=US.{2}).{3}"),
                   GEOGRAPHY_TYPE = "tract",
                   GEOID = stringr::str_c(stringr::str_extract(GEOID,"^.{12}"),stringr::str_extract(GEOID,".{6}$")),
                   NAME = get_tr_number(GEOID)) %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character) %>% # convert Date cols to character
     dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
-    dplyr::select(ENDYEAR, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
+    dplyr::select(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
 
   county_2011_2015 <- read_chas_csv(county_2011_2015_fp) %>%
-    dplyr::mutate(ENDYEAR = 2015L,
+    dplyr::mutate(DATE_BEGIN = get_date_begin(2015L - 4L), # creates the first day of the 5-year span
+                  DATE_END = get_date_end(2015L), # creates the last day of the 5-year span
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "five years",
                   GEOGRAPHY_TYPE = "county") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character) %>% # convert Date cols to character
     dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
-    dplyr::select(ENDYEAR, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
+    dplyr::select(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
 
   tr_2011_2015 <- read_chas_csv(tr_2011_2015_fp) %>%
-    dplyr::mutate(ENDYEAR = 2015L,
+    dplyr::mutate(DATE_BEGIN = get_date_begin(2015L - 4L), # creates the first day of the 5-year span
+                  DATE_END = get_date_end(2015L), # creates the last day of the 5-year span
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "five years",
                   GEOGRAPHY_TYPE = "tract") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character) %>% # convert Date cols to character
     dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
-    dplyr::select(ENDYEAR, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
+    dplyr::select(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
 
 
 
@@ -157,12 +173,12 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
                     stringr::str_detect(VAR, "MOE") ~ "MOE",
                     TRUE ~ NA_character_)
     ) %>%
-    dplyr::group_by(ENDYEAR, GEOID, NAME, GEOGRAPHY_TYPE, VARIABLE, TYPE) %>%
+    dplyr::group_by(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, GEOID, NAME, GEOGRAPHY_TYPE, VARIABLE, TYPE) %>%
     dplyr::mutate(N = dplyr::row_number()) %>%
     dplyr::ungroup() %>%
     dplyr::select(-VAR) %>%
     tidyr::spread(TYPE, VALUE) %>%
-    dplyr::group_by(ENDYEAR, GEOID, NAME, GEOGRAPHY_TYPE, VARIABLE) %>%
+    dplyr::group_by(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, GEOID, NAME, GEOGRAPHY_TYPE, VARIABLE) %>%
     dplyr::summarize(ESTIMATE = sum(ESTIMATE, na.rm =  TRUE),
                      MOE = tidycensus::moe_sum(MOE,ESTIMATE, na.rm = TRUE)) %>%
     dplyr::ungroup()
@@ -170,37 +186,50 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
 
   # REFORMAT DATA -----------------------------------------------------------
 
-  hud_chas_table7_all_long_ready <- data_template %>%
-    dplyr::full_join(hud_chas_table7_all_long,
-                       c(GEOGRAPHY_ID = "GEOID",
-                         GEOGRAPHY_NAME = "NAME",
-                         "GEOGRAPHY_TYPE",
-                         "ENDYEAR",
-                         "VARIABLE",
-                         "ESTIMATE",
-                         "MOE")) %>%
+  hud_chas_table7_all_long_complete <- hud_chas_table7_all_long %>%
     dplyr::mutate(VARIABLE_SUBTOTAL = VARIABLE) %>%
-      dplyr::transmute(SOURCE = "CHAS",
-                       GEOGRAPHY_ID,
-                       GEOGRAPHY_ID_TYPE = "GEOID",
-                       GEOGRAPHY_NAME,
-                       GEOGRAPHY_TYPE,
-                       ENDYEAR,
-                       VARIABLE = "T7",
-                       VARIABLE_SUBTOTAL,
-                       VARIABLE_SUBTOTAL_DESC,
-                       MEASURE_TYPE = "COUNT",
-                       ESTIMATE,
-                       MOE
-      )
+    dplyr::transmute(SOURCE = "CHAS",
+                     GEOGRAPHY_ID = GEOID,
+                     GEOGRAPHY_ID_TYPE = "GEOID",
+                     GEOGRAPHY_NAME = NAME,
+                     GEOGRAPHY_TYPE,
+                     DATE_BEGIN,
+                     DATE_END,
+                     DATE_RANGE,
+                     DATE_RANGE_TYPE,
+                     VARIABLE = "T7",
+                     VARIABLE_SUBTOTAL,
+                     VARIABLE_SUBTOTAL_DESC = NA_character_,
+                     MEASURE_TYPE = "COUNT",
+                     ESTIMATE,
+                     MOE)
 
+  hud_chas_table7_all_long_formatted <- data_template %>%
+    dplyr::full_join(hud_chas_table7_all_long_complete,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "DATE_BEGIN",
+                            "DATE_END",
+                            "DATE_RANGE",
+                            "DATE_RANGE_TYPE",
+                            "VARIABLE",
+                            "VARIABLE_SUBTOTAL",
+                            "VARIABLE_SUBTOTAL_DESC",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
 
-# WRITE DATA --------------------------------------------------------------
+  hud_chas_table7_all_long_ready <- hud_chas_table7_all_long_formatted
+
+  # WRITE DATA --------------------------------------------------------------
 
   readr::write_csv(hud_chas_table7_all_long_ready, file_path)
 
 
-# RETURN ------------------------------------------------------------------
+  # RETURN ------------------------------------------------------------------
 
   return(hud_chas_table7_all_long_ready)
 

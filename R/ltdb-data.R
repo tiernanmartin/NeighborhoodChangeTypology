@@ -35,37 +35,44 @@ prepare_ltdb_data <- function(data_template, acs_tables, path){
 
   tract_2000 <- tract_2000_raw %>%
     dplyr::filter(STATE %in% "WA" & COUNTY %in% "King County") %>%
-    dplyr::transmute(GEOGRAPHY_ID = TRTID10,
-                     NAME = TRACT,
+    dplyr::transmute(SOURCE = "LTDB",
+                     GEOGRAPHY_ID = TRTID10,
+                     GEOGRAPHY_ID_TYPE = "GEOID",
+                     GEOGRAPHY_NAME = TRACT,
+                     DATE_BEGIN = get_date_begin(2000L), # creates the first day of the 5-year span
+                     DATE_END = get_date_end(2000L), # creates the last day of the 5-year span
+                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                     DATE_RANGE_TYPE = "one year",
                      VARIABLE = acs_variables_value,
+                     VARIABLE_SUBTOTAL = VARIABLE,
+                     VARIABLE_SUBTOTAL_DESC = NA_character_,
+                     MEASURE_TYPE = "MEDIAN",
                      ESTIMATE = as.integer(MHMVAL00),
-                     MOE = NA_real_,
-                     ENDYEAR = 2000L
-    )
+                     MOE = NA_real_
+
+    ) %>%
+     dplyr::mutate_if(lubridate::is.Date, as.character)
 
   # REFORMAT DATA -----------------------------------------------------------
 
-  tract_2000_ready <- data_template %>%
+  tract_2000_formatted <- data_template %>%
     dplyr::full_join(tract_2000,
-                     c("GEOGRAPHY_ID",
-                       GEOGRAPHY_NAME = "NAME",
-                       "ENDYEAR",
-                       "VARIABLE",
-                       "ESTIMATE",
-                       "MOE")) %>%
-    dplyr::transmute(SOURCE = "LTDB",
-                     GEOGRAPHY_ID,
-                     GEOGRAPHY_ID_TYPE = "GEOID",
-                     GEOGRAPHY_NAME,
-                     GEOGRAPHY_TYPE = "tract",
-                     ENDYEAR,
-                     VARIABLE,
-                     VARIABLE_SUBTOTAL = VARIABLE,
-                     VARIABLE_SUBTOTAL_DESC,
-                     MEASURE_TYPE = "MEDIAN",
-                     ESTIMATE,
-                     MOE = NA_real_
-    )
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "DATE_BEGIN",
+                            "DATE_END",
+                            "DATE_RANGE",
+                            "DATE_RANGE_TYPE",
+                            "VARIABLE",
+                            "VARIABLE_SUBTOTAL",
+                            "VARIABLE_SUBTOTAL_DESC",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
+
+  tract_2000_ready <- tract_2000_formatted
 
   # WRITE DATA --------------------------------------------------------------
 
@@ -86,11 +93,11 @@ make_ltdb_data <- function(path){
 
   ltdb_data <- suppressWarnings(suppressMessages(readr::read_csv(path))) %>%
     dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID),
+                  DATE_BEGIN = as.character(DATE_BEGIN),
+                  DATE_END = as.character(DATE_END),
                   VARIABLE_SUBTOTAL_DESC = as.character(VARIABLE_SUBTOTAL_DESC),
                   MOE = as.numeric(MOE))
 
   return(ltdb_data)
 
 }
-
-

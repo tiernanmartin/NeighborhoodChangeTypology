@@ -23,20 +23,20 @@ prepare_acs_data <- function(data_template, model_table, acs_tables, path){
                      TOPIC = concept)
 
   data_key <- model_table %>%
-    dplyr::select(MODEL, TOPIC, -MEASURE_TYPE, INDICATOR, SOURCE, ENDYEAR) %>%
+    dplyr::select(MODEL, TOPIC, -MEASURE_TYPE, INDICATOR, SOURCE, DATE_END) %>%
     dplyr::inner_join(dplyr::select(acs_tables,-TOPIC), by = "INDICATOR") %>%
     dplyr::inner_join(all_census_vars, by = "VARIABLE")
 
   variable_subtotal_descriptions <- all_census_vars %>%
     dplyr::transmute(VARIABLE_SUBTOTAL,
-           VARIABLE_SUBTOTAL_DESC = LABEL)
+                     VARIABLE_SUBTOTAL_DESC = LABEL)
 
   geographies <- c("tract","county")
 
   years <- data_key %>%
-    dplyr::filter(ENDYEAR >= 2010L) %>% # the tidycensus package only queries data from 2010 - present
-    dplyr::arrange(ENDYEAR) %>%
-    dplyr::pull(ENDYEAR) %>%
+    dplyr::filter(DATE_END >= 2010L) %>% # the tidycensus package only queries data from 2010 - present
+    dplyr::arrange(DATE_END) %>%
+    dplyr::pull(DATE_END) %>%
     unique()
 
   variables_types <- data_key %>%
@@ -56,34 +56,47 @@ prepare_acs_data <- function(data_template, model_table, acs_tables, path){
       dplyr::rename(VARIABLE_SUBTOTAL = VARIABLE) %>% # VARIABLE is reserved for the ACS table name (e.g., B03002)
       dplyr::left_join(variables_types, by = "VARIABLE_SUBTOTAL")
 
-
-    # Use `full_join()` to transform the acs data to the
-    # column format in `data_template`
-    acs_data_formatted <- data_template %>%
-      dplyr::select(-VARIABLE_SUBTOTAL_DESC) %>%
-      dplyr::full_join(acs_data_download,
-                       c(GEOGRAPHY_ID = "GEOID",
-                         GEOGRAPHY_NAME = "NAME",
-                         "VARIABLE_SUBTOTAL",
-                         "MEASURE_TYPE",
-                         "ESTIMATE",
-                         "MOE")) %>%
+    acs_data_transformed <- acs_data_download %>%
       dplyr::left_join(variable_subtotal_descriptions, by = "VARIABLE_SUBTOTAL") %>%
       dplyr::transmute(SOURCE = "ACS",
-                       GEOGRAPHY_ID,
+                       GEOGRAPHY_ID = GEOID,
                        GEOGRAPHY_ID_TYPE = "GEOID",
-                       GEOGRAPHY_NAME,
+                       GEOGRAPHY_NAME = NAME,
                        GEOGRAPHY_TYPE = geographies,
-                       ENDYEAR = years,
+                       DATE_BEGIN = get_date_begin(years - 4L), # creates the first day of the 5-year span
+                       DATE_END = get_date_end(years), # creates the last day of the 5-year span
+                       DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                       DATE_RANGE_TYPE = "five years",
                        VARIABLE = stringr::str_extract(VARIABLE_SUBTOTAL,".*(?=_\\d{3})"),
                        VARIABLE_SUBTOTAL,
                        VARIABLE_SUBTOTAL_DESC,
                        MEASURE_TYPE,
                        ESTIMATE,
                        MOE
-      )
+      ) %>%
+      dplyr::mutate_if(lubridate::is.Date, as.character) # convert Date cols to character
 
-    return(acs_data_formatted)
+    # Use `full_join()` to transform the acs data to the
+    # column format in `data_template`
+    acs_data_formatted <- data_template %>%
+      dplyr::full_join(acs_data_transformed, by = c("SOURCE",
+                                                    "GEOGRAPHY_ID",
+                                                    "GEOGRAPHY_ID_TYPE",
+                                                    "GEOGRAPHY_NAME",
+                                                    "GEOGRAPHY_TYPE",
+                                                    "DATE_BEGIN",
+                                                    "DATE_END",
+                                                    "DATE_RANGE",
+                                                    "DATE_RANGE_TYPE",
+                                                    "VARIABLE",
+                                                    "VARIABLE_SUBTOTAL",
+                                                    "VARIABLE_SUBTOTAL_DESC",
+                                                    "MEASURE_TYPE",
+                                                    "ESTIMATE",
+                                                    "MOE"))
+    acs_data <- acs_data_formatted
+
+    return(acs_data)
 
   }
 
@@ -113,7 +126,10 @@ prepare_acs_data <- function(data_template, model_table, acs_tables, path){
 make_acs_data <- function(path){
 
   acs_data <- suppressWarnings(suppressMessages(readr::read_csv(path))) %>%
-    dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID))
+    dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID),
+                  DATE_BEGIN = as.character(DATE_BEGIN),
+                  DATE_END = as.character(DATE_END)
+                  )
 
   return(acs_data)
 

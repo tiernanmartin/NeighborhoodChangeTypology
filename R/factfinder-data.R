@@ -50,26 +50,45 @@ prepare_factfinder_data <- function(data_template, acs_tables, path){
 
   # REFORMAT DATA -----------------------------------------------------------
 
- kc_median_home_value_2000_ready <-  data_template %>%
-    dplyr::full_join(kc_median_home_value_2000,
-                     c(GEOGRAPHY_ID = "GEO_ID2",
-                       GEOGRAPHY_NAME = "GEO_DISPLAY_LABEL",
-                       "VARIABLE",
-                       VARIABLE_SUBTOTAL_DESC = "DESCRIPTION",
-                       "ESTIMATE")) %>%
+  kc_median_home_value_2000_transformed <- kc_median_home_value_2000 %>%
     dplyr::transmute(SOURCE = "FACTFINDER",
-                     GEOGRAPHY_ID,
+                     GEOGRAPHY_ID = GEO_ID2,
                      GEOGRAPHY_ID_TYPE = "GEOID",
-                     GEOGRAPHY_NAME,
+                     GEOGRAPHY_NAME = GEO_DISPLAY_LABEL,
                      GEOGRAPHY_TYPE = "county",
-                     ENDYEAR = 2000L,
+                     DATE_BEGIN = get_date_begin(2000L), # creates the first day of the 5-year span
+                     DATE_END = get_date_end(2000L), # creates the last day of the 5-year span
+                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                     DATE_RANGE_TYPE = "one year",
                      VARIABLE,
                      VARIABLE_SUBTOTAL = VARIABLE,
-                     VARIABLE_SUBTOTAL_DESC,
+                     VARIABLE_SUBTOTAL_DESC = DESCRIPTION,
                      MEASURE_TYPE = "MEDIAN",
                      ESTIMATE,
                      MOE = NA_real_
-    )
+    ) %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+
+  kc_median_home_value_2000_formatted <-  data_template %>%
+    dplyr::full_join(kc_median_home_value_2000_transformed,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "DATE_BEGIN",
+                            "DATE_END",
+                            "DATE_RANGE",
+                            "DATE_RANGE_TYPE",
+                            "VARIABLE",
+                            "VARIABLE_SUBTOTAL",
+                            "VARIABLE_SUBTOTAL_DESC",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
+
+  kc_median_home_value_2000_ready <- kc_median_home_value_2000_formatted
 
   # WRITE DATA --------------------------------------------------------------
 
@@ -90,10 +109,11 @@ make_factfinder_data <- function(path){
 
   factfinder_data <- suppressWarnings(suppressMessages(readr::read_csv(path))) %>%
     dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID),
+                  DATE_BEGIN = as.character(DATE_BEGIN),
+                  DATE_END = as.character(DATE_END),
                   MOE = as.numeric(MOE))
 
   return(factfinder_data)
 
 }
-
 
