@@ -5,14 +5,35 @@
 NULL
 
 #' @export
+get_date_begin <- function(x){
+  as.Date(stringr::str_c(x,"-01-01")) %>% lubridate::floor_date(unit = "year") %>% lubridate::ymd()
+}
+
+#' @export
+get_date_end <- function(x){
+  as.Date(stringr::str_c(x,"-01-01")) %>%
+    lubridate::ceiling_date(unit = "year") %>%
+    magrittr::subtract(1) %>%
+    lubridate::ymd()
+}
+
+#' @export
+create_daterange <- function(x,y){
+  x_trim <- stringr::str_remove_all(x,"-")
+  y_trim <- stringr::str_remove_all(y,"-")
+  stringr::str_c(x_trim, y_trim, sep = "_")
+}
+
+
+#' @export
 not_sfc <- function(x) !any(class(x) %in% 'sfc')
 
 first_not_na <- function(x){
-        if(all(sapply(x,is.na))){
-                methods::as(NA,class(x))
-                }else{
-                x[!sapply(x,is.na)][1]
-        }
+  if(all(sapply(x,is.na))){
+    methods::as(NA,class(x))
+  }else{
+    x[!sapply(x,is.na)][1]
+  }
 
 
 }
