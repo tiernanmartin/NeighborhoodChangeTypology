@@ -21,7 +21,7 @@ make_sales_criteria <- function(){
     "property_type" = c("LAND WITH PREV USED BLDG", "LAND WITH NEW BUILDING", "Household, single family units", "Residential condominiums"),
     "sale_reason" = c("None","Other", "Trust", "Property Settlement", "Estate Settlement"),
     "buildings_on_property" = 2L,
-    "date" = c(2005, 2010, 2018)
+    "date" = c(2005, 2010, 2015, 2016, 2017, 2018)
   )
 
   return(sales_criteria)
