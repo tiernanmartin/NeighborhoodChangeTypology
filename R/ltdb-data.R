@@ -39,8 +39,10 @@ prepare_ltdb_data <- function(data_template, acs_tables, path){
                      GEOGRAPHY_ID = TRTID10,
                      GEOGRAPHY_ID_TYPE = "GEOID",
                      GEOGRAPHY_NAME = TRACT,
+                     GEOGRAPHY_TYPE = "tract",
                      DATE_BEGIN = get_date_begin(2000L), # creates the first day of the 5-year span
                      DATE_END = get_date_end(2000L), # creates the last day of the 5-year span
+                     DATE_END_YEAR = "2000",
                      DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one year",
                      VARIABLE = acs_variables_value,
@@ -61,8 +63,10 @@ prepare_ltdb_data <- function(data_template, acs_tables, path){
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
                             "DATE_BEGIN",
                             "DATE_END",
+                            "DATE_END_YEAR",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
                             "VARIABLE",
@@ -95,6 +99,7 @@ make_ltdb_data <- function(path){
     dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID),
                   DATE_BEGIN = as.character(DATE_BEGIN),
                   DATE_END = as.character(DATE_END),
+                  DATE_END_YEAR = as.character(DATE_END_YEAR),
                   VARIABLE_SUBTOTAL_DESC = as.character(VARIABLE_SUBTOTAL_DESC),
                   MOE = as.numeric(MOE))
 

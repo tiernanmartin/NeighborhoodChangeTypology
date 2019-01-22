@@ -110,6 +110,7 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
   county_2006_2010 <- read_chas_csv(county_2006_2010_fp) %>%
     dplyr::mutate(DATE_BEGIN = get_date_begin(2010L - 4L), # creates the first day of the 5-year span
                   DATE_END = get_date_end(2010L), # creates the last day of the 5-year span
+                  DATE_END_YEAR = "2010",
                   DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "five years",
                   ST =  stringr::str_extract(GEOID,"(?<=US).{2}"),
@@ -117,11 +118,12 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
                   GEOGRAPHY_TYPE = "county") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character) %>% # convert Date cols to character
     dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
-    dplyr::select(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
+    dplyr::select(DATE_BEGIN, DATE_END, DATE_END_YEAR, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
 
   tr_2006_2010 <- read_chas_csv(tr_2006_2010_fp) %>%
     dplyr::mutate(DATE_BEGIN = get_date_begin(2010L - 4L), # creates the first day of the 5-year span
                   DATE_END = get_date_end(2010L), # creates the last day of the 5-year span
+                  DATE_END_YEAR = "2010",
                   DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "five years",
                   ST =  stringr::str_extract(GEOID,"(?<=US).{2}"),
@@ -131,27 +133,29 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
                   NAME = get_tr_number(GEOID)) %>%
     dplyr::mutate_if(lubridate::is.Date, as.character) %>% # convert Date cols to character
     dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
-    dplyr::select(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
+    dplyr::select(DATE_BEGIN, DATE_END, DATE_END_YEAR, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
 
   county_2011_2015 <- read_chas_csv(county_2011_2015_fp) %>%
     dplyr::mutate(DATE_BEGIN = get_date_begin(2015L - 4L), # creates the first day of the 5-year span
                   DATE_END = get_date_end(2015L), # creates the last day of the 5-year span
+                  DATE_END_YEAR = "2015",
                   DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "five years",
                   GEOGRAPHY_TYPE = "county") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character) %>% # convert Date cols to character
     dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
-    dplyr::select(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
+    dplyr::select(DATE_BEGIN, DATE_END, DATE_END_YEAR, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
 
   tr_2011_2015 <- read_chas_csv(tr_2011_2015_fp) %>%
     dplyr::mutate(DATE_BEGIN = get_date_begin(2015L - 4L), # creates the first day of the 5-year span
                   DATE_END = get_date_end(2015L), # creates the last day of the 5-year span
+                  DATE_END_YEAR = "2015",
                   DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "five years",
                   GEOGRAPHY_TYPE = "tract") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character) %>% # convert Date cols to character
     dplyr::filter(ST %in% "53" & CNTY %in% "033") %>%
-    dplyr::select(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
+    dplyr::select(DATE_BEGIN, DATE_END, DATE_END_YEAR, DATE_RANGE, DATE_RANGE_TYPE, NAME, GEOID, GEOGRAPHY_TYPE, dplyr::matches("T7"))
 
 
 
@@ -173,12 +177,12 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
                     stringr::str_detect(VAR, "MOE") ~ "MOE",
                     TRUE ~ NA_character_)
     ) %>%
-    dplyr::group_by(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, GEOID, NAME, GEOGRAPHY_TYPE, VARIABLE, TYPE) %>%
+    dplyr::group_by(DATE_BEGIN, DATE_END, DATE_END_YEAR, DATE_RANGE, DATE_RANGE_TYPE, GEOID, NAME, GEOGRAPHY_TYPE, VARIABLE, TYPE) %>%
     dplyr::mutate(N = dplyr::row_number()) %>%
     dplyr::ungroup() %>%
     dplyr::select(-VAR) %>%
     tidyr::spread(TYPE, VALUE) %>%
-    dplyr::group_by(DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE, GEOID, NAME, GEOGRAPHY_TYPE, VARIABLE) %>%
+    dplyr::group_by(DATE_BEGIN, DATE_END, DATE_END_YEAR, DATE_RANGE, DATE_RANGE_TYPE, GEOID, NAME, GEOGRAPHY_TYPE, VARIABLE) %>%
     dplyr::summarize(ESTIMATE = sum(ESTIMATE, na.rm =  TRUE),
                      MOE = tidycensus::moe_sum(MOE,ESTIMATE, na.rm = TRUE)) %>%
     dplyr::ungroup()
@@ -195,6 +199,7 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
                      GEOGRAPHY_TYPE,
                      DATE_BEGIN,
                      DATE_END,
+                      DATE_END_YEAR,
                      DATE_RANGE,
                      DATE_RANGE_TYPE,
                      VARIABLE = "T7",
@@ -213,6 +218,7 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
                             "GEOGRAPHY_TYPE",
                             "DATE_BEGIN",
                             "DATE_END",
+                            "DATE_END_YEAR",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
                             "VARIABLE",
