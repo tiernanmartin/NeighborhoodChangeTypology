@@ -40,7 +40,11 @@ make_parcel_sales_variables <- function(parcel_sales,
                      GEOGRAPHY_ID_TYPE,
                      GEOGRAPHY_NAME,
                      GEOGRAPHY_TYPE,
-                     ENDYEAR,
+                     DATE_BEGIN,
+                     DATE_END,
+                     DATE_END_YEAR,
+                     DATE_RANGE,
+                     DATE_RANGE_TYPE,
                      VARIABLE,
                      VARIABLE_SUBTOTAL,
                      VARIABLE_SUBTOTAL_DESC,
@@ -63,7 +67,11 @@ make_parcel_sales_variables <- function(parcel_sales,
                      GEOGRAPHY_ID_TYPE,
                      GEOGRAPHY_NAME,
                      GEOGRAPHY_TYPE,
-                     ENDYEAR,
+                     DATE_BEGIN,
+                     DATE_END,
+                     DATE_END_YEAR,
+                     DATE_RANGE,
+                     DATE_RANGE_TYPE,
                      VARIABLE,
                      VARIABLE_SUBTOTAL,
                      VARIABLE_SUBTOTAL_DESC,
@@ -77,32 +85,29 @@ make_parcel_sales_variables <- function(parcel_sales,
                      META_SALE_REASON = META_SALE_REASON_DESC
     )
 
-
-  # Note: this function can only convery sales after the year 1999
-  #       -- earlier years will return NA
-
-  convert_to_2018_dollars <- function(value, year){
-
-    adj_rate <- cpi[as.character(2018)]/cpi[as.character(year)]
-
-    as.integer(round(as.double(value) * adj_rate ,digits = -2) )
-  }
-
   sales_2018_dollars <- sales_prep %>%
-    dplyr::mutate(VARIABLE = "SP", # SP is my shorthand for "assessed total value"
-                  ESTIMATE = purrr::map2_dbl(ESTIMATE, ENDYEAR, convert_to_2018_dollars))  # note: the original SALE_PRICE variable is dropped
+    dplyr::mutate(VARIABLE = "SP", # SP is my shorthand for "sale price"
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END_YEAR, convert_to_2018_dollars))  # note: the original SALE_PRICE variable is dropped
 
 
 
   # ASSIGN ROLES BY CRITERIA ------------------------------------------------------
 
+  # remove the DATE_* columns from parcel_all_metadata so that they don't conflic with the parcel DATE_* cols
+  # exception: DATE_END_YEAR
+  parcel_all_metadata_by_year <- parcel_all_metadata %>%
+    dplyr::select(-DATE_BEGIN,
+                  -DATE_END,
+                  -DATE_RANGE,
+                  -DATE_RANGE_TYPE)
+
   sales_all_wide <- sales_2018_dollars %>%
-    dplyr::inner_join(parcel_all_metadata, by = c("SOURCE",
+    dplyr::inner_join(parcel_all_metadata_by_year, by = c("SOURCE",
                                                   "GEOGRAPHY_ID",
                                                   "GEOGRAPHY_ID_TYPE",
                                                   "GEOGRAPHY_NAME",
                                                   "GEOGRAPHY_TYPE",
-                                                  "ENDYEAR")) %>%
+                                                  "DATE_END_YEAR")) %>%
     dplyr::select(-MOE) %>%
     dplyr::mutate(RNUM = dplyr::row_number()) %>%
     tidyr::spread(VARIABLE, ESTIMATE) %>%
@@ -127,7 +132,7 @@ make_parcel_sales_variables <- function(parcel_sales,
       META_PROP_TYPE_LGL = META_PROPERTY_TYPE %in% sales_criteria$property_type,
       META_REASON_LGL = META_SALE_REASON %in% sales_criteria$sale_reason,
       META_NBR_BLDG_LGL = META_NBR_BUILDINGS <= sales_criteria$buildings_on_property,
-      META_YEAR_LGL = ENDYEAR %in% sales_criteria$date,
+      META_YEAR_LGL = as.numeric(DATE_END_YEAR) %in% sales_criteria$date,
       META_SALE_CRITERIA_LGL = META_SQFT_LGL & META_PRICE_LGL & META_USE_LGL &  META_PROP_TYPE_LGL & META_REASON_LGL & META_NBR_BLDG_LGL & META_YEAR_LGL
     ) %>%
     dplyr::mutate(META_SALE_MEETS_CRITERIA_SF_LGL = META_USE_TYPE_SF_LGL & META_PROP_CLASS_SF_LGL & META_SALE_CRITERIA_LGL,
@@ -182,7 +187,11 @@ make_parcel_sales_variables <- function(parcel_sales,
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
                             "GEOGRAPHY_TYPE",
-                            "ENDYEAR",
+                            "DATE_BEGIN",
+                            "DATE_END",
+                            "DATE_END_YEAR",
+                            "DATE_RANGE",
+                            "DATE_RANGE_TYPE",
                             "INDICATOR",
                             "VARIABLE",
                             "VARIABLE_DESC",
@@ -217,6 +226,8 @@ make_parcel_value_variables <- function(parcel_all_metadata,
   # CONVERT TO 2018 DOLLARS -------------------------------------------------
 
 
+
+
   # Prepare parcel_value:
   #
   #   1. where a parcel has multiple values for a given year, add them together
@@ -224,29 +235,30 @@ make_parcel_value_variables <- function(parcel_all_metadata,
   #       but they will filtererd out by single_family_criteria$buildings_on_property)
   #   2. convert to 2018 dollars (inflation adjustment)
 
-  convert_to_2018_dollars <- function(value, year){
 
-    adj_rate <- cpi[as.character(2018)]/cpi[as.character(year)]
+  # extract the several fields (will be joined back in later steps)
 
-    as.integer(round(as.double(value * adj_rate) ,digits = -2) )
-  }
+
+  parcel_value_join_cols <- parcel_value %>%
+    dplyr::select(SOURCE,
+                  dplyr::starts_with("GEOGRAPHY"),
+                  dplyr::starts_with("DATE"),
+                  dplyr::starts_with("VARIABLE_"),
+                  MEASURE_TYPE) %>%
+    dplyr::distinct()
+
 
   parcel_value_all_variables <- parcel_value %>%
-    dplyr::group_by(SOURCE,
-                    GEOGRAPHY_ID,
-                    GEOGRAPHY_ID_TYPE,
-                    GEOGRAPHY_NAME,
-                    GEOGRAPHY_TYPE,
-                    ENDYEAR,
-                    VARIABLE,
-                    VARIABLE_SUBTOTAL,
-                    VARIABLE_SUBTOTAL_DESC,
-                    MEASURE_TYPE) %>%
+    dplyr::group_by(GEOGRAPHY_ID,
+                    DATE_END_YEAR,
+                    VARIABLE) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
                      MOE = dplyr::first(MOE)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(VARIABLE = stringr::str_c(VARIABLE,"_2018"),
-                  ESTIMATE = purrr::map2_int(ESTIMATE, ENDYEAR, convert_to_2018_dollars))
+                  ESTIMATE = purrr::map2_int(ESTIMATE, DATE_END_YEAR, convert_to_2018_dollars)) %>%
+    dplyr::left_join(parcel_value_join_cols, by = c("GEOGRAPHY_ID",
+                                                    "DATE_END_YEAR"))
 
   parcel_value_total_wide <- parcel_value_all_variables %>%
     tidyr::spread(VARIABLE, ESTIMATE) %>%
@@ -260,15 +272,19 @@ make_parcel_value_variables <- function(parcel_all_metadata,
   # Create indicators telling the type of residential property as well as
   # whether the criteria have been met (see `single_family_criteria` or `condo_criteria`)
 
-
-  p_metadata_and_value <- parcel_all_metadata %>%
-    dplyr::inner_join(parcel_value_ready,  # warning: this is a filtering join
-                      by = c("SOURCE",
-                             "GEOGRAPHY_ID",
+  p_metadata_and_value <- parcel_value_ready %>%
+    dplyr::inner_join(parcel_all_metadata,
+                      by = c("GEOGRAPHY_ID",
+                             "DATE_END_YEAR",
+                             "SOURCE",
                              "GEOGRAPHY_ID_TYPE",
                              "GEOGRAPHY_NAME",
                              "GEOGRAPHY_TYPE",
-                             "ENDYEAR"))
+                             "DATE_BEGIN",
+                             "DATE_END",
+                             "DATE_RANGE",
+                             "DATE_RANGE_TYPE")
+                      )
 
   p_criteria <- p_metadata_and_value %>%
     dplyr::mutate(META_USE_TYPE_SF_LGL = META_PRESENT_USE %in% single_family_criteria$present_uses & META_PROPERTY_CATEGORY %in% "res",
@@ -291,7 +307,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
   # note: having complete records isn't necessary for an indicators but it may be useful to know anyway
 
   p_complete <- p_criteria %>%
-    dplyr::group_by(GEOGRAPHY_ID, ENDYEAR) %>%
+    dplyr::group_by(GEOGRAPHY_ID, DATE_END_YEAR) %>%
     dplyr::arrange(dplyr::desc(ASSESSED_TOTAL_VALUE)) %>%
     dplyr::slice(1) %>% # take the highest value record for each PIN and year
     dplyr::ungroup() %>%
@@ -345,7 +361,11 @@ make_parcel_value_variables <- function(parcel_all_metadata,
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
                             "GEOGRAPHY_TYPE",
-                            "ENDYEAR",
+                            "DATE_BEGIN",
+                            "DATE_END",
+                            "DATE_END_YEAR",
+                            "DATE_RANGE",
+                            "DATE_RANGE_TYPE",
                             "INDICATOR",
                             "VARIABLE",
                             "VARIABLE_DESC",
@@ -366,7 +386,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
     # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
     # If any NA's are showing up then something needs to be fixed
 
-     parcel_value_variables %>% dplyr::count(ENDYEAR,INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE)
+    parcel_value_variables %>% dplyr::count(DATE_END_YEAR,INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
   }
 
 
