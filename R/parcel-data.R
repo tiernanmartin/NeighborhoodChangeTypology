@@ -185,18 +185,21 @@ make_parcel_value <- function(data_template, zip_path, file_path){
   parcel_value_filter <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
     janitor::clean_names(case = "screaming_snake") %>%
     dplyr::filter(TAX_STATUS %in% "T") %>% # The object takes up too much memory! Need to filter it down.
-    dplyr::filter(TAX_YR %in% c(2005, 2010, 2018))
+    dplyr::filter(TAX_YR %in% c(2005, 2010, 2015, 2016, 2017, 2018))
 
 
   parcel_value_long <- parcel_value_filter %>%
-    dplyr::rename(VALUE_LAND = LAND_VAL,
+    dplyr::mutate(DATE_BEGIN = get_date_end(TAX_YR), # date of the last day of the calendar year
+                  DATE_END = get_date_end(TAX_YR), # also the date of the last day of the calendar year
+                  DATE_END_YEAR = as.character(lubridate::year(DATE_END)),
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day",
                   VALUE_IMPROVEMENT = IMPS_VAL,
-                  APPRAISED_VALUE_LAND = APPR_LAND_VAL,
-                  APPRAISED_VALUE_IMPROVEMENT = APPR_IMPS_VAL,
-                  APPRAISED_VALUE_IMPROVEMENT_INCR = APPR_IMP_INCR
-    ) %>%
-    tidyr::gather(VARIABLE, ESTIMATE, VALUE_LAND, VALUE_IMPROVEMENT, APPRAISED_VALUE_LAND, APPRAISED_VALUE_IMPROVEMENT, APPRAISED_VALUE_IMPROVEMENT_INCR) %>%
-    dplyr::rename_at(dplyr::vars(-dplyr::matches("VARIABLE|ESTIMATE")), dplyr::funs(stringr::str_c("META_",.)))
+                     VALUE_TOTAL = LAND_VAL) %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character) %>%  # convert Date cols to character
+    dplyr::select(-dplyr::matches("VAL$")) %>% # remove the original value-related fields
+    tidyr::gather(VARIABLE, ESTIMATE, VALUE_IMPROVEMENT, VALUE_TOTAL) %>%
+    dplyr::rename_at(dplyr::vars(-dplyr::matches("VARIABLE|ESTIMATE|^DATE")), dplyr::funs(stringr::str_c("META_",.)))
 
 
   parcel_value_transformed <- parcel_value_long %>%
@@ -205,19 +208,18 @@ make_parcel_value <- function(data_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(META_TAX_YR), # date of the last day of the calendar year
-                  DATE_END = get_date_end(META_TAX_YR), # also the date of the last day of the calendar year
-                  DATE_END_YEAR = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
-                  DATE_RANGE_TYPE = "one day",
+                  DATE_BEGIN, # date of the last day of the calendar year
+                  DATE_END, # also the date of the last day of the calendar year
+                  DATE_END_YEAR,
+                  DATE_RANGE,
+                  DATE_RANGE_TYPE,
                   VARIABLE,
                   VARIABLE_SUBTOTAL = NA_character_,
                   VARIABLE_SUBTOTAL_DESC = NA_character_,
                   MEASURE_TYPE = "VALUE",
                   ESTIMATE,
                   MOE = 0
-    ) %>%
-    dplyr::mutate_if(lubridate::is.Date, as.character) # convert Date cols to character
+    )
 
   parcel_value_formatted <- data_template %>%
     dplyr::full_join(parcel_value_transformed,
