@@ -262,7 +262,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
 
   parcel_value_total_wide <- parcel_value_all_variables %>%
     tidyr::spread(VARIABLE, ESTIMATE) %>%
-    dplyr::mutate(ASSESSED_TOTAL_VALUE = VALUE_LAND_2018 + VALUE_IMPROVEMENT_2018)
+    dplyr::rename(ASSESSED_TOTAL_VALUE = VALUE_TOTAL_2018)
 
   parcel_value_ready <- parcel_value_total_wide
 
