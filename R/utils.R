@@ -5,6 +5,21 @@
 NULL
 
 #' @export
+convert_to_2018_dollars <- function(value, year){
+
+    # Note: this function can only convery sales after the year 1999 -- earlier years will return NA
+
+    # Check that `year` is a 4-digit character
+
+  if(!(is.character(year) & nchar(year) == 4L)){stop("The `year` argument must be a character vector with nchar == 4.\nFor example: '2012'")}
+
+    adj_rate <- cpi[as.character(2018)]/cpi[year]
+
+    as.integer(round(as.double(value) * adj_rate ,digits = -2) )
+  }
+
+
+#' @export
 get_date_begin <- function(x){
   as.Date(stringr::str_c(x,"-01-01")) %>% lubridate::floor_date(unit = "year") %>% lubridate::ymd()
 }
