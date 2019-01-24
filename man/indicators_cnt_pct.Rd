@@ -2,10 +2,22 @@
 % Please edit documentation in R/make-indicators-cnt-pct.R
 \name{make_indicators_cnt_pct}
 \alias{make_indicators_cnt_pct}
+\alias{make_indicators_cnt_pct_acs_chas}
+\alias{make_indicators_cnt_pct_value}
+\alias{make_indicators_cnt_pct_sales}
 \title{Make The Count Indicators}
 \usage{
 make_indicators_cnt_pct(acs_variables, hud_chas_variables,
   parcel_value_variables, parcel_sales_variables, parcel_tract_overlay,
+  county_community_tract_all_metadata, community_metadata, indicator_template)
+
+make_indicators_cnt_pct_acs_chas(acs_variables, hud_chas_variables,
+  county_community_tract_all_metadata, community_metadata, indicator_template)
+
+make_indicators_cnt_pct_value(parcel_value_variables, parcel_tract_overlay,
+  county_community_tract_all_metadata, community_metadata, indicator_template)
+
+make_indicators_cnt_pct_sales(parcel_sales_variables, parcel_tract_overlay,
   county_community_tract_all_metadata, community_metadata, indicator_template)
 }
 \arguments{
@@ -24,6 +36,12 @@ make_indicators_cnt_pct(acs_variables, hud_chas_variables,
 \item{community_metadata}{desc}
 
 \item{indicator_template}{desc}
+
+\item{indicators_cnt_pct_acs_chas}{desc}
+
+\item{indicators_cnt_pct_value}{desc}
+
+\item{indicators_cnt_pct_sales}{desc}
 }
 \value{
 a \code{tibble}

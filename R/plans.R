@@ -399,29 +399,47 @@ get_indicator_plan <- function(){
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
 
-  indicator_plan <- drake::drake_plan(
-    indicators_cnt_pct = make_indicators_cnt_pct(acs_variables,
-                                                 hud_chas_variables,
-                                                 parcel_value_variables,
-                                                 parcel_sales_variables,
-                                                 parcel_tract_overlay,
-                                                 county_community_tract_all_metadata,
-                                                 community_metadata,
-                                                 indicator_template),
-    indicators_median = make_indicators_median(acs_variables,
-                                               ltdb_variables,
-                                               factfinder_variables,
-                                               parcel_value_variables,
-                                               parcel_sales_variables,
-                                               parcel_tract_overlay,
-                                               county_community_tract_all_metadata,
-                                               community_metadata,
-                                               indicator_template),
-    sample_size_metadata = make_sample_size_metadata(indicators_cnt_pct,
-                                 indicators_median),
-    indicators = make_indicators(indicators_cnt_pct,
-                                 indicators_median,
-                                 sample_size_metadata),
+  ind_prep_plan <- drake::drake_plan(
+    indicators_cnt_pct_acs_chas = make_indicators_cnt_pct_acs_chas(acs_variables,
+                                             hud_chas_variables,
+                                             county_community_tract_all_metadata,
+                                             community_metadata,
+                                             indicator_template),
+    indicators_cnt_pct_value = make_indicators_cnt_pct_value(parcel_value_variables,
+                                          parcel_tract_overlay,
+                                          county_community_tract_all_metadata,
+                                          community_metadata,
+                                          indicator_template),
+    indicators_cnt_pct_sales = make_indicators_cnt_pct_sales(parcel_sales_variables,
+                                          parcel_tract_overlay,
+                                          county_community_tract_all_metadata,
+                                          community_metadata,
+                                          indicator_template)
+  )
+
+  ind_plan <- drake::drake_plan(
+    # indicators_cnt_pct = make_indicators_cnt_pct(acs_variables,
+    #                                              hud_chas_variables,
+    #                                              parcel_value_variables,
+    #                                              parcel_sales_variables,
+    #                                              parcel_tract_overlay,
+    #                                              county_community_tract_all_metadata,
+    #                                              community_metadata,
+    #                                              indicator_template),
+    # indicators_median = make_indicators_median(acs_variables,
+    #                                            ltdb_variables,
+    #                                            factfinder_variables,
+    #                                            parcel_value_variables,
+    #                                            parcel_sales_variables,
+    #                                            parcel_tract_overlay,
+    #                                            county_community_tract_all_metadata,
+    #                                            community_metadata,
+    #                                            indicator_template),
+    # sample_size_metadata = make_sample_size_metadata(indicators_cnt_pct,
+    #                              indicators_median),
+    # indicators = make_indicators(indicators_cnt_pct,
+    #                              indicators_median,
+    #                              sample_size_metadata),
 
     # indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
     # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
@@ -469,6 +487,8 @@ get_indicator_plan <- function(){
   #   sample_metadata = make_sample_metadata(indicators_cnt_pct,
   #                                          indicators_median)
   # )
+
+  indicator_plan <- drake::bind_plans(ind_prep_plan, ind_plan)
 
   return(indicator_plan)
 
