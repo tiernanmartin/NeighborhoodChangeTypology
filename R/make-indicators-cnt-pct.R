@@ -123,7 +123,7 @@ show_hist_facet_indicators_cnt_pct_year <- function(){
   indicators_cnt_pct %>%
     dplyr::filter(MEASURE_TYPE %in% "PERCENT") %>%
     dplyr::filter(DATE_RANGE_TYPE %in% c("five years","one year")) %>%
-    dplyr::mutate(LABEL = VARIABLE_DESC) %>%
+    dplyr::mutate(LABEL = stringr::str_replace(VARIABLE_DESC,"PERCENT","%")) %>%
     dplyr::group_by(DATE_END_YEAR, LABEL) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
