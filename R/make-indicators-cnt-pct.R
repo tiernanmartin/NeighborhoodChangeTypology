@@ -97,9 +97,9 @@ make_indicators_cnt_pct <- function(indicators_cnt_pct_acs_chas,
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
                             "GEOGRAPHY_TYPE",
+                            "DATE_GROUP_ID",
                             "DATE_BEGIN",
                             "DATE_END",
-                            "DATE_END_YEAR",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
                             "INDICATOR",
@@ -124,14 +124,14 @@ show_hist_facet_indicators_cnt_pct_year <- function(){
     dplyr::filter(MEASURE_TYPE %in% "PERCENT") %>%
     dplyr::filter(DATE_RANGE_TYPE %in% c("five years","one year")) %>%
     dplyr::mutate(LABEL = stringr::str_replace(VARIABLE_DESC,"PERCENT","%")) %>%
-    dplyr::group_by(DATE_END_YEAR, LABEL) %>%
+    dplyr::group_by(DATE_GROUP_ID, LABEL) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     ggplot2::ggplot(ggplot2::aes(x = ESTIMATE)) +
     ggplot2::scale_x_continuous(labels = scales::percent) +
     ggplot2::geom_histogram() +
     ggplot2::geom_vline(ggplot2::aes(xintercept=MEDIAN), size=0.5, color = "red") +
-    ggplot2::facet_grid(DATE_END_YEAR ~ LABEL, scales = "free_x")
+    ggplot2::facet_grid(DATE_GROUP_ID ~ LABEL, scales = "free_x")
 
 }
 
@@ -147,14 +147,14 @@ show_hist_facet_indicators_cnt_pct_qtr <- function(){
     dplyr::filter(MEASURE_TYPE %in% "PERCENT") %>%
     dplyr::filter(DATE_RANGE_TYPE %in% c("one quarter")) %>%
     dplyr::mutate(LABEL = VARIABLE_DESC) %>%
-    dplyr::group_by(DATE_END_YEAR, LABEL) %>%
+    dplyr::group_by(DATE_GROUP_ID, LABEL) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     ggplot2::ggplot(ggplot2::aes(x = ESTIMATE)) +
     ggplot2::scale_x_continuous(labels = scales::percent) +
     ggplot2::geom_histogram() +
     ggplot2::geom_vline(ggplot2::aes(xintercept=MEDIAN), size=0.5, color = "red") +
-    ggplot2::facet_grid(DATE_END_YEAR ~ LABEL, scales = "free_x")
+    ggplot2::facet_grid(DATE_GROUP_ID ~ LABEL, scales = "free_x")
 
 }
 
@@ -191,7 +191,7 @@ make_indicators_cnt_pct_acs_chas <- function(acs_variables,
                     INDICATOR,
                     DATE_BEGIN,
                     DATE_END,
-                    DATE_END_YEAR,
+                    DATE_GROUP_ID,
                     DATE_RANGE,
                     DATE_RANGE_TYPE) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
@@ -221,7 +221,7 @@ make_indicators_cnt_pct_acs_chas <- function(acs_variables,
                     INDICATOR,
                     DATE_BEGIN,
                     DATE_END,
-                    DATE_END_YEAR,
+                    DATE_GROUP_ID,
                     DATE_RANGE,
                     DATE_RANGE_TYPE) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
@@ -309,7 +309,7 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
     x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "year"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "year") - 1,
-                    DATE_END_YEAR = DATE_END_YEAR,
+                    DATE_GROUP_ID = DATE_GROUP_ID,
                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one year") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
@@ -321,7 +321,7 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
                       INDICATOR,
                       DATE_BEGIN,
                       DATE_END,
-                      DATE_END_YEAR,
+                      DATE_GROUP_ID,
                       DATE_RANGE,
                       DATE_RANGE_TYPE) %>%
       dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
@@ -357,14 +357,14 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
   }
 
   date_cols_qtr_full <- parcel_value_cnt %>%
-    dplyr::select(DATE_END_YEAR) %>%
+    dplyr::select(DATE_GROUP_ID) %>%
     dplyr::distinct() %>%
-    dplyr::transmute(QTR_DATE = purrr::map(DATE_END_YEAR, get_qtr_sequence)
+    dplyr::transmute(QTR_DATE = purrr::map(DATE_GROUP_ID, get_qtr_sequence)
     )%>%
     tidyr::unnest() %>%
     dplyr::transmute(DATE_BEGIN = lubridate::floor_date(lubridate::date(QTR_DATE), unit = "quarter"),
                      DATE_END = lubridate::ceiling_date(lubridate::date(QTR_DATE), unit = "quarter") - 1,
-                     DATE_END_YEAR = get_year_quarter(DATE_BEGIN),
+                     DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                      DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one quarter") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
@@ -375,7 +375,7 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
    summary_by_qtr_Q4_only <- x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "quarter"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
-                    DATE_END_YEAR = get_year_quarter(DATE_BEGIN),
+                    DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one quarter") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
@@ -385,7 +385,7 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
                       VARIABLE,
                       VARIABLE_DESC,
                       INDICATOR,
-                      DATE_END_YEAR) %>%
+                      DATE_GROUP_ID) %>%
       dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
                        MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
       dplyr::ungroup() %>%
@@ -394,13 +394,13 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
       dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
     replace_q4 <- function(x, q){
-      x %>% dplyr::mutate( DATE_END_YEAR = stringr::str_replace(DATE_END_YEAR, "Q4",q))
+      x %>% dplyr::mutate( DATE_GROUP_ID = stringr::str_replace(DATE_GROUP_ID, "Q4",q))
     }
 
     summary_by_qtr_all <- list("Q1", "Q2", "Q3") %>%
       purrr::map_dfr(~replace_q4(summary_by_qtr_Q4_only, q = .x)) %>%
       dplyr::bind_rows(summary_by_qtr_Q4_only) %>%
-      dplyr::left_join(date_cols_qtr_full, by = "DATE_END_YEAR")
+      dplyr::left_join(date_cols_qtr_full, by = "DATE_GROUP_ID")
 
     return(summary_by_qtr_all)
   }
@@ -434,9 +434,9 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
                      "GEOGRAPHY_ID_TYPE",
                      "GEOGRAPHY_NAME",
                      "GEOGRAPHY_TYPE",
+                     "DATE_GROUP_ID",
                      "DATE_BEGIN",
                      "DATE_END",
-                     "DATE_END_YEAR",
                      "DATE_RANGE",
                      "DATE_RANGE_TYPE",
                      "INDICATOR",
@@ -510,7 +510,7 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
     x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "year"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "year") - 1,
-                    DATE_END_YEAR = DATE_END_YEAR,
+                    DATE_GROUP_ID = DATE_GROUP_ID,
                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one year") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
@@ -522,7 +522,7 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
                       INDICATOR,
                       DATE_BEGIN,
                       DATE_END,
-                      DATE_END_YEAR,
+                      DATE_GROUP_ID,
                       DATE_RANGE,
                       DATE_RANGE_TYPE) %>%
       dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
@@ -558,14 +558,14 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
   }
 
   date_cols_qtr_full <- parcel_sales_cnt %>%
-    dplyr::select(DATE_END_YEAR) %>%
+    dplyr::select(DATE_GROUP_ID) %>%
     dplyr::distinct() %>%
-    dplyr::transmute(QTR_DATE = purrr::map(DATE_END_YEAR, get_qtr_sequence)
+    dplyr::transmute(QTR_DATE = purrr::map(DATE_GROUP_ID, get_qtr_sequence)
     )%>%
     tidyr::unnest() %>%
     dplyr::transmute(DATE_BEGIN = lubridate::floor_date(lubridate::date(QTR_DATE), unit = "quarter"),
                      DATE_END = lubridate::ceiling_date(lubridate::date(QTR_DATE), unit = "quarter") - 1,
-                     DATE_END_YEAR = get_year_quarter(DATE_BEGIN),
+                     DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                      DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one quarter") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
@@ -577,7 +577,7 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
     summary_by_qtr <- x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "quarter"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
-                    DATE_END_YEAR = get_year_quarter(DATE_BEGIN),
+                    DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one quarter") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
@@ -589,7 +589,7 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
                       INDICATOR,
                       DATE_BEGIN,
                       DATE_END,
-                      DATE_END_YEAR,
+                      DATE_GROUP_ID,
                       DATE_RANGE,
                       DATE_RANGE_TYPE) %>%
       dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
@@ -599,7 +599,7 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
       dplyr::select(-GEOGRAPHY_ID_TYPE) %>%
       dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
-    # it is possible that not every combination of DATE_END_YEAR and quarter will be present
+    # it is possible that not every combination of DATE_GROUP_ID and quarter will be present
     #  if that is the case, use dplyr::expand() to add the missing combinations
 
     summary_by_qtr_complete <- summary_by_qtr %>%
@@ -612,9 +612,22 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
                             GEOGRAPHY_ID_TYPE,
                             GEOGRAPHY_NAME,
                             GEOGRAPHY_TYPE),
-                    DATE_END_YEAR) %>%
-      dplyr::left_join(date_cols_qtr_full, by = "DATE_END_YEAR") %>%
-      dplyr::left_join(summary_by_qtr, by = c("SOURCE", "GEOGRAPHY_ID", "VARIABLE", "VARIABLE_DESC", "INDICATOR", "VARIABLE_ROLE", "GEOGRAPHY_ID_TYPE", "GEOGRAPHY_NAME", "GEOGRAPHY_TYPE", "DATE_END_YEAR", "DATE_BEGIN", "DATE_END", "DATE_RANGE", "DATE_RANGE_TYPE")) %>%
+                    DATE_GROUP_ID) %>%
+      dplyr::left_join(date_cols_qtr_full, by = "DATE_GROUP_ID") %>%
+      dplyr::left_join(summary_by_qtr, by = c("SOURCE",
+                                              "GEOGRAPHY_ID",
+                                              "VARIABLE",
+                                              "VARIABLE_DESC",
+                                              "INDICATOR",
+                                              "VARIABLE_ROLE",
+                                              "GEOGRAPHY_ID_TYPE",
+                                              "GEOGRAPHY_NAME",
+                                              "GEOGRAPHY_TYPE",
+                                              "DATE_GROUP_ID",
+                                              "DATE_BEGIN",
+                                              "DATE_END",
+                                              "DATE_RANGE",
+                                              "DATE_RANGE_TYPE")) %>%
       tidyr::replace_na(list(ESTIMATE = 0,
                              MOE = 0))
 

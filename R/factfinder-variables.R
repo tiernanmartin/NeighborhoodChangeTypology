@@ -25,9 +25,9 @@ make_factfinder_variables <- function(factfinder_data, variable_template){
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
                             "GEOGRAPHY_TYPE",
+                            "DATE_GROUP_ID",
                             "DATE_BEGIN",
                             "DATE_END",
-                            "DATE_END_YEAR",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
                             "INDICATOR",
@@ -51,7 +51,7 @@ make_factfinder_variables <- function(factfinder_data, variable_template){
     # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
     # If any NA's are showing up then something needs to be fixed
 
-     factfinder_variables %>% dplyr::count(DATE_END_YEAR,INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
+     factfinder_variables %>% dplyr::count(DATE_GROUP_ID,INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
   }
 
   # RETURN ------------------------------------------------------------------

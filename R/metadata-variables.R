@@ -67,9 +67,9 @@ make_parcel_all_metadata <- function(present_use_key,
                        GEOGRAPHY_ID_TYPE,
                        GEOGRAPHY_NAME,
                        GEOGRAPHY_TYPE,
+                       DATE_GROUP_ID,
                        DATE_BEGIN,
                        DATE_END,
-                       DATE_END_YEAR,
                        DATE_RANGE,
                        DATE_RANGE_TYPE,
                        META_PRESENT_USE = META_PRESENT_USE_DESC,
@@ -91,9 +91,9 @@ make_parcel_all_metadata <- function(present_use_key,
                            GEOGRAPHY_ID_TYPE,
                            GEOGRAPHY_NAME,
                            GEOGRAPHY_TYPE,
+                           DATE_GROUP_ID,
                            DATE_BEGIN,
                            DATE_END,
-                           DATE_END_YEAR,
                            DATE_RANGE,
                            DATE_RANGE_TYPE,
                            META_PROPERTY_CATEGORY = "res",
@@ -116,12 +116,12 @@ make_parcel_all_metadata <- function(present_use_key,
 
 
   sale_2016 <- parcel_sales %>%
-    dplyr::filter(DATE_END_YEAR %in% "2016") %>%
+    dplyr::filter(DATE_GROUP_ID %in% "2016") %>%
     dplyr::transmute(GEOGRAPHY_ID,
                      SOLD_2016 = TRUE)
 
   res_2015_2017_distinct <- res_bldg_no_2016 %>%
-    dplyr::filter(DATE_END_YEAR %in% c("2015", "2017")) %>%
+    dplyr::filter(DATE_GROUP_ID %in% c("2015", "2017")) %>%
     dplyr::left_join(sale_2016, by = "GEOGRAPHY_ID") %>%
     dplyr::mutate(SOLD_2016 = dplyr::case_when(
       is.na(SOLD_2016) ~ FALSE,
@@ -132,7 +132,7 @@ make_parcel_all_metadata <- function(present_use_key,
   res_2015_2017_wide <- res_2015_2017_distinct %>%
     tidyr::unite("GEOGRAPHY_ID_BLDG", c(GEOGRAPHY_ID, META_BLDG_NBR)) %>%
     tidyr::gather(META_VAR, VAL, dplyr::matches("META")) %>%
-    dplyr::mutate(YEAR = stringr::str_c("YEAR_", DATE_END_YEAR)) %>%
+    dplyr::mutate(YEAR = stringr::str_c("YEAR_", DATE_GROUP_ID)) %>%
     dplyr::select(-dplyr::starts_with("DATE")) %>%
     tidyr::spread(YEAR, VAL)
 
@@ -146,9 +146,9 @@ make_parcel_all_metadata <- function(present_use_key,
     )) %>%
     tidyr::gather(VAR, VAL, dplyr::matches("YEAR_")) %>%
     dplyr::mutate(VAR = stringr::str_remove(VAR,"YEAR_")) %>%
-    dplyr::rename(DATE_END_YEAR = VAR) %>%
+    dplyr::rename(DATE_GROUP_ID = VAR) %>%
     tidyr::spread(META_VAR, VAL) %>%
-    dplyr::filter(DATE_END_YEAR %in% "2016") %>%
+    dplyr::filter(DATE_GROUP_ID %in% "2016") %>%
     dplyr::select(-SOLD_2016)
 
   res_2016_ready <- res_2016_raw %>%
@@ -160,7 +160,7 @@ make_parcel_all_metadata <- function(present_use_key,
                      GEOGRAPHY_TYPE,
                      DATE_BEGIN = "2016-12-31",
                      DATE_END = "2016-12-31",
-                     DATE_END_YEAR = "2016",
+                     DATE_GROUP_ID = "2016",
                      DATE_RANGE = "20161231_20161231",
                      DATE_RANGE_TYPE = "one day",
                      META_PROPERTY_CATEGORY,
@@ -177,9 +177,9 @@ make_parcel_all_metadata <- function(present_use_key,
                                    "GEOGRAPHY_ID_TYPE",
                                    "GEOGRAPHY_NAME",
                                    "GEOGRAPHY_TYPE",
+                                   "DATE_GROUP_ID",
                                    "DATE_BEGIN",
                                    "DATE_END",
-                                   "DATE_END_YEAR",
                                    "DATE_RANGE",
                                    "DATE_RANGE_TYPE"))
 
@@ -195,9 +195,9 @@ make_parcel_all_metadata <- function(present_use_key,
                        GEOGRAPHY_ID_TYPE,
                        GEOGRAPHY_NAME,
                        GEOGRAPHY_TYPE,
+                       DATE_GROUP_ID,
                        DATE_BEGIN,
                        DATE_END,
-                       DATE_END_YEAR,
                        DATE_RANGE,
                        DATE_RANGE_TYPE,
                        META_PROPERTY_CATEGORY = "condo",
@@ -215,7 +215,7 @@ make_parcel_all_metadata <- function(present_use_key,
   condo_no_2016 <- purrr::map_dfr(condo_list, prep_condo_unit)
 
   condo_2015_2017_distinct <- condo_no_2016 %>%
-    dplyr::filter(DATE_END_YEAR %in% c("2015", "2017")) %>%
+    dplyr::filter(DATE_GROUP_ID %in% c("2015", "2017")) %>%
     dplyr::left_join(sale_2016, by = "GEOGRAPHY_ID") %>%
     dplyr::mutate(SOLD_2016 = dplyr::case_when(
       is.na(SOLD_2016) ~ FALSE,
@@ -225,7 +225,7 @@ make_parcel_all_metadata <- function(present_use_key,
 
   condo_2015_2017_wide <- condo_2015_2017_distinct %>%
     tidyr::gather(META_VAR, VAL, dplyr::matches("META")) %>%
-    dplyr::mutate(YEAR = stringr::str_c("YEAR_", DATE_END_YEAR)) %>%
+    dplyr::mutate(YEAR = stringr::str_c("YEAR_", DATE_GROUP_ID)) %>%
     dplyr::select(-dplyr::starts_with("DATE")) %>%
     tidyr::spread(YEAR, VAL)
 
@@ -239,9 +239,9 @@ make_parcel_all_metadata <- function(present_use_key,
     )) %>%
     tidyr::gather(VAR, VAL, dplyr::matches("YEAR_")) %>%
     dplyr::mutate(VAR = stringr::str_remove(VAR,"YEAR_")) %>%
-    dplyr::rename(DATE_END_YEAR = VAR) %>%
+    dplyr::rename(DATE_GROUP_ID = VAR) %>%
     tidyr::spread(META_VAR, VAL) %>%
-    dplyr::filter(DATE_END_YEAR %in% "2016") %>%
+    dplyr::filter(DATE_GROUP_ID %in% "2016") %>%
     dplyr::select(-SOLD_2016)
 
   condo_2016_ready <- condo_2016_raw %>%
@@ -252,7 +252,7 @@ make_parcel_all_metadata <- function(present_use_key,
                      GEOGRAPHY_TYPE,
                      DATE_BEGIN = "2016-12-31",
                      DATE_END = "2016-12-31",
-                     DATE_END_YEAR = "2016",
+                     DATE_GROUP_ID = "2016",
                      DATE_RANGE = "20161231_20161231",
                      DATE_RANGE_TYPE = "one day",
                      META_PROPERTY_CATEGORY,
@@ -300,9 +300,9 @@ make_parcel_all_metadata <- function(present_use_key,
                   GEOGRAPHY_ID_TYPE,
                   GEOGRAPHY_NAME,
                   GEOGRAPHY_TYPE,
+                  DATE_GROUP_ID,
                   DATE_BEGIN,
                   DATE_END,
-                  DATE_END_YEAR,
                   DATE_RANGE,
                   DATE_RANGE_TYPE) %>%
     dplyr::full_join(prop_all_ready,
@@ -311,9 +311,9 @@ make_parcel_all_metadata <- function(present_use_key,
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
                             "GEOGRAPHY_TYPE",
+                            "DATE_GROUP_ID",
                             "DATE_BEGIN",
                             "DATE_END",
-                            "DATE_END_YEAR",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE"))
 
@@ -322,7 +322,7 @@ make_parcel_all_metadata <- function(present_use_key,
 # CHECK THE COUNTS (PROP_TYPE by YEAR) ------------------------------------
 
   check_prop_type_by_year <- function(){
-     parcel_all_metadata_ready %>% dplyr::count(META_PROPERTY_CATEGORY, DATE_END_YEAR)
+     parcel_all_metadata_ready %>% dplyr::count(META_PROPERTY_CATEGORY, DATE_GROUP_ID)
   }
 
 

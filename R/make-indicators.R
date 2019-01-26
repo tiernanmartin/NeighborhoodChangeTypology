@@ -9,6 +9,8 @@ make_indicators <- function(indicators_cnt_pct,
                                  indicators_median,
                                  sample_size_metadata){
 
+  stop("This command is temporarily disabled")
+
   inds_all <- list(indicators_cnt_pct,
                                  indicators_median) %>%
     purrr::map_dfr(c) %>%

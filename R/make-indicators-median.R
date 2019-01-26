@@ -55,9 +55,9 @@ make_indicators_median <- function(indicators_median_acs_ltdb_ff,
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
                             "GEOGRAPHY_TYPE",
+                            "DATE_GROUP_ID",
                             "DATE_BEGIN",
                             "DATE_END",
-                            "DATE_END_YEAR",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
                             "INDICATOR",
@@ -89,7 +89,7 @@ check_parcel_median_year <- function(){
 
   dat <- indicators_median %>%
     dplyr::filter(DATE_RANGE_TYPE %in% c("five years","one year")) %>%
-    dplyr::group_by(VARIABLE_DESC, DATE_END_YEAR) %>%
+    dplyr::group_by(VARIABLE_DESC, DATE_GROUP_ID) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE),
                   ESTIMATE_NO_OUTLIERS = smooth_outliers(ESTIMATE)) %>%
     dplyr::ungroup()
@@ -99,7 +99,7 @@ check_parcel_median_year <- function(){
     ggplot2::geom_histogram() +
     ggplot2::geom_vline(ggplot2::aes(xintercept=MEDIAN), size=0.5, color = "red") +
     ggplot2::scale_x_continuous(labels = scales::comma) +
-    ggplot2::facet_grid(DATE_END_YEAR ~ VARIABLE_DESC, scales = "free")
+    ggplot2::facet_grid(DATE_GROUP_ID ~ VARIABLE_DESC, scales = "free")
 }
 
 check_parcel_median_qtr <- function(){
@@ -115,7 +115,7 @@ check_parcel_median_qtr <- function(){
 
   dat <- indicators_median %>%
     dplyr::filter(DATE_RANGE_TYPE %in% c("one quarter")) %>%
-    dplyr::group_by(VARIABLE_DESC, DATE_END_YEAR) %>%
+    dplyr::group_by(VARIABLE_DESC, DATE_GROUP_ID) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE),
                   ESTIMATE_NO_OUTLIERS = smooth_outliers(ESTIMATE)) %>%
     dplyr::ungroup()
@@ -125,7 +125,7 @@ check_parcel_median_qtr <- function(){
     ggplot2::geom_histogram() +
     ggplot2::geom_vline(ggplot2::aes(xintercept=MEDIAN), size=0.5, color = "red") +
     ggplot2::scale_x_continuous(labels = scales::comma) +
-    ggplot2::facet_grid(DATE_END_YEAR ~ VARIABLE_DESC, scales = "free")
+    ggplot2::facet_grid(DATE_GROUP_ID ~ VARIABLE_DESC, scales = "free")
 }
 
 
@@ -207,7 +207,7 @@ make_indicators_median_value <- function(parcel_value_variables,
     x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "year"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "year") - 1,
-                    DATE_END_YEAR = DATE_END_YEAR,
+                    DATE_GROUP_ID = DATE_GROUP_ID,
                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one year") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
@@ -241,14 +241,14 @@ get_year_quarter <- function(x){
   }
 
   date_cols_qtr_full <- parcel_value_median %>%
-    dplyr::select(DATE_END_YEAR) %>%
+    dplyr::select(DATE_GROUP_ID) %>%
     dplyr::distinct() %>%
-    dplyr::transmute(QTR_DATE = purrr::map(DATE_END_YEAR, get_qtr_sequence)
+    dplyr::transmute(QTR_DATE = purrr::map(DATE_GROUP_ID, get_qtr_sequence)
     )%>%
     tidyr::unnest() %>%
     dplyr::transmute(DATE_BEGIN = lubridate::floor_date(lubridate::date(QTR_DATE), unit = "quarter"),
                      DATE_END = lubridate::ceiling_date(lubridate::date(QTR_DATE), unit = "quarter") - 1,
-                     DATE_END_YEAR = get_year_quarter(DATE_BEGIN),
+                     DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                      DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one quarter") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
@@ -260,7 +260,7 @@ get_year_quarter <- function(x){
      summary_by_qtr_Q4_only <- x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "quarter"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
-                    DATE_END_YEAR = get_year_quarter(DATE_BEGIN),
+                    DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one quarter") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
@@ -270,7 +270,7 @@ get_year_quarter <- function(x){
                       VARIABLE,
                       VARIABLE_DESC,
                       INDICATOR,
-                      DATE_END_YEAR) %>%
+                      DATE_GROUP_ID) %>%
       dplyr::summarise(ESTIMATE = as.integer(round(median(ESTIMATE, na.rm = TRUE),0)),
                        N = n(),
                        NAS = sum(is.na(ESTIMATE)),
@@ -280,13 +280,13 @@ get_year_quarter <- function(x){
       dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
     replace_q4 <- function(x, q){
-      x %>% dplyr::mutate( DATE_END_YEAR = stringr::str_replace(DATE_END_YEAR, "Q4",q))
+      x %>% dplyr::mutate( DATE_GROUP_ID = stringr::str_replace(DATE_GROUP_ID, "Q4",q))
     }
 
     summary_by_qtr_all <- list("Q1", "Q2", "Q3") %>%
       purrr::map_dfr(~replace_q4(summary_by_qtr_Q4_only, q = .x)) %>%
       dplyr::bind_rows(summary_by_qtr_Q4_only) %>%
-      dplyr::left_join(date_cols_qtr_full, by = "DATE_END_YEAR")
+      dplyr::left_join(date_cols_qtr_full, by = "DATE_GROUP_ID")
 
     return(summary_by_qtr_all)
   }
@@ -378,7 +378,7 @@ make_indicators_median_sales <- function(parcel_sales_variables,
     x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "year"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "year") - 1,
-                    DATE_END_YEAR = DATE_END_YEAR,
+                    DATE_GROUP_ID = DATE_GROUP_ID,
                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one year") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
@@ -412,14 +412,14 @@ make_indicators_median_sales <- function(parcel_sales_variables,
   }
 
   date_cols_qtr_full <- parcel_sales_median %>%
-    dplyr::select(DATE_END_YEAR) %>%
+    dplyr::select(DATE_GROUP_ID) %>%
     dplyr::distinct() %>%
-    dplyr::transmute(QTR_DATE = purrr::map(DATE_END_YEAR, get_qtr_sequence)
+    dplyr::transmute(QTR_DATE = purrr::map(DATE_GROUP_ID, get_qtr_sequence)
     )%>%
     tidyr::unnest() %>%
     dplyr::transmute(DATE_BEGIN = lubridate::floor_date(lubridate::date(QTR_DATE), unit = "quarter"),
                      DATE_END = lubridate::ceiling_date(lubridate::date(QTR_DATE), unit = "quarter") - 1,
-                     DATE_END_YEAR = get_year_quarter(DATE_BEGIN),
+                     DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                      DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one quarter") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
@@ -431,7 +431,7 @@ make_indicators_median_sales <- function(parcel_sales_variables,
      summary_by_qtr <- parcel_sales_median %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "quarter"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
-                    DATE_END_YEAR = get_year_quarter(DATE_BEGIN),
+                    DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one quarter") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
@@ -444,7 +444,7 @@ make_indicators_median_sales <- function(parcel_sales_variables,
       dplyr::select(-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE, -GEOGRAPHY_ID_TYPE) %>%
       dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
-    # it is possible that not every combination of DATE_END_YEAR and quarter will be present
+    # it is possible that not every combination of DATE_GROUP_ID and quarter will be present
     #  if that is the case, use dplyr::expand() to add the missing combinations
 
     summary_by_qtr_complete <- summary_by_qtr %>%
@@ -457,10 +457,23 @@ make_indicators_median_sales <- function(parcel_sales_variables,
                             GEOGRAPHY_ID_TYPE,
                             GEOGRAPHY_NAME,
                             GEOGRAPHY_TYPE),
-                    DATE_END_YEAR) %>%
-      dplyr::left_join(date_cols_qtr_full, by = "DATE_END_YEAR") %>%
+                    DATE_GROUP_ID) %>%
+      dplyr::left_join(date_cols_qtr_full, by = "DATE_GROUP_ID") %>%
       dplyr::left_join(summary_by_qtr,
-                       by = c("SOURCE", "GEOGRAPHY_ID", "VARIABLE", "VARIABLE_DESC", "INDICATOR", "VARIABLE_ROLE", "GEOGRAPHY_ID_TYPE", "GEOGRAPHY_NAME", "GEOGRAPHY_TYPE", "DATE_END_YEAR", "DATE_BEGIN", "DATE_END", "DATE_RANGE", "DATE_RANGE_TYPE"))
+                       by = c("SOURCE",
+                              "GEOGRAPHY_ID",
+                              "VARIABLE",
+                              "VARIABLE_DESC",
+                              "INDICATOR",
+                              "VARIABLE_ROLE",
+                              "GEOGRAPHY_ID_TYPE",
+                              "GEOGRAPHY_NAME",
+                              "GEOGRAPHY_TYPE",
+                              "DATE_GROUP_ID",
+                              "DATE_BEGIN",
+                              "DATE_END",
+                              "DATE_RANGE",
+                              "DATE_RANGE_TYPE"))
 
     return(summary_by_qtr_complete)
   }

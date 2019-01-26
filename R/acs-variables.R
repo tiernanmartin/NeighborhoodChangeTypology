@@ -183,9 +183,9 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
                             "GEOGRAPHY_ID_TYPE",
                             "GEOGRAPHY_NAME",
                             "GEOGRAPHY_TYPE",
+                            "DATE_GROUP_ID",
                             "DATE_BEGIN",
                             "DATE_END",
-                            "DATE_END_YEAR",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
                             "INDICATOR",
@@ -208,7 +208,7 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
     # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
     # If any NA's are showing up then something needs to be fixed
 
-     acs_variables %>% dplyr::count(DATE_END_YEAR,INDICATOR, VARIABLE, VARIABLE_ROLE) %>% print(n=Inf)
+     acs_variables %>% dplyr::count(DATE_GROUP_ID,INDICATOR, VARIABLE, VARIABLE_ROLE) %>% print(n=Inf)
   }
 
 
