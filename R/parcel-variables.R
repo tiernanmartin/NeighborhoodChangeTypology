@@ -214,14 +214,12 @@ make_parcel_sales_variables <- function(parcel_sales,
 
 #' @rdname parcel-variables
 #' @export
-make_parcel_value_variables <- function(parcel_all_metadata,
+make_parcel_value_variables_part1 <- function(parcel_all_metadata,
                                         single_family_criteria,
                                         condo_criteria,
                                         cpi,
-                                        parcel_value,
-                                        variable_template
+                                        parcel_value
 ){
-
 
   # CONVERT TO 2018 DOLLARS -------------------------------------------------
 
@@ -306,15 +304,68 @@ make_parcel_value_variables <- function(parcel_all_metadata,
 
   # note: having complete records isn't necessary for an indicators but it may be useful to know anyway
 
-  p_complete <- p_criteria %>%
+
+# CREATE A NESTED TIBBLE ------------------------------------------------------
+
+  p_nested <- p_criteria %>%
     dplyr::group_by(GEOGRAPHY_ID, DATE_GROUP_ID) %>%
     dplyr::arrange(dplyr::desc(ASSESSED_TOTAL_VALUE)) %>%
     dplyr::slice(1) %>% # take the highest value record for each PIN and year
     dplyr::ungroup() %>%
-    dplyr::group_by(GEOGRAPHY_ID) %>% # by record
-    dplyr::mutate(META_SF_COMPLETE_LGL = all(dplyr::n() == 3L) & all(META_MEETS_CRITERIA_SF_LGL), # these records are complete (i.e., data for all three years)
-                  META_CONDO_COMPLETE_LGL = all(dplyr::n() == 3L) & all(META_MEETS_CRITERIA_CONDO_LGL))  %>%
-    dplyr::ungroup()
+    tidyr::nest(-GEOGRAPHY_ID)
+
+
+  # RETURN ------------------------------------------------------------------
+
+  parcel_value_variables_nested <- p_nested
+
+  return(parcel_value_variables_nested)
+
+
+}
+
+#' @rdname parcel-variables
+#' @export
+make_parcel_value_variables_part2 <- function(parcel_value_variables_part1
+){
+
+  # ASSIGN ROLES BY CRITERIA ------------------------------------------------
+
+  year_list <- parcel_value_variables_part1 %>%
+    tidyr::unnest() %>%
+    dplyr::distinct(DATE_GROUP_ID) %>%
+    dplyr::arrange(DATE_GROUP_ID) %>%
+    dplyr::pull("DATE_GROUP_ID")
+
+check_criteria <- function(x, year_list, criteria_col){
+
+   all(year_list %in% x$DATE_GROUP_ID) & all(x[[criteria_col]])
+
+}
+
+check_criteria_safely <- purrr::safely(check_criteria, otherwise = FALSE, quiet = TRUE)
+
+check_criteria_results <- function(...){
+
+  safe_list <- check_criteria_safely(...)
+
+  safe_list[["result"]]
+}
+
+
+  p_complete <- parcel_value_variables_part1 %>%
+    dplyr::mutate(META_SF_COMPLETE_LGL = purrr::map_lgl(data,
+                                          check_criteria_results,
+                                          year_list = year_list,
+                                          criteria_col = "META_MEETS_CRITERIA_SF_LGL"),
+           META_CONDO_COMPLETE_LGL = purrr::map_lgl(data,
+                                          check_criteria_results,
+                                          year_list = year_list,
+                                          criteria_col = "META_MEETS_CRITERIA_CONDO_LGL")
+           ) %>%
+    tidyr::unnest()
+
+  rm_gc(parcel_value_variables_part1)
 
   # convert the data back to long format and select only the ASSESSED_TOTAL_VALUE rows
 
@@ -323,10 +374,27 @@ make_parcel_value_variables <- function(parcel_all_metadata,
     dplyr::filter(VARIABLE %in% "ASSESSED_TOTAL_VALUE") %>%
     dplyr::mutate(VARIABLE = "ATV")  # ATV is shorthand for ASSESSED_TOTAL_VALUE
 
+  rm_gc(p_complete)
+
+
+  # RETURN ------------------------------------------------------------------
+
+  return(p_long)
+
+
+}
+
+#' @rdname parcel-variables
+#' @export
+make_parcel_value_variables <- function(parcel_value_variables_part2,
+                                        variable_template
+){
+
+
 
   # ASSIGN VARIABLE ROLES ---------------------------------------------------
 
-  p_var_roles <- p_long %>%
+  p_var_roles <- parcel_value_variables_part2 %>%
     dplyr::mutate(VARIABLE_ALT_1 = "SF",
                   VARIABLE_ALT_2 = "CONDO",
                   VARIABLE_ALT_3 = "ALL") %>%
@@ -342,6 +410,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
     )) %>%
     tidyr::unite("VARIABLE", c("VARIABLE","VARIABLE_ALT"))
 
+ rm_gc(p_long)
 
   # CREATE VARIABLE_DESC ----------------------------------------------------
 
@@ -349,6 +418,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
     dplyr::mutate(VARIABLE_DESC = stringr::str_replace(VARIABLE, "ATV","ASSESSED_TOTAL_VALUE")
     )
 
+  rm_gc(p_var_roles)
 
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
 
@@ -376,7 +446,7 @@ make_parcel_value_variables <- function(parcel_all_metadata,
                             "ESTIMATE",
                             "MOE"))
 
-  parcel_value_variables <- parcel_value_reformat
+  rm_gc(p_var_desc)
 
   # CHECK DATA --------------------------------------------------------------
 
@@ -386,14 +456,142 @@ make_parcel_value_variables <- function(parcel_all_metadata,
     # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
     # If any NA's are showing up then something needs to be fixed
 
-    parcel_value_variables %>% dplyr::count(DATE_GROUP_ID, INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
+    parcel_value_reformat %>% dplyr::count(DATE_GROUP_ID, INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
   }
 
 
   # RETURN ------------------------------------------------------------------
 
-  return(parcel_value_variables)
+  return(parcel_value_reformat)
 
 
 }
 
+
+#' @rdname parcel-variables
+#' @export
+make_parcel_value_variables_archive <- function(parcel_value_variables_nested,
+                                        variable_template
+){
+
+  # ASSIGN ROLES BY CRITERIA ------------------------------------------------
+
+  year_list <- parcel_value_variables_nested %>%
+    tidyr::unnest() %>%
+    dplyr::distinct(DATE_GROUP_ID) %>%
+    dplyr::arrange(DATE_GROUP_ID) %>%
+    dplyr::pull("DATE_GROUP_ID")
+
+check_criteria <- function(x, year_list, criteria_col){
+
+   all(year_list %in% x$DATE_GROUP_ID) & all(x[[criteria_col]])
+
+}
+
+check_criteria_safely <- purrr::safely(check_criteria, otherwise = FALSE, quiet = TRUE)
+
+check_criteria_results <- function(...){
+
+  safe_list <- check_criteria_safely(...)
+
+  safe_list[["result"]]
+}
+
+
+  p_complete <- parcel_value_variables_nested %>%
+    dplyr::mutate(META_SF_COMPLETE_LGL = purrr::map_lgl(data,
+                                          check_criteria_results,
+                                          year_list = year_list,
+                                          criteria_col = "META_MEETS_CRITERIA_SF_LGL"),
+           META_CONDO_COMPLETE_LGL = purrr::map_lgl(data,
+                                          check_criteria_results,
+                                          year_list = year_list,
+                                          criteria_col = "META_MEETS_CRITERIA_CONDO_LGL")
+           ) %>%
+    tidyr::unnest()
+
+  rm_gc(parcel_value_variables_nested)
+
+  # convert the data back to long format and select only the ASSESSED_TOTAL_VALUE rows
+
+  p_long <- p_complete %>%
+    tidyr::gather(VARIABLE, ESTIMATE, dplyr::matches("VALUE")) %>%
+    dplyr::filter(VARIABLE %in% "ASSESSED_TOTAL_VALUE") %>%
+    dplyr::mutate(VARIABLE = "ATV")  # ATV is shorthand for ASSESSED_TOTAL_VALUE
+
+  rm_gc(p_complete)
+
+  # ASSIGN VARIABLE ROLES ---------------------------------------------------
+
+  p_var_roles <- p_long %>%
+    dplyr::mutate(VARIABLE_ALT_1 = "SF",
+                  VARIABLE_ALT_2 = "CONDO",
+                  VARIABLE_ALT_3 = "ALL") %>%
+    tidyr::gather(VAR, VARIABLE_ALT, dplyr::starts_with("VARIABLE_ALT")) %>%
+    dplyr::select(-VAR) %>%
+    dplyr::mutate(INDICATOR = "ASSESSED_VALUE",
+                  MEASURE_TYPE = "VALUE") %>%
+    dplyr::mutate(VARIABLE_ROLE = dplyr::case_when(
+      VARIABLE_ALT %in% "SF" & META_MEETS_CRITERIA_SF_LGL ~ "include",
+      VARIABLE_ALT %in% "CONDO" & META_MEETS_CRITERIA_CONDO_LGL ~ "include",
+      VARIABLE_ALT %in% "ALL" & META_MEETS_CRITERIA_ALL_LGL ~ "include",
+      TRUE ~ "omit"
+    )) %>%
+    tidyr::unite("VARIABLE", c("VARIABLE","VARIABLE_ALT"))
+
+ rm_gc(p_long)
+
+  # CREATE VARIABLE_DESC ----------------------------------------------------
+
+  p_var_desc <- p_var_roles %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_replace(VARIABLE, "ATV","ASSESSED_TOTAL_VALUE")
+    )
+
+  rm_gc(p_var_roles)
+
+  # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
+
+
+
+  parcel_value_reformat <- variable_template %>%
+    dplyr::full_join(p_var_desc,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "DATE_GROUP_ID",
+                            "DATE_BEGIN",
+                            "DATE_END",
+                            "DATE_RANGE",
+                            "DATE_RANGE_TYPE",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "VARIABLE_DESC",
+                            "VARIABLE_SUBTOTAL",
+                            "VARIABLE_SUBTOTAL_DESC",
+                            "VARIABLE_ROLE",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
+
+  rm_gc(p_var_desc)
+
+  # CHECK DATA --------------------------------------------------------------
+
+
+  check_parcel_value_variable <- function(){
+
+    # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
+    # If any NA's are showing up then something needs to be fixed
+
+    parcel_value_reformat %>% dplyr::count(DATE_GROUP_ID, INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
+  }
+
+
+  # RETURN ------------------------------------------------------------------
+
+  return(parcel_value_reformat)
+
+
+}

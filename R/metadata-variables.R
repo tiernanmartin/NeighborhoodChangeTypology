@@ -6,17 +6,23 @@
 #' @param parcel_tract_overlay desc
 #' @param parcel_info_2005 desc
 #' @param parcel_info_2010 desc
+#' @param parcel_info_2013 desc
+#' @param parcel_info_2014 desc
 #' @param parcel_info_2015 desc
 #' @param parcel_info_2016 desc
 #' @param parcel_info_2017 desc
 #' @param parcel_info_2018 desc
 #' @param condo_info_2005 desc
 #' @param condo_info_2010 desc
+#' @param condo_info_2013 desc
+#' @param condo_info_2014 desc
 #' @param condo_info_2015 desc
 #' @param condo_info_2017 desc
 #' @param condo_info_2018 desc
 #' @param res_bldg_2005 desc
 #' @param res_bldg_2010 desc
+#' @param res_bldg_2013 desc
+#' @param res_bldg_2014 desc
 #' @param res_bldg_2015 desc
 #' @param res_bldg_2017 desc
 #' @param res_bldg_2018 desc
@@ -31,17 +37,23 @@ make_parcel_all_metadata <- function(present_use_key,
                                      parcel_tract_overlay,
                                      parcel_info_2005,
                                      parcel_info_2010,
+                                     parcel_info_2013,
+                                     parcel_info_2014,
                                      parcel_info_2015,
                                      parcel_info_2016,
                                      parcel_info_2017,
                                      parcel_info_2018,
                                      condo_info_2005,
                                      condo_info_2010,
+                                     condo_info_2013,
+                                     condo_info_2014,
                                      condo_info_2015,
                                      condo_info_2017,
                                      condo_info_2018,
                                      res_bldg_2005,
                                      res_bldg_2010,
+                                     res_bldg_2013,
+                                     res_bldg_2014,
                                      res_bldg_2015,
                                      res_bldg_2017,
                                      res_bldg_2018,
@@ -53,6 +65,8 @@ make_parcel_all_metadata <- function(present_use_key,
 
   parcel_list <- list(parcel_info_2005,
                       parcel_info_2010,
+                      parcel_info_2013,
+                      parcel_info_2014,
                       parcel_info_2015,
                       parcel_info_2016,
                       parcel_info_2017,
@@ -108,6 +122,8 @@ make_parcel_all_metadata <- function(present_use_key,
 
   res_bldg_list <- list(res_bldg_2005,
                         res_bldg_2010,
+                        res_bldg_2013,
+                        res_bldg_2014,
                         res_bldg_2015,
                         res_bldg_2017, # res_bldg_2016 is unnavailable but it will be imputed in the next step
                         res_bldg_2018)
@@ -167,7 +183,7 @@ make_parcel_all_metadata <- function(present_use_key,
                      META_BLDG_NBR = as.double(META_BLDG_NBR), # make it match the class in res_bldg_no_2016
                      META_LIVING_SQ_FT = as.double(META_LIVING_SQ_FT), # make it match the class in res_bldg_no_2016
                      META_NBR_BUILDINGS = as.integer(META_NBR_BUILDINGS) # make it match the class in res_bldg_no_2016
-                     )
+    )
 
   res_bldg_all <- list(res_bldg_no_2016,
                        res_2016_ready) %>%
@@ -207,10 +223,12 @@ make_parcel_all_metadata <- function(present_use_key,
   }
 
   condo_list <- list(condo_info_2005,
-                        condo_info_2010,
-                        condo_info_2015,
-                        condo_info_2017, # condo_info_2016 is unnavailable but it will be imputed in the next step
-                        condo_info_2018)
+                     condo_info_2010,
+                     condo_info_2013,
+                     condo_info_2014,
+                     condo_info_2015,
+                     condo_info_2017, # condo_info_2016 is unnavailable but it will be imputed in the next step
+                     condo_info_2018)
 
   condo_no_2016 <- purrr::map_dfr(condo_list, prep_condo_unit)
 
@@ -259,10 +277,10 @@ make_parcel_all_metadata <- function(present_use_key,
                      META_CONDO_UNIT_TYPE,
                      META_LIVING_SQ_FT = as.double(META_LIVING_SQ_FT), # make it match the class in res_bldg_no_2016
                      META_NBR_BUILDINGS = as.integer(META_NBR_BUILDINGS) # make it match the class in res_bldg_no_2016
-                     )
+    )
 
   condo_all <- list(condo_no_2016,
-                       condo_2016_ready) %>%
+                    condo_2016_ready) %>%
     purrr::map_dfr(c)
 
   # PREP: PROPERTY (RES + CONDO) ----------------------------------------------------------
@@ -317,12 +335,12 @@ make_parcel_all_metadata <- function(present_use_key,
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE"))
 
-    parcel_all_metadata <- parcel_all_metadata_ready
+  parcel_all_metadata <- parcel_all_metadata_ready
 
-# CHECK THE COUNTS (PROP_TYPE by YEAR) ------------------------------------
+  # CHECK THE COUNTS (PROP_TYPE by YEAR) ------------------------------------
 
   check_prop_type_by_year <- function(){
-     parcel_all_metadata_ready %>% dplyr::count(META_PROPERTY_CATEGORY, DATE_GROUP_ID)
+    parcel_all_metadata_ready %>% dplyr::count(META_PROPERTY_CATEGORY, DATE_GROUP_ID)
   }
 
 

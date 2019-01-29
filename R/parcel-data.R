@@ -185,7 +185,7 @@ make_parcel_value <- function(data_template, zip_path, file_path){
   parcel_value_filter <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
     janitor::clean_names(case = "screaming_snake") %>%
     dplyr::filter(TAX_STATUS %in% "T") %>% # The object takes up too much memory! Need to filter it down.
-    dplyr::filter(TAX_YR %in% c(2005, 2010, 2015, 2016, 2017, 2018))
+    dplyr::filter(TAX_YR %in% c(2005, 2010, 2013, 2014, 2015, 2016, 2017, 2018))
 
 
   parcel_value_long <- parcel_value_filter %>%
@@ -357,6 +357,62 @@ make_parcel_info_2010 <- function(metadata_template, zip_path, file_path){
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
   return(parcel_info_2010)
+
+}
+
+#' @rdname parcel-data
+#' @export
+make_parcel_info_2013 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  parcel_info_2013_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+
+  parcel_info_2013 <- metadata_template %>%
+    dplyr::full_join(parcel_info_2013_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  DATE_BEGIN = get_date_end(2013L), # date of the last day of the calendar year
+                  DATE_END = get_date_end(2013L), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+  return(parcel_info_2013)
+
+}
+
+#' @rdname parcel-data
+#' @export
+make_parcel_info_2014 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  parcel_info_2014_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+
+  parcel_info_2014 <- metadata_template %>%
+    dplyr::full_join(parcel_info_2014_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  DATE_BEGIN = get_date_end(2014L), # date of the last day of the calendar year
+                  DATE_END = get_date_end(2014L), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+  return(parcel_info_2014)
 
 }
 
@@ -567,6 +623,64 @@ make_condo_info_2010 <- function(metadata_template, zip_path, file_path){
 
 #' @rdname parcel-data
 #' @export
+make_condo_info_2013 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  condo_info_2013_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(FOOTAGE = FT,
+                  UNIT_TYPE = UNITTYPE) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+
+  condo_info_2013 <- metadata_template %>%
+    dplyr::full_join(condo_info_2013_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  DATE_BEGIN = get_date_end(2013L), # date of the last day of the calendar year
+                  DATE_END = get_date_end(2013L), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+  return(condo_info_2013)
+}
+
+#' @rdname parcel-data
+#' @export
+make_condo_info_2014 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  condo_info_2014_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(FOOTAGE = FT,
+                  UNIT_TYPE = UNITTYPE) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+
+  condo_info_2014 <- metadata_template %>%
+    dplyr::full_join(condo_info_2014_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  DATE_BEGIN = get_date_end(2014L), # date of the last day of the calendar year
+                  DATE_END = get_date_end(2014L), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+  return(condo_info_2014)
+}
+
+#' @rdname parcel-data
+#' @export
 make_condo_info_2015 <- function(metadata_template, zip_path, file_path){
 
   NeighborhoodChangeTypology::extract_file(zip_path, file_path)
@@ -706,6 +820,64 @@ make_res_bldg_2010 <- function(metadata_template, zip_path, file_path){
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
   return(res_bldg_2010)
+}
+
+#' @rdname parcel-data
+#' @export
+make_res_bldg_2013 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  res_bldg_2013_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(SQ_FT_TOT_LIVING = SQFTTOTLIVING,
+                  BLDG_NBR = BLDGNBR,
+                  YR_BUILT = YRBUILT) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+  res_bldg_2013 <- metadata_template %>%
+    dplyr::full_join(res_bldg_2013_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  DATE_BEGIN = get_date_end(2013L), # date of the last day of the calendar year
+                  DATE_END = get_date_end(2013L), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+  return(res_bldg_2013)
+}
+
+#' @rdname parcel-data
+#' @export
+make_res_bldg_2014 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  res_bldg_2014_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(SQ_FT_TOT_LIVING = SQFTTOTLIVING,
+                  BLDG_NBR = BLDGNBR,
+                  YR_BUILT = YRBUILT) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+  res_bldg_2014 <- metadata_template %>%
+    dplyr::full_join(res_bldg_2014_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  DATE_BEGIN = get_date_end(2014L), # date of the last day of the calendar year
+                  DATE_END = get_date_end(2014L), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
+                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+  return(res_bldg_2014)
 }
 
 #' @rdname parcel-data

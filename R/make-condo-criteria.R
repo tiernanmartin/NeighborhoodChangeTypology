@@ -35,7 +35,7 @@ make_condo_criteria <- function(condo_unit_type_key){
   condo_criteria <-
     list(
       "condo_unit_types" = condo_unit_types,
-      "tax_years" = c(2005, 2010, 2018),
+      "tax_years" = c(2005, 2010, 2013, 2014, 2015, 2016, 2017, 2018),
       "remained_condo" = TRUE,
       "min_impr_value" = 5000 # this is a bit arbitrary
     )
