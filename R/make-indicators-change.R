@@ -15,63 +15,71 @@ make_indicators_change <- function(indicators_cnt_pct,
   # CREATE CHANGE_ENDYEARS_GUIDE --------------------------------------------
 
   change_endyears <- tibble::tribble(
-    ~INDICATOR, ~VARIABLE, ~ BEGIN, ~END,
-    "COST_BURDEN_OWN", "B25106_OWN", 2010, 2015,
-    "COST_BURDEN_OWN", "B25106_OWN", 2011, 2017,
-    "COST_BURDEN_RENT", "B25106_RENT", 2010, 2015,
-    "COST_BURDEN_RENT", "B25106_RENT", 2011, 2017,
-    "EDUCATION", "B15002", 2010, 2015,
-    "EDUCATION", "B15002", 2011, 2017,
-    "INCOME", "T7", 2010, 2015,
-    "INCOME", "B19001", 2010, 2015,
-    "INCOME", "B19001", 2011, 2017,
-    "RACE", "B03002", 2010, 2015,
-    "RACE", "B03002", 2011, 2017,
-    "TENURE", "B25033", 2010, 2015,
-    "TENURE", "B25033", 2011, 2017,
-    "VALUE", "B25077", 2000, 2010,
-    "VALUE", "B25077", 2000, 2017,
-    "VALUE", "B25077", 2010, 2017,
-    "RENT", "B25058", 2010, 2015,
-    "RENT", "B25058", 2011, 2017,
-    "ASSESSED_VALUE", "ATV_ALL", 2005, 2010,
-    "ASSESSED_VALUE", "ATV_ALL", 2005, 2018,
-    "ASSESSED_VALUE", "ATV_ALL", 2010, 2018,
-    "ASSESSED_VALUE", "ATV_CONDO", 2005, 2010,
-    "ASSESSED_VALUE", "ATV_CONDO", 2005, 2018,
-    "ASSESSED_VALUE", "ATV_CONDO", 2010, 2018,
-    "ASSESSED_VALUE", "ATV_SF", 2005, 2010,
-    "ASSESSED_VALUE", "ATV_SF", 2005, 2018,
-    "ASSESSED_VALUE", "ATV_SF", 2010, 2018,
-    "SALE_PRICE", "SP_ALL", 2005, 2010,
-    "SALE_PRICE", "SP_ALL", 2005, 2018,
-    "SALE_PRICE", "SP_ALL", 2010, 2018,
-    "SALE_PRICE", "SP_CONDO", 2005, 2010,
-    "SALE_PRICE", "SP_CONDO", 2005, 2018,
-    "SALE_PRICE", "SP_CONDO", 2010, 2018,
-    "SALE_PRICE", "SP_SF", 2005, 2010,
-    "SALE_PRICE", "SP_SF", 2005, 2018,
-    "SALE_PRICE", "SP_SF", 2010, 2018,
-    "SALE_PRICE", "SP_SQFT_ALL", 2005, 2010,
-    "SALE_PRICE", "SP_SQFT_ALL", 2005, 2018,
-    "SALE_PRICE", "SP_SQFT_ALL", 2010, 2018,
-    "SALE_PRICE", "SP_SQFT_CONDO", 2005, 2010,
-    "SALE_PRICE", "SP_SQFT_CONDO", 2005, 2018,
-    "SALE_PRICE", "SP_SQFT_CONDO", 2010, 2018,
-    "SALE_PRICE", "SP_SQFT_SF", 2005, 2010,
-    "SALE_PRICE", "SP_SQFT_SF", 2005, 2018,
-    "SALE_PRICE", "SP_SQFT_SF", 2010, 2018,
-    "SALE_RATE", "SR_ALL", 2005, 2010,
-    "SALE_RATE", "SR_ALL", 2005, 2018,
-    "SALE_RATE", "SR_ALL", 2010, 2018,
-    "SALE_RATE", "SR_CONDO", 2005, 2010,
-    "SALE_RATE", "SR_CONDO", 2005, 2018,
-    "SALE_RATE", "SR_CONDO", 2010, 2018,
-    "SALE_RATE", "SR_SF", 2005, 2010,
-    "SALE_RATE", "SR_SF", 2005, 2018,
-    "SALE_RATE", "SR_SF", 2010, 2018
+    ~INDICATOR,       ~VARIABLE,      ~BEGIN,        ~END,
+    "COST_BURDEN_OWN",    "B25106_OWN",      "2010",      "2015",
+    "COST_BURDEN_OWN",    "B25106_OWN",      "2011",      "2017",
+    "COST_BURDEN_RENT",   "B25106_RENT",      "2010",      "2015",
+    "COST_BURDEN_RENT",   "B25106_RENT",      "2011",      "2017",
+    "EDUCATION",        "B15002",      "2010",      "2015",
+    "EDUCATION",        "B15002",      "2011",      "2017",
+    "INCOME",            "T7",      "2010",      "2015",
+    "INCOME",        "B19001",      "2010",      "2015",
+    "INCOME",        "B19001",      "2011",      "2017",
+    "RACE",        "B03002",      "2010",      "2015",
+    "RACE",        "B03002",      "2011",      "2017",
+    "TENURE",        "B25033",      "2010",      "2015",
+    "TENURE",        "B25033",      "2011",      "2017",
+    "VALUE",        "B25077",      "2000",      "2010",
+    "VALUE",        "B25077",      "2000",      "2017",
+    "VALUE",        "B25077",      "2010",      "2017",
+    "RENT",        "B25058",      "2010",      "2015",
+    "RENT",        "B25058",      "2011",      "2017",
+    "ASSESSED_VALUE",       "ATV_ALL",      "2005",      "2010",
+    "ASSESSED_VALUE",       "ATV_ALL",      "2005",      "2018",
+    "ASSESSED_VALUE",       "ATV_ALL",      "2010",      "2018",
+    "ASSESSED_VALUE",     "ATV_CONDO",      "2005",      "2010",
+    "ASSESSED_VALUE",     "ATV_CONDO",      "2005",      "2018",
+    "ASSESSED_VALUE",     "ATV_CONDO",      "2010",      "2018",
+    "ASSESSED_VALUE",        "ATV_SF",      "2005",      "2010",
+    "ASSESSED_VALUE",        "ATV_SF",      "2005",      "2018",
+    "ASSESSED_VALUE",        "ATV_SF",      "2010",      "2018",
+    "SALE_PRICE",        "SP_ALL",      "2005",      "2010",
+    "SALE_PRICE",        "SP_ALL",      "2005",      "2018",
+    "SALE_PRICE",        "SP_ALL",      "2010",      "2018",
+    "SALE_PRICE",        "SP_ALL", "2013_2015", "2016_2018",
+    "SALE_PRICE",      "SP_CONDO",      "2005",      "2010",
+    "SALE_PRICE",      "SP_CONDO",      "2005",      "2018",
+    "SALE_PRICE",      "SP_CONDO",      "2010",      "2018",
+    "SALE_PRICE",      "SP_CONDO", "2013_2015", "2016_2018",
+    "SALE_PRICE",         "SP_SF",      "2005",      "2010",
+    "SALE_PRICE",         "SP_SF",      "2005",      "2018",
+    "SALE_PRICE",         "SP_SF",      "2010",      "2018",
+    "SALE_PRICE",         "SP_SF", "2013_2015", "2016_2018",
+    "SALE_PRICE",   "SP_SQFT_ALL",      "2005",      "2010",
+    "SALE_PRICE",   "SP_SQFT_ALL",      "2005",      "2018",
+    "SALE_PRICE",   "SP_SQFT_ALL",      "2010",      "2018",
+    "SALE_PRICE",   "SP_SQFT_ALL", "2013_2015", "2016_2018",
+    "SALE_PRICE", "SP_SQFT_CONDO",      "2005",      "2010",
+    "SALE_PRICE", "SP_SQFT_CONDO",      "2005",      "2018",
+    "SALE_PRICE", "SP_SQFT_CONDO",      "2010",      "2018",
+    "SALE_PRICE", "SP_SQFT_CONDO", "2013_2015", "2016_2018",
+    "SALE_PRICE",    "SP_SQFT_SF",      "2005",      "2010",
+    "SALE_PRICE",    "SP_SQFT_SF",      "2005",      "2018",
+    "SALE_PRICE",    "SP_SQFT_SF",      "2010",      "2018",
+    "SALE_PRICE",    "SP_SQFT_SF", "2013_2015", "2016_2018",
+    "SALE_RATE",        "SR_ALL",      "2005",      "2010",
+    "SALE_RATE",        "SR_ALL",      "2005",      "2018",
+    "SALE_RATE",        "SR_ALL",      "2010",      "2018",
+    "SALE_RATE",        "SR_ALL", "2013_2015", "2016_2018",
+    "SALE_RATE",      "SR_CONDO",      "2005",      "2010",
+    "SALE_RATE",      "SR_CONDO",      "2005",      "2018",
+    "SALE_RATE",      "SR_CONDO",      "2010",      "2018",
+    "SALE_RATE",      "SR_CONDO", "2013_2015", "2016_2018",
+    "SALE_RATE",         "SR_SF",      "2005",      "2010",
+    "SALE_RATE",         "SR_SF",      "2005",      "2018",
+    "SALE_RATE",         "SR_SF",      "2010",      "2018",
+    "SALE_RATE",         "SR_SF", "2013_2015", "2016_2018"
   )
-
   # PREPARE DATA --------------------------------------------------------
 
 
@@ -160,6 +168,7 @@ make_indicators_change <- function(indicators_cnt_pct,
     dplyr::left_join(inds_long, by = c("INDICATOR",
                                        "VARIABLE",
                                        "DATE_GROUP_ID_JOIN")) %>%
+    dplyr::filter(! is.na(VALUE_TYPE)) %>% # remove a few records that have NA in many of the metadata fields
     tidyr::unite("TYPE_ROLE_YEAR", c(VALUE_TYPE, INDICATOR_ROLE)) %>%
     dplyr::select(-dplyr::starts_with("DATE")) %>%
     tidyr::spread(TYPE_ROLE_YEAR, VALUE)
@@ -172,7 +181,7 @@ make_indicators_change <- function(indicators_cnt_pct,
                     MEASURE_TYPE %in% c("COUNT", "MEDIAN", "TOTAL") ~ ESTIMATE_CHANGE_RATIO,
                     TRUE ~ NA_real_
                   )) %>%
-    dplyr::mutate(MOE_CHANGE_ABSOLUTE = purrr::pmap_dbl(list(a = MOE_END,  # use pmap to vectorize this call
+    dplyr::mutate(MOE_CHANGE_ABSOLUTE = purrr::pmap_dbl(list(a = MOE_END,  # use pmap to vectorize this call (this works but it should be refactored/clarified at some point)
                                                              b = MOE_BEGIN,
                                                              y = ESTIMATE_END,
                                                              z = ESTIMATE_BEGIN),
@@ -192,34 +201,33 @@ make_indicators_change <- function(indicators_cnt_pct,
   change_endyears_long <- change_endyears_wide_change %>%
     dplyr::mutate(RNUM = dplyr::row_number()) %>%
     dplyr::select(-dplyr::matches("BEGIN|END")) %>% # only keep the CHANGE fields (BEGIN and END will be joined later)
-    dplyr::select(-MEASURE_TYPE) %>% # this will be filled in with CHANGE_*
     tidyr::gather(VALUE_MEASURE, VALUE, dplyr::matches("ESTIMATE|MOE")) %>%
-    tidyr::separate(VALUE_MEASURE, c("VALUE_TYPE","MEASURE_TYPE", "MEASURE_TYPE_DETAIL")) %>%
-    tidyr::unite("MEASURE_TYPE", c(MEASURE_TYPE,MEASURE_TYPE_DETAIL)) %>%
+    tidyr::separate(VALUE_MEASURE, c("VALUE_TYPE","IND_MEASURE_TYPE", "MEASURE_TYPE_DETAIL")) %>%
+    tidyr::unite("MEASURE_TYPE", c(IND_MEASURE_TYPE, MEASURE_TYPE, MEASURE_TYPE_DETAIL)) %>%
     tidyr::spread(VALUE_TYPE, VALUE) %>%
     dplyr::select(-RNUM)
 
 
   # JOIN DATE_* FIELDS ------------------------------------------------------
 
-  DATE_GROUP_ID_fields <- inds_drop_source_fields %>%
+  date_group_id_fields <- inds_drop_source_fields %>%
     dplyr::select(-MEASURE_TYPE, -ESTIMATE, -MOE) %>%
     dplyr::distinct()
 
 
   change_endyears_all_fields <- change_endyears_long %>%
     dplyr::mutate(RNUM = dplyr::row_number(),
-                  DATE_GROUP_ID = stringr::str_remove_all(CHANGE_RANGE, "YEAR_|TO_")
+                  DATE_GROUP_ID = stringr::str_remove_all(CHANGE_RANGE, "TO_")
     ) %>%
-    tidyr::separate(DATE_GROUP_ID, into = c("DATE_GROUP_ID_BEGIN", "DATE_GROUP_ID_END")) %>%
-    tidyr::gather(DATE_GROUP_ID_ROLE, DATE_GROUP_ID, DATE_GROUP_ID_BEGIN, DATE_GROUP_ID_END) %>%
-    dplyr::left_join(DATE_GROUP_ID_fields, by = c("INDICATOR",
+    tidyr::separate(DATE_GROUP_ID, into = c("DATE_GROUP_ID_BEGIN", "DATE_GROUP_ID_END"),sep = "_(?=YEAR)") %>%
+    tidyr::gather(DATE_GROUP_ID_ROLE, DATE_GROUP_ID_JOIN, DATE_GROUP_ID_BEGIN, DATE_GROUP_ID_END) %>%
+    dplyr::left_join(date_group_id_fields, by = c("INDICATOR",
                                                   "VARIABLE",
                                                   "GEOGRAPHY_ID",
                                                   "GEOGRAPHY_ID_TYPE",
                                                   "GEOGRAPHY_NAME",
                                                   "GEOGRAPHY_TYPE",
-                                                  "DATE_GROUP_ID")) %>%
+                                                  "DATE_GROUP_ID_JOIN")) %>%
     dplyr::mutate(DATE_GROUP_ID_ROLE = stringr::str_extract(DATE_GROUP_ID_ROLE,"BEGIN$|END$")) %>%
     tidyr::gather(DATE_FIELD_TYPE, DATE_FIELD_VAL, DATE_GROUP_ID, DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE) %>%
     tidyr::unite("ROLE_DATE_FIELD_TYPE", c(DATE_GROUP_ID_ROLE,DATE_FIELD_TYPE)) %>%
@@ -234,38 +242,39 @@ make_indicators_change <- function(indicators_cnt_pct,
 
 
 
+
   # CREATE SOURCE AND VARIABLE_DESC ----------------------------------------------------
   change_endyears_var_desc <- change_endyears_all_fields %>%
     dplyr::mutate(SOURCE = "MULTIPLE",
                   VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, VARIABLE, sep = "_"))
 
-                  # REFORMAT ----------------------------------------------------------------
+  # REFORMAT ----------------------------------------------------------------
 
-                  # Note: this just makes sure that the columns have the same order as the indicator_template
+  # Note: this just makes sure that the columns have the same order as the indicator_template
 
-                  indicators_change_ready <- indicator_template %>%
-                    dplyr::full_join(change_endyears_var_desc,
-                                     by = c("SOURCE",
-                                            "GEOGRAPHY_ID",
-                                            "GEOGRAPHY_ID_TYPE",
-                                            "GEOGRAPHY_NAME",
-                                            "GEOGRAPHY_TYPE",
-                                            "DATE_GROUP_ID",
-                                            "DATE_BEGIN",
-                                            "DATE_END",
-                                            "DATE_RANGE",
-                                            "DATE_RANGE_TYPE",
-                                            "INDICATOR",
-                                            "VARIABLE",
-                                            "VARIABLE_DESC",
-                                            "MEASURE_TYPE",
-                                            "ESTIMATE",
-                                            "MOE"))
+  indicators_change_ready <- indicator_template %>%
+    dplyr::full_join(change_endyears_var_desc,
+                     by = c("SOURCE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "DATE_GROUP_ID",
+                            "DATE_BEGIN",
+                            "DATE_END",
+                            "DATE_RANGE",
+                            "DATE_RANGE_TYPE",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "VARIABLE_DESC",
+                            "MEASURE_TYPE",
+                            "ESTIMATE",
+                            "MOE"))
 
-                  indicators_change <- indicators_change_ready
+  indicators_change <- indicators_change_ready
 
-                  # RETURN ------------------------------------------------------------------
+  # RETURN ------------------------------------------------------------------
 
-                  return(indicators_change)
+  return(indicators_change)
 
 }

@@ -18,7 +18,7 @@ make_single_family_criteria <- function(present_use_key){
   single_family_criteria <-
     list(
       "present_uses" = sf_uses,
-      "tax_years" = c(2005, 2010, 2018),
+      "tax_years" = c(2005, 2010, 2013, 2014, 2015, 2016, 2017, 2018),
       "remained_sf" = TRUE,
       "min_impr_value" = 10000,
       "parcel_area" = list(

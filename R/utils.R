@@ -5,7 +5,11 @@
 NULL
 
 
-
+#' @export
+rm_gc <- function(x){rm(x)
+  gc(verbose = FALSE)
+  invisible(NULL)
+  }
 
 #' @export
 convert_to_2018_dollars <- function(value, year){

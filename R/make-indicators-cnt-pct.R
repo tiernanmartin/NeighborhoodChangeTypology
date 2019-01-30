@@ -120,9 +120,16 @@ show_hist_facet_indicators_cnt_pct_year <- function(){
   if(!exists("indicators_cnt_pct")){stop("'indicators_cnt_pct' doesn't exist\nTry loading it with 'loadd(indicators_cnt_pct)'.")}
 
 
-  indicators_cnt_pct %>%
+  dat_no_outliers <- indicators_cnt_pct %>%
+    dplyr::mutate(ESTIMATE = dplyr::case_when(
+      INDICATOR %in% "SALE_RATE" & ESTIMATE > 0.4 ~ NA_real_, # remove upper outliers
+      TRUE ~ ESTIMATE
+    ))
+
+
+  dat_no_outliers %>%
     dplyr::filter(MEASURE_TYPE %in% "PERCENT") %>%
-    dplyr::filter(DATE_RANGE_TYPE %in% c("five years","one year")) %>%
+    dplyr::filter(DATE_RANGE_TYPE %in% c("five years","three years","one year")) %>%
     dplyr::mutate(LABEL = stringr::str_replace(VARIABLE_DESC,"PERCENT","%")) %>%
     dplyr::group_by(DATE_GROUP_ID, LABEL) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE)) %>%
@@ -164,8 +171,7 @@ show_hist_facet_indicators_cnt_pct_qtr <- function(){
 make_indicators_cnt_pct_acs_chas <- function(acs_variables,
                                              hud_chas_variables,
                                              county_community_tract_all_metadata,
-                                             community_metadata,
-                                             indicator_template){
+                                             community_metadata){
 
 
 
@@ -238,6 +244,10 @@ make_indicators_cnt_pct_acs_chas <- function(acs_variables,
                                             chas_community_cnt) %>%
     purrr::map_dfr(c)
 
+  # REFORMAT ----------------------------------------------------------------
+
+  # note: there is no need to reformat this object - that will happen in make_indicators_cnt_pct()
+
   # RETURN ------------------------------------------------------------------
 
   indicators_cnt_pct_acs_chas <- indicators_cnt_pct_acs_chas_ready
@@ -251,8 +261,7 @@ make_indicators_cnt_pct_acs_chas <- function(acs_variables,
 make_indicators_cnt_pct_value <- function(parcel_value_variables,
                                           parcel_tract_overlay,
                                           county_community_tract_all_metadata,
-                                          community_metadata,
-                                          indicator_template){
+                                          community_metadata){
 
 
   # PREPARE DATA: ASSESSED VALUES --------------------------------------------------
@@ -299,13 +308,72 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
 
 
 
-  # SUMMARIZE DATA: ASSESSED VALUES --------------------------------------------
+  # SUMMARIZE BY 3-YEAR SPAN ------------------------------------------------
+
+  three_year_fields <- tibble::tribble(
+    ~DATE_GROUP_ID, ~DATE_BEGIN, ~DATE_END, ~DATE_RANGE, ~DATE_RANGE_TYPE,
+    "2013_2015", "2013-01-01", "2015-12-31", "20130101_20151231", "three years",
+    "2016_2018", "2016-01-01", "2018-12-31", "20160101_20181231", "three years"
+  )
+
+  is_between_dates <- function(x, begin, end){
+
+    dplyr::between(lubridate::ymd(x), lubridate::ymd(begin), lubridate::ymd(end))
+
+  }
+
+  summarize_by_3year <- function(x, variable_role){
+
+    p_3year_only <- x %>%
+      dplyr::mutate(DATE_GROUP_ID = dplyr::case_when(
+        is_between_dates(DATE_BEGIN, "2013-01-01", "2015-12-31") ~ "2013_2015",
+        is_between_dates(DATE_BEGIN, "2016-01-01", "2018-12-31") ~ "2016_2018",
+        TRUE ~ NA_character_
+      )) %>%
+      dplyr::filter(! is.na(DATE_GROUP_ID)) %>% # drop sales outside of the two 3-year spans
+      dplyr::select(-DATE_BEGIN, -DATE_END, -DATE_RANGE, -DATE_RANGE_TYPE) %>% # drop the original date fields
+      dplyr::left_join(three_year_fields, by = "DATE_GROUP_ID")  # add the new replacement 3-year span date fields
+
+    p_summary_by_3year <- p_3year_only %>%
+      dplyr::group_by(SOURCE,
+                      GEOGRAPHY_ID,
+                      GEOGRAPHY_ID_TYPE,
+                      VARIABLE,
+                      VARIABLE_DESC,
+                      INDICATOR,
+                      DATE_BEGIN,
+                      DATE_END,
+                      DATE_GROUP_ID,
+                      DATE_RANGE,
+                      DATE_RANGE_TYPE) %>%
+      dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
+                       MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(VARIABLE_ROLE = variable_role) %>%
+      dplyr::select(-GEOGRAPHY_ID_TYPE) %>%
+      dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
+  }
+
+
+  parcel_value_cnt_3year <- summarize_by_3year(parcel_value_cnt,
+                                               variable_role = "TOTAL")
+
+  parcel_value_community_cnt_3year <- summarize_by_3year(parcel_value_community_cnt,
+                                                         variable_role = "TOTAL")
+
+  parcel_value_county_cnt_3year <- summarize_by_3year(parcel_value_county_cnt,
+                                                      variable_role = "TOTAL")
+
+
+
+  # SUMMARIZE BY YEAR --------------------------------------------
 
   # all_geog_value_cnt_day <- list(parcel_value_cnt, parcel_value_community_cnt, parcel_value_county_cnt) %>%
   #   purrr::map_dfr(c) %>%
   #   dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE))
 
   summarize_by_year <- function(x, variable_role){
+
     x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "year"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "year") - 1,
@@ -333,8 +401,6 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
   }
 
 
-  # summarize by year
-
   parcel_value_cnt_year <- summarize_by_year(parcel_value_cnt,
                                              variable_role = "TOTAL")
 
@@ -344,7 +410,8 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
   parcel_value_county_cnt_year <- summarize_by_year(parcel_value_county_cnt,
                                                     variable_role = "TOTAL")
 
-  # summarize by quarter
+  # SUMMARIZE BY QUARTER ----------------------------------------------------
+
 
   get_year_quarter <- function(x){
     stringr::str_c(lubridate::year(x),"_","Q",lubridate::quarter(x))
@@ -372,7 +439,7 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
 
   summarize_by_quarter <- function(x, variable_role){
 
-   summary_by_qtr_Q4_only <- x %>%
+    summary_by_qtr_Q4_only <- x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "quarter"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
                     DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
@@ -419,32 +486,21 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
 
   # JOIN --------------------------------------------------------------------
 
-  indicators_cnt_pct_value_all <- list(parcel_value_cnt_year,
-                                         parcel_value_community_cnt_year,
-                                         parcel_value_county_cnt_year,
-                                         parcel_value_cnt_qtr,
-                                         parcel_value_community_cnt_qtr,
-                                         parcel_value_county_cnt_qtr) %>%
+  indicators_cnt_pct_value_ready <- list(parcel_value_cnt_3year,
+                                       parcel_value_community_cnt_3year,
+                                       parcel_value_county_cnt_3year,
+                                       parcel_value_cnt_year,
+                                       parcel_value_community_cnt_year,
+                                       parcel_value_county_cnt_year,
+                                       parcel_value_cnt_qtr,
+                                       parcel_value_community_cnt_qtr,
+                                       parcel_value_county_cnt_qtr) %>%
     purrr::map_dfr(c)
 
-  indicators_cnt_pct_value_ready <- indicator_template %>%
-    dplyr::full_join(indicators_cnt_pct_value_all,
-              by = c("SOURCE",
-                     "GEOGRAPHY_ID",
-                     "GEOGRAPHY_ID_TYPE",
-                     "GEOGRAPHY_NAME",
-                     "GEOGRAPHY_TYPE",
-                     "DATE_GROUP_ID",
-                     "DATE_BEGIN",
-                     "DATE_END",
-                     "DATE_RANGE",
-                     "DATE_RANGE_TYPE",
-                     "INDICATOR",
-                     "VARIABLE",
-                     "VARIABLE_DESC",
-                     "ESTIMATE",
-                     "MOE"))
 
+  # REFORMAT ----------------------------------------------------------------
+
+  # note: there is no need to reformat this object - that will happen in make_indicators_cnt_pct()
 
   # RETURN ------------------------------------------------------------------
 
@@ -459,8 +515,7 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
 make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
                                           parcel_tract_overlay,
                                           county_community_tract_all_metadata,
-                                          community_metadata,
-                                          indicator_template){
+                                          community_metadata){
   # PREPARE DATA: SALES --------------------------------------------------
 
   # Note: there is an issue with the condo record PINs.
@@ -503,7 +558,67 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
 
 
 
-  # SUMMARIZE DATA: SALES --------------------------------------------
+
+  # SUMMARIZE BY 3-YEAR SPAN ------------------------------------------------
+
+
+  three_year_fields <- tibble::tribble(
+    ~DATE_GROUP_ID, ~DATE_BEGIN, ~DATE_END, ~DATE_RANGE, ~DATE_RANGE_TYPE,
+    "2013_2015", "2013-01-01", "2015-12-31", "20130101_20151231", "three years",
+    "2016_2018", "2016-01-01", "2018-12-31", "20160101_20181231", "three years"
+  )
+
+  is_between_dates <- function(x, begin, end){
+
+    dplyr::between(lubridate::ymd(x), lubridate::ymd(begin), lubridate::ymd(end))
+
+  }
+
+  summarize_by_3year <- function(x, variable_role){
+
+    p_3year_only <- x %>%
+      dplyr::mutate(DATE_GROUP_ID = dplyr::case_when(
+        is_between_dates(DATE_BEGIN, "2013-01-01", "2015-12-31") ~ "2013_2015",
+        is_between_dates(DATE_BEGIN, "2016-01-01", "2018-12-31") ~ "2016_2018",
+        TRUE ~ NA_character_
+      )) %>%
+      dplyr::filter(! is.na(DATE_GROUP_ID)) %>% # drop sales outside of the two 3-year spans
+      dplyr::select(-DATE_BEGIN, -DATE_END, -DATE_RANGE, -DATE_RANGE_TYPE) %>% # drop the original date fields
+      dplyr::left_join(three_year_fields, by = "DATE_GROUP_ID")  # add the new replacement 3-year span date fields
+
+    p_summary_by_3year <- p_3year_only %>%
+      dplyr::group_by(SOURCE,
+                      GEOGRAPHY_ID,
+                      GEOGRAPHY_ID_TYPE,
+                      VARIABLE,
+                      VARIABLE_DESC,
+                      INDICATOR,
+                      DATE_BEGIN,
+                      DATE_END,
+                      DATE_GROUP_ID,
+                      DATE_RANGE,
+                      DATE_RANGE_TYPE) %>%
+      dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
+                       MOE = tidycensus::moe_sum(moe = MOE, estimate = ESTIMATE, na.rm = TRUE)) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(VARIABLE_ROLE = variable_role) %>%
+      dplyr::select(-GEOGRAPHY_ID_TYPE) %>%
+      dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
+
+    return(p_summary_by_3year)
+  }
+
+  parcel_sales_cnt_3year <- summarize_by_3year(parcel_sales_cnt,
+                                               variable_role = "COUNT")
+
+  parcel_sales_community_cnt_3year <- summarize_by_3year(parcel_sales_community_cnt,
+                                                         variable_role = "COUNT")
+
+  parcel_sales_county_cnt_3year <- summarize_by_3year(parcel_sales_county_cnt,
+                                                      variable_role = "COUNT")
+
+
+  # SUMMARIZE BY YEAR --------------------------------------------
 
 
   summarize_by_year <- function(x, variable_role){
@@ -534,8 +649,6 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
   }
 
 
-  # summarize by year
-
   parcel_sales_cnt_year <- summarize_by_year(parcel_sales_cnt,
                                              variable_role = "COUNT")
 
@@ -545,7 +658,9 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
   parcel_sales_county_cnt_year <- summarize_by_year(parcel_sales_county_cnt,
                                                     variable_role = "COUNT")
 
-  # summarize by quarter
+
+  # SUMMARIZE BY QUARTER ----------------------------------------------------
+
 
   get_year_quarter <- function(x){
     stringr::str_c(lubridate::year(x),"_","Q",lubridate::quarter(x))
@@ -604,14 +719,14 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
 
     summary_by_qtr_complete <- summary_by_qtr %>%
       tidyr::expand(tidyr::nesting(SOURCE,
-                            GEOGRAPHY_ID,
-                            VARIABLE,
-                            VARIABLE_DESC,
-                            INDICATOR,
-                            VARIABLE_ROLE,
-                            GEOGRAPHY_ID_TYPE,
-                            GEOGRAPHY_NAME,
-                            GEOGRAPHY_TYPE),
+                                   GEOGRAPHY_ID,
+                                   VARIABLE,
+                                   VARIABLE_DESC,
+                                   INDICATOR,
+                                   VARIABLE_ROLE,
+                                   GEOGRAPHY_ID_TYPE,
+                                   GEOGRAPHY_NAME,
+                                   GEOGRAPHY_TYPE),
                     DATE_GROUP_ID) %>%
       dplyr::left_join(date_cols_qtr_full, by = "DATE_GROUP_ID") %>%
       dplyr::left_join(summary_by_qtr, by = c("SOURCE",
@@ -648,9 +763,14 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
                                                       date_cols_qtr_full,
                                                       variable_role = "COUNT")
 
-  # join them together
 
-  all_geog_sales_year_qtr <- list(parcel_sales_cnt_year,
+
+  # JOIN --------------------------------------------------------------------
+
+  indicators_cnt_pct_sales_ready <- list(parcel_sales_cnt_3year,
+                                  parcel_sales_community_cnt_3year,
+                                  parcel_sales_county_cnt_3year,
+                                  parcel_sales_cnt_year,
                                   parcel_sales_community_cnt_year,
                                   parcel_sales_county_cnt_year,
                                   parcel_sales_cnt_qtr,
@@ -659,15 +779,10 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
     purrr::map_dfr(c)
 
 
-  # JOIN --------------------------------------------------------------------
 
-  indicators_cnt_pct_sales_ready <- list(parcel_sales_cnt_year,
-                                         parcel_sales_community_cnt_year,
-                                         parcel_sales_county_cnt_year,
-                                         parcel_sales_cnt_qtr,
-                                         parcel_sales_community_cnt_qtr,
-                                         parcel_sales_county_cnt_qtr) %>%
-    purrr::map_dfr(c)
+# REFORMAT ----------------------------------------------------------------
+
+  # note: there is no need to reformat this object - that will happen in make_indicators_cnt_pct()
 
   # RETURN ------------------------------------------------------------------
 

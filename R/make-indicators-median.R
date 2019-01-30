@@ -88,7 +88,7 @@ check_parcel_median_year <- function(){
   }
 
   dat <- indicators_median %>%
-    dplyr::filter(DATE_RANGE_TYPE %in% c("five years","one year")) %>%
+    dplyr::filter(DATE_RANGE_TYPE %in% c("five years","three years","one year")) %>%
     dplyr::group_by(VARIABLE_DESC, DATE_GROUP_ID) %>%
     dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE),
                   ESTIMATE_NO_OUTLIERS = smooth_outliers(ESTIMATE)) %>%
@@ -135,8 +135,7 @@ make_indicators_median_acs_ltdb_ff <- function(acs_variables,
                                                ltdb_variables,
                                                factfinder_variables,
                                                county_community_tract_all_metadata,
-                                               community_metadata,
-                                               indicator_template){
+                                               community_metadata){
 
   # JOIN --------------------------------------------------------------------
 
@@ -162,8 +161,7 @@ make_indicators_median_acs_ltdb_ff <- function(acs_variables,
 make_indicators_median_value <- function(parcel_value_variables,
                                          parcel_tract_overlay,
                                          county_community_tract_all_metadata,
-                                         community_metadata,
-                                         indicator_template){
+                                         community_metadata){
 
 
   # PREPARE DATA --------------------------------------------------------
@@ -198,6 +196,54 @@ make_indicators_median_value <- function(parcel_value_variables,
     dplyr::mutate(GEOGRAPHY_ID = "53033") %>%
     dplyr::select(-GEOGRAPHY_ID_TYPE,-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE) %>%
     dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
+
+# SUMMARIZE BY 3-YEAR SPAN ------------------------------------------------
+
+  three_year_fields <- tibble::tribble(
+    ~DATE_GROUP_ID, ~DATE_BEGIN, ~DATE_END, ~DATE_RANGE, ~DATE_RANGE_TYPE,
+    "2013_2015", "2013-01-01", "2015-12-31", "20130101_20151231", "three years",
+    "2016_2018", "2016-01-01", "2018-12-31", "20160101_20181231", "three years"
+  )
+
+  is_between_dates <- function(x, begin, end){
+
+    dplyr::between(lubridate::ymd(x), lubridate::ymd(begin), lubridate::ymd(end))
+
+  }
+
+  summarize_by_3year <- function(x, variable_role){
+
+    p_3year_only <- x %>%
+      dplyr::mutate(DATE_GROUP_ID = dplyr::case_when(
+        is_between_dates(DATE_BEGIN, "2013-01-01", "2015-12-31") ~ "2013_2015",
+        is_between_dates(DATE_BEGIN, "2016-01-01", "2018-12-31") ~ "2016_2018",
+        TRUE ~ NA_character_
+      )) %>%
+      dplyr::filter(! is.na(DATE_GROUP_ID)) %>% # drop sales outside of the two 3-year spans
+      dplyr::select(-DATE_BEGIN, -DATE_END, -DATE_RANGE, -DATE_RANGE_TYPE) %>% # drop the original date fields
+      dplyr::left_join(three_year_fields, by = "DATE_GROUP_ID")  # add the new replacement 3-year span date fields
+
+    p_summary_by_3year <- p_3year_only %>%
+       dplyr::group_by_at(dplyr::vars(-VARIABLE_SUBTOTAL,-VARIABLE_SUBTOTAL_DESC,-ESTIMATE,-MOE)) %>%
+      dplyr::summarise(ESTIMATE = as.integer(round(median(ESTIMATE, na.rm = TRUE),0)),
+                       N = n(),
+                       NAS = sum(is.na(ESTIMATE)),
+                       MOE = NA_real_) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE, -GEOGRAPHY_ID_TYPE) %>%
+      dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
+
+    return(p_summary_by_3year)
+  }
+
+
+  parcel_value_median_3year <- summarize_by_3year(parcel_value_median)
+
+  parcel_value_community_median_3year <- summarize_by_3year(community_value_median)
+
+  parcel_value_county_median_3year <- summarize_by_3year(county_value_median)
+
+
 
 
 
@@ -304,7 +350,10 @@ get_year_quarter <- function(x){
 
   # JOIN --------------------------------------------------------
 
-  median_value_year_qtr <- list(parcel_value_median_year,
+  indicators_median_value_ready <- list(parcel_value_median_3year,
+                                 parcel_value_community_median_3year,
+                                 parcel_value_county_median_3year,
+                                parcel_value_median_year,
                                  parcel_value_community_median_year,
                                  parcel_value_county_median_year,
                                  parcel_value_median_qtr,
@@ -315,9 +364,13 @@ get_year_quarter <- function(x){
     dplyr::filter(VARIABLE_ROLE %in% "include") %>%
     dplyr::select(-dplyr::matches("VARIABLE_SUBTOTAL|VARIABLE_ROLE"))
 
+  # REFORMAT ----------------------------------------------------------------
+
+  # note: there is no need to reformat this object - that will happen in make_indicators_cnt_pct()
+
   # RETURN ------------------------------------------------------------------
 
-  indicators_median_value <- median_value_year_qtr
+  indicators_median_value <- indicators_median_value_ready
 
   return(indicators_median_value)
 
@@ -331,8 +384,7 @@ get_year_quarter <- function(x){
 make_indicators_median_sales <- function(parcel_sales_variables,
                                          parcel_tract_overlay,
                                          county_community_tract_all_metadata,
-                                         community_metadata,
-                                         indicator_template){
+                                         community_metadata){
 
 
   # PREPARE DATA --------------------------------------------------------
@@ -370,6 +422,54 @@ make_indicators_median_sales <- function(parcel_sales_variables,
     dplyr::mutate(GEOGRAPHY_ID = "53033") %>%
     dplyr::select(-GEOGRAPHY_ID_TYPE,-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE) %>%
     dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
+
+
+
+  # SUMMARIZE BY 3-YEAR SPAN ------------------------------------------------
+
+  three_year_fields <- tibble::tribble(
+    ~DATE_GROUP_ID, ~DATE_BEGIN, ~DATE_END, ~DATE_RANGE, ~DATE_RANGE_TYPE,
+    "2013_2015", "2013-01-01", "2015-12-31", "20130101_20151231", "three years",
+    "2016_2018", "2016-01-01", "2018-12-31", "20160101_20181231", "three years"
+  )
+
+  is_between_dates <- function(x, begin, end){
+
+    dplyr::between(lubridate::ymd(x), lubridate::ymd(begin), lubridate::ymd(end))
+
+  }
+
+  summarize_by_3year <- function(x, variable_role){
+
+    p_3year_only <- x %>%
+      dplyr::mutate(DATE_GROUP_ID = dplyr::case_when(
+        is_between_dates(DATE_BEGIN, "2013-01-01", "2015-12-31") ~ "2013_2015",
+        is_between_dates(DATE_BEGIN, "2016-01-01", "2018-12-31") ~ "2016_2018",
+        TRUE ~ NA_character_
+      )) %>%
+      dplyr::filter(! is.na(DATE_GROUP_ID)) %>% # drop sales outside of the two 3-year spans
+      dplyr::select(-DATE_BEGIN, -DATE_END, -DATE_RANGE, -DATE_RANGE_TYPE) %>% # drop the original date fields
+      dplyr::left_join(three_year_fields, by = "DATE_GROUP_ID")  # add the new replacement 3-year span date fields
+
+    p_summary_by_3year <- p_3year_only %>%
+      dplyr::group_by_at(dplyr::vars(-VARIABLE_SUBTOTAL,-VARIABLE_SUBTOTAL_DESC,-ESTIMATE,-MOE)) %>%
+      dplyr::summarise(ESTIMATE = as.integer(round(median(ESTIMATE, na.rm = TRUE),0)),
+                       N = n(),
+                       NAS = sum(is.na(ESTIMATE)),
+                       MOE = NA_real_) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(-GEOGRAPHY_NAME,-GEOGRAPHY_TYPE, -GEOGRAPHY_ID_TYPE) %>%
+      dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
+  }
+
+
+  parcel_sales_median_3year <- summarize_by_3year(parcel_sales_median)
+
+  parcel_sales_community_median_3year <- summarize_by_3year(community_sales_median)
+
+  parcel_sales_county_median_3year <- summarize_by_3year(county_sales_median)
+
+
 
 
   # SUMMARIZE DATA: BY YEAR -------------------------------------------------
@@ -422,13 +522,14 @@ make_indicators_median_sales <- function(parcel_sales_variables,
                      DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
                      DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one quarter") %>%
-    dplyr::mutate_if(lubridate::is.Date, as.character)
+    dplyr::mutate_if(lubridate::is.Date, as.character) %>%
+    dplyr::arrange(DATE_GROUP_ID)
 
 
 
   summarize_by_quarter <- function(x, date_cols_qtr_full){
 
-     summary_by_qtr <- parcel_sales_median %>%
+     summary_by_qtr <- x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "quarter"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
                     DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
@@ -490,7 +591,10 @@ make_indicators_median_sales <- function(parcel_sales_variables,
 
   # JOIN --------------------------------------------------------
 
-  median_sales_year_qtr <- list(parcel_sales_median_year,
+  indicators_median_sales_ready <- list( parcel_sales_median_3year,
+                                 parcel_sales_community_median_3year,
+                                 parcel_sales_county_median_3year,
+                                parcel_sales_median_year,
                                  parcel_sales_community_median_year,
                                  parcel_sales_county_median_year,
                                  parcel_sales_median_qtr,
@@ -502,10 +606,15 @@ make_indicators_median_sales <- function(parcel_sales_variables,
     dplyr::select(-dplyr::matches("VARIABLE_SUBTOTAL|VARIABLE_ROLE"))
 
 
+# REFORMAT ----------------------------------------------------------------
+
+  # note: there is no need to reformat this object - that will happen in make_indicators_cnt_pct()
+
   # RETURN ------------------------------------------------------------------
 
-  indicators_median_sales <- median_sales_year_qtr
+  indicators_median_sales <- indicators_median_sales_ready
 
+  beep()
   return(indicators_median_sales)
 
 }
