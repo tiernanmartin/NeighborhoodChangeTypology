@@ -6,6 +6,8 @@
 \alias{make_parcel_sales}
 \alias{make_parcel_info_2005}
 \alias{make_parcel_info_2010}
+\alias{make_parcel_info_2013}
+\alias{make_parcel_info_2014}
 \alias{make_parcel_info_2015}
 \alias{make_parcel_info_2016}
 \alias{make_parcel_info_2017}
@@ -14,11 +16,15 @@
 \alias{make_parcel_lut_2018}
 \alias{make_condo_info_2005}
 \alias{make_condo_info_2010}
+\alias{make_condo_info_2013}
+\alias{make_condo_info_2014}
 \alias{make_condo_info_2015}
 \alias{make_condo_info_2017}
 \alias{make_condo_info_2018}
 \alias{make_res_bldg_2005}
 \alias{make_res_bldg_2010}
+\alias{make_res_bldg_2013}
+\alias{make_res_bldg_2014}
 \alias{make_res_bldg_2015}
 \alias{make_res_bldg_2017}
 \alias{make_res_bldg_2018}
@@ -33,6 +39,10 @@ make_parcel_sales(data_template, zip_path, file_path)
 make_parcel_info_2005(metadata_template, zip_path, file_path)
 
 make_parcel_info_2010(metadata_template, zip_path, file_path)
+
+make_parcel_info_2013(metadata_template, zip_path, file_path)
+
+make_parcel_info_2014(metadata_template, zip_path, file_path)
 
 make_parcel_info_2015(metadata_template, zip_path, file_path)
 
@@ -50,6 +60,10 @@ make_condo_info_2005(metadata_template, zip_path, file_path)
 
 make_condo_info_2010(metadata_template, zip_path, file_path)
 
+make_condo_info_2013(metadata_template, zip_path, file_path)
+
+make_condo_info_2014(metadata_template, zip_path, file_path)
+
 make_condo_info_2015(metadata_template, zip_path, file_path)
 
 make_condo_info_2017(metadata_template, zip_path, file_path)
@@ -59,6 +73,10 @@ make_condo_info_2018(metadata_template, zip_path, file_path)
 make_res_bldg_2005(metadata_template, zip_path, file_path)
 
 make_res_bldg_2010(metadata_template, zip_path, file_path)
+
+make_res_bldg_2013(metadata_template, zip_path, file_path)
+
+make_res_bldg_2014(metadata_template, zip_path, file_path)
 
 make_res_bldg_2015(metadata_template, zip_path, file_path)
 

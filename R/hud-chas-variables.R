@@ -6,12 +6,13 @@
 #' @param hud_chas_data Tibble, desc
 #' @param hud_chas_data_lut Tibble, desc
 #' @param model_table Tibble, desc
+#' @param census_geography_metadata desc
 #' @param variable_template Tibble, desc
 #' @return a `tibble`
 
 #' @rdname hud-chas-variables
 #' @export
-make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_table, variable_template){
+make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_table, census_geography_metadata, variable_template){
 
   # PREPARE HUD CHAS DATA ROLES --------------------------------------------------------
 
@@ -53,11 +54,18 @@ make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_tabl
      dplyr::mutate(VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"))
 
 
+
+  # STANDARDIZE CENSUS GEOGRAPHY FIELDS -------------------------------------
+
+  hud_chas_vars_geography <- hud_chas_vars_desc %>%
+    dplyr::select(-GEOGRAPHY_ID_TYPE, -GEOGRAPHY_NAME, -GEOGRAPHY_TYPE) %>%  #drop all geography fields accept the join field (GEOGRAPHY_ID)
+  dplyr::left_join(census_geography_metadata, by = c("GEOGRAPHY_ID"))
+
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
 
 
   hud_chas_vars_ready <- variable_template %>%
-    dplyr::full_join(hud_chas_vars_desc,
+    dplyr::full_join(hud_chas_vars_geography,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",

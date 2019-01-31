@@ -4,10 +4,12 @@
 \alias{make_ltdb_variables}
 \title{Make A Tibble of The Project's US Census Variables from LTDB}
 \usage{
-make_ltdb_variables(ltdb_data, variable_template)
+make_ltdb_variables(ltdb_data, census_geography_metadata, variable_template)
 }
 \arguments{
 \item{ltdb_data}{Tibble, desc}
+
+\item{census_geography_metadata}{desc}
 
 \item{variable_template}{Tibble, desc}
 }

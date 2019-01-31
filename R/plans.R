@@ -335,6 +335,7 @@ get_variable_plan <- function(){
     condo_criteria = make_condo_criteria(condo_unit_type_key),
     sales_criteria = make_sales_criteria(),
     excluded_tract_geoids = make_excluded_tract_geoids(),
+    census_geography_metadata = make_census_geography_metadata(acs_data),
     community_metadata = make_community_metadata(),
     county_community_tract_all_metadata = make_county_community_tract_all_metadata(acs_data, community_metadata),
     parcel_all_metadata = make_parcel_all_metadata(present_use_key,
@@ -369,9 +370,9 @@ get_variable_plan <- function(){
 
   var_plan <- drake::drake_plan(
     acs_variables = make_acs_variables(acs_data, acs_tables, variable_template),
-    hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table, variable_template),
-    ltdb_variables = make_ltdb_variables(ltdb_data, variable_template),
-    factfinder_variables = make_factfinder_variables(factfinder_data, variable_template),
+    hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table, census_geography_metadata, variable_template),
+    ltdb_variables = make_ltdb_variables(ltdb_data, census_geography_metadata, variable_template),
+    factfinder_variables = make_factfinder_variables(factfinder_data, variable_template, census_geography_metadata),
     parcel_sales_variables = make_parcel_sales_variables(parcel_sales,
                                                          parcel_all_metadata,
                                                          sales_lut_key_list,

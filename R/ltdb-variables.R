@@ -3,12 +3,13 @@
 #' @description Return a `tibble` of all of the US Census data variables
 #'   that are obtained from the Brown University Longitudinal Tract Database (LTDB).
 #' @param ltdb_data Tibble, desc
+#' @param census_geography_metadata desc
 #' @param variable_template Tibble, desc
 #' @return a `tibble`
 
 #' @rdname ltdb-variables
 #' @export
-make_ltdb_variables <- function(ltdb_data, variable_template){
+make_ltdb_variables <- function(ltdb_data, census_geography_metadata, variable_template){
 
   # PREPARE LTDB DATA ROLES --------------------------------------------------------
 
@@ -17,10 +18,16 @@ make_ltdb_variables <- function(ltdb_data, variable_template){
                   VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
                   VARIABLE_ROLE = "include") # there's only one variable and it is a value variable so its ROLE is "include"
 
+  # STANDARDIZE CENSUS GEOGRAPHY FIELDS -------------------------------------
+
+  ltdb_variables_geography <- ltdb_variables_roles %>%
+    dplyr::select(-GEOGRAPHY_ID_TYPE, -GEOGRAPHY_NAME, -GEOGRAPHY_TYPE) %>%  #drop all geography fields accept the join field (GEOGRAPHY_ID)
+  dplyr::left_join(census_geography_metadata, by = c("GEOGRAPHY_ID"))
+
   # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
 
   ltdb_variables_ready <- variable_template %>%
-    dplyr::full_join(ltdb_variables_roles,
+    dplyr::full_join(ltdb_variables_geography,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",

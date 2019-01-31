@@ -164,14 +164,16 @@ make_indicators_change <- function(indicators_cnt_pct,
   }
 
 
-  change_endyears_wide <- change_endyears_long %>%
-    dplyr::left_join(inds_long, by = c("INDICATOR",
+  change_endyears_wide <-  change_endyears_long %>%
+    dplyr::left_join(inds_long, by = c("INDICATOR", # switched from left_ to inner_
                                        "VARIABLE",
                                        "DATE_GROUP_ID_JOIN")) %>%
     dplyr::filter(! is.na(VALUE_TYPE)) %>% # remove a few records that have NA in many of the metadata fields
-    tidyr::unite("TYPE_ROLE_YEAR", c(VALUE_TYPE, INDICATOR_ROLE)) %>%
     dplyr::select(-dplyr::starts_with("DATE")) %>%
-    tidyr::spread(TYPE_ROLE_YEAR, VALUE)
+    dplyr::mutate(GROUP_ID = dplyr::group_indices(.,INDICATOR, VARIABLE,CHANGE_RANGE,GEOGRAPHY_ID,MEASURE_TYPE)) %>%
+    tidyr::unite("TYPE_ROLE_YEAR", c(VALUE_TYPE, INDICATOR_ROLE)) %>%
+    tidyr::spread(TYPE_ROLE_YEAR, VALUE) %>%
+    dplyr::select(-GROUP_ID)
 
   change_endyears_wide_change <- change_endyears_wide %>%
     dplyr::mutate(ESTIMATE_CHANGE_ABSOLUTE = ESTIMATE_END - ESTIMATE_BEGIN,
@@ -277,4 +279,63 @@ make_indicators_change <- function(indicators_cnt_pct,
 
   return(indicators_change)
 
+}
+
+check_change_pct <- function(){
+
+  smooth_outliers <- function(x, na.rm = TRUE, ...) {
+    qnt <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
+    H <- 1.3 * IQR(x, na.rm = na.rm)
+    y <- x
+    y[x < (qnt[1] - H)] <- round(qnt[1] - H)
+    y[x > (qnt[2] + H)] <- round(qnt[2] + H)
+    y
+  }
+
+
+  dat <- indicators_change %>%
+    dplyr::filter(GEOGRAPHY_TYPE %in% "tract") %>%
+    dplyr::filter(!is.na(DATE_RANGE_TYPE)) %>%
+    dplyr::filter(stringr::str_detect(MEASURE_TYPE, "PERCENT")) %>%
+    dplyr::filter(stringr::str_detect(MEASURE_TYPE, "APPROPRIATE")) %>%
+    dplyr::group_by(VARIABLE, DATE_RANGE) %>%
+    dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE),
+                  ESTIMATE_NO_OUTLIERS = smooth_outliers(ESTIMATE)) %>%
+    dplyr::ungroup()
+
+  dat %>%
+    ggplot2::ggplot(ggplot2::aes(x = ESTIMATE_NO_OUTLIERS)) +
+    ggplot2::geom_histogram() +
+    ggplot2::geom_vline(ggplot2::aes(xintercept=MEDIAN), size=0.5, color = "red") +
+    ggplot2::scale_x_continuous(labels = scale_pct_points) +
+    ggplot2::facet_grid(DATE_RANGE ~ VARIABLE, scales = "free")
+}
+
+check_change_median <- function(){
+
+  smooth_outliers <- function(x, na.rm = TRUE, ...) {
+    qnt <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
+    H <- 1.3 * IQR(x, na.rm = na.rm)
+    y <- x
+    y[x < (qnt[1] - H)] <- round(qnt[1] - H)
+    y[x > (qnt[2] + H)] <- round(qnt[2] + H)
+    y
+  }
+
+  dat <- indicators_change %>%
+    dplyr::filter(GEOGRAPHY_TYPE %in% "tract") %>%
+    dplyr::filter(!is.na(DATE_RANGE_TYPE)) %>%
+    dplyr::filter(stringr::str_detect(MEASURE_TYPE, "MEDIAN")) %>%
+    dplyr::filter(stringr::str_detect(MEASURE_TYPE, "APPROPRIATE")) %>%
+    dplyr::group_by(VARIABLE, DATE_RANGE) %>%
+    dplyr::mutate(MEDIAN = median(ESTIMATE,na.rm = TRUE),
+                  ESTIMATE_NO_OUTLIERS = smooth_outliers(ESTIMATE)) %>%
+    dplyr::ungroup()
+
+  dat %>%
+    ggplot2::ggplot(ggplot2::aes(x = ESTIMATE)) +
+    ggplot2::geom_histogram() +
+    ggplot2::geom_vline(ggplot2::aes(xintercept=MEDIAN), size=0.5, color = "red") +
+    ggplot2::scale_x_continuous(labels = scales::percent) +
+    ggplot2::facet_grid(DATE_RANGE ~ VARIABLE, scales = "free")
 }

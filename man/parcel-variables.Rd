@@ -2,15 +2,25 @@
 % Please edit documentation in R/parcel-variables.R
 \name{make_parcel_sales_variables}
 \alias{make_parcel_sales_variables}
+\alias{make_parcel_value_variables_part1}
+\alias{make_parcel_value_variables_part2}
 \alias{make_parcel_value_variables}
+\alias{make_parcel_value_variables_archive}
 \title{Make Parcel Variables}
 \usage{
 make_parcel_sales_variables(parcel_sales, parcel_all_metadata,
   sales_lut_key_list, sales_criteria, single_family_criteria, condo_criteria,
   cpi, variable_template)
 
-make_parcel_value_variables(parcel_all_metadata, single_family_criteria,
-  condo_criteria, cpi, parcel_value, variable_template)
+make_parcel_value_variables_part1(parcel_all_metadata, single_family_criteria,
+  condo_criteria, cpi, parcel_value)
+
+make_parcel_value_variables_part2(parcel_value_variables_part1)
+
+make_parcel_value_variables(parcel_value_variables_part2, variable_template)
+
+make_parcel_value_variables_archive(parcel_value_variables_nested,
+  variable_template)
 }
 \arguments{
 \item{parcel_sales}{Tibble, Temporary description}

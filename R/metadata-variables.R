@@ -350,6 +350,18 @@ make_parcel_all_metadata <- function(present_use_key,
 
 
 }
+
+#' @rdname metadata-variables
+#' @export
+make_census_geography_metadata <- function(acs_data){
+
+  census_geography_metadata <- acs_data %>%
+    dplyr::select(dplyr::starts_with("GEOGRAPHY")) %>%
+    dplyr::distinct()
+
+  return(census_geography_metadata)
+}
+
 #' @rdname metadata-variables
 #' @export
 make_community_metadata <- function(){

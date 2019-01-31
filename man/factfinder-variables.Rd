@@ -4,12 +4,15 @@
 \alias{make_factfinder_variables}
 \title{Make A Tibble of The Project's US Census Variables from American Factfinder}
 \usage{
-make_factfinder_variables(factfinder_data, variable_template)
+make_factfinder_variables(factfinder_data, variable_template,
+  census_geography_metadata)
 }
 \arguments{
 \item{factfinder_data}{Tibble, desc}
 
 \item{variable_template}{Tibble, desc}
+
+\item{census_geography_metadata}{desc}
 }
 \value{
 a \code{tibble}

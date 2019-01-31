@@ -2,14 +2,20 @@
 % Please edit documentation in R/metadata-variables.R
 \name{make_parcel_all_metadata}
 \alias{make_parcel_all_metadata}
+\alias{make_census_geography_metadata}
 \alias{make_community_metadata}
 \alias{make_county_community_tract_all_metadata}
 \title{Prepare Variable Metadata Objects}
 \usage{
 make_parcel_all_metadata(present_use_key, condo_unit_type_key,
-  parcel_tract_overlay, parcel_info_2005, parcel_info_2010, parcel_info_2018,
-  condo_info_2005, condo_info_2010, condo_info_2018, res_bldg_2005,
-  res_bldg_2010, res_bldg_2018, variable_template)
+  parcel_tract_overlay, parcel_info_2005, parcel_info_2010, parcel_info_2013,
+  parcel_info_2014, parcel_info_2015, parcel_info_2016, parcel_info_2017,
+  parcel_info_2018, condo_info_2005, condo_info_2010, condo_info_2013,
+  condo_info_2014, condo_info_2015, condo_info_2017, condo_info_2018,
+  res_bldg_2005, res_bldg_2010, res_bldg_2013, res_bldg_2014, res_bldg_2015,
+  res_bldg_2017, res_bldg_2018, parcel_sales, variable_template)
+
+make_census_geography_metadata(acs_data)
 
 make_community_metadata()
 
@@ -26,11 +32,29 @@ make_county_community_tract_all_metadata(acs_data, community_metadata)
 
 \item{parcel_info_2010}{desc}
 
+\item{parcel_info_2013}{desc}
+
+\item{parcel_info_2014}{desc}
+
+\item{parcel_info_2015}{desc}
+
+\item{parcel_info_2016}{desc}
+
+\item{parcel_info_2017}{desc}
+
 \item{parcel_info_2018}{desc}
 
 \item{condo_info_2005}{desc}
 
 \item{condo_info_2010}{desc}
+
+\item{condo_info_2013}{desc}
+
+\item{condo_info_2014}{desc}
+
+\item{condo_info_2015}{desc}
+
+\item{condo_info_2017}{desc}
 
 \item{condo_info_2018}{desc}
 
@@ -38,13 +62,21 @@ make_county_community_tract_all_metadata(acs_data, community_metadata)
 
 \item{res_bldg_2010}{desc}
 
+\item{res_bldg_2013}{desc}
+
+\item{res_bldg_2014}{desc}
+
+\item{res_bldg_2015}{desc}
+
+\item{res_bldg_2017}{desc}
+
 \item{res_bldg_2018}{desc}
+
+\item{parcel_sales}{desc}
 
 \item{variable_template}{desc}
 
 \item{acs_data}{desc}
-
-\item{res_bldg_2018}{desc}
 }
 \value{
 a \code{tibble}
