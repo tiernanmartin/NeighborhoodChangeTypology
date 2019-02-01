@@ -50,6 +50,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
     dplyr::filter(! is.na(VALUE_TYPE)) %>% # remove a few records that have NA in many of the metadata fields
     dplyr::select(-dplyr::starts_with("DATE")) %>%
     dplyr::mutate(GROUP_ID = dplyr::group_indices(.,TOPIC, INDICATOR, VARIABLE,CHANGE_RANGE,GEOGRAPHY_ID,MEASURE_TYPE)) %>%
+
     tidyr::unite("TYPE_ROLE_YEAR", c(VALUE_TYPE, INDICATOR_ROLE)) %>%
     tidyr::spread(TYPE_ROLE_YEAR, VALUE) %>%
     dplyr::select(-GROUP_ID)

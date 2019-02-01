@@ -7,6 +7,8 @@
 make_sample_size_metadata <- function(indicators_cnt_pct,
                                  indicators_median){
 
+  stop("This command is temporarily disabled")
+
   # SOMETHING ---------------------------------------------------------------
 
 

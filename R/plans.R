@@ -538,7 +538,8 @@ get_model_plan <- function(){
   coo_original_plan <- drake::drake_plan()
 
   portland_plan <- drake::drake_plan(
-    # typology = make_typology(vulnerability_indicators, demo_change_indicators, housing_market_indicators, census_tracts_2016_trimmed)
+    portland_model_vulnerability = make_portland_model_vulnerability(),
+    tmp_portland_plan = c("tmp")
   )
 
   coo_original_updated_plan <- drake::drake_plan()

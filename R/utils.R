@@ -12,6 +12,18 @@ rm_gc <- function(x){rm(x)
   }
 
 #' @export
+scale_pct_points <- function(x){
+        label <- stringr::str_c(scales::percent(x)," pts")
+        label <- ifelse(x>0,
+                        stringr::str_c("+",label),
+                        label)
+        label <- ifelse(x==0,
+                        "0",
+                        label)
+        return(label)
+    }
+
+#' @export
 convert_to_2018_dollars <- function(value, year){
 
     # Note: this function can only convery sales after the year 1999 -- earlier years will return NA
