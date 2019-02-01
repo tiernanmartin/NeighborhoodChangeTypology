@@ -109,3 +109,64 @@ indicator_template <- tibble::tibble(SOURCE = NA_character_,
 return(indicator_template)
 
 }
+
+#' @rdname templates
+#' @export
+make_indicator_topic_template <- function(){
+
+indicator_topic_template <- tibble::tibble(SOURCE = NA_character_,
+                                     GEOGRAPHY_ID = NA_character_,
+                         GEOGRAPHY_ID_TYPE = NA_character_,
+                            GEOGRAPHY_NAME = NA_character_,
+                            GEOGRAPHY_TYPE = NA_character_,
+                             DATE_GROUP_ID = NA_character_,
+                                DATE_BEGIN = NA_character_,
+                                  DATE_END = NA_character_,
+                                DATE_RANGE = NA_character_,
+                           DATE_RANGE_TYPE = NA_character_,
+                                     TOPIC = NA_character_,
+                                 INDICATOR = NA_character_,
+                                  VARIABLE = NA_character_,
+                             VARIABLE_DESC = NA_character_,
+                              MEASURE_TYPE = NA_character_,
+                                  ESTIMATE = NA_real_,
+                                       MOE = NA_real_
+                      ) %>% dplyr::slice(0)
+
+return(indicator_topic_template)
+
+}
+
+#' @rdname templates
+#' @export
+make_indicator_type_template <- function(){
+
+indicator_type_template <- tibble::tibble(SOURCE = NA_character_,
+                                     GEOGRAPHY_ID = NA_character_,
+                         GEOGRAPHY_ID_TYPE = NA_character_,
+                            GEOGRAPHY_NAME = NA_character_,
+                            GEOGRAPHY_TYPE = NA_character_,
+                             DATE_GROUP_ID = NA_character_,
+                                DATE_BEGIN = NA_character_,
+                                  DATE_END = NA_character_,
+                                DATE_RANGE = NA_character_,
+                           DATE_RANGE_TYPE = NA_character_,
+                                     TOPIC = NA_character_,
+                                 INDICATOR = NA_character_,
+                                  VARIABLE = NA_character_,
+                             VARIABLE_DESC = NA_character_,
+                              MEASURE_TYPE = NA_character_,
+                                  ESTIMATE = NA_real_,
+                                       MOE = NA_real_,
+                         INDICATOR_TYPE = NA_character_,
+                         INDICATOR_TYPE_THRESHOLD = NA_character_,
+                         INDICATOR_TYPE_THRESHOLD_VALUE = NA_real_,
+                         INDICATOR_TYPE_DESC = NA_character_,
+                         INDICATOR_TYPE_VALUE = NA_real_,
+                         INDICATOR_TYPE_VALUE_DESC = NA_character_,
+                         INDICATOR_TYPE_MODEL = NA_character_
+                      ) %>% dplyr::slice(0)
+
+return(indicator_type_template)
+
+}

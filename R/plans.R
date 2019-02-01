@@ -31,6 +31,8 @@ get_templates_plan <- function(){
     data_template = make_data_template(),
     variable_template = make_variable_template(),
     indicator_template = make_indicator_template(),
+    indicator_topic_template = make_indicator_topic_template(),
+    indicator_type_template = make_indicator_type_template(),
     acs_tables = make_acs_tables()
 
   )
@@ -339,32 +341,32 @@ get_variable_plan <- function(){
     community_metadata = make_community_metadata(),
     county_community_tract_all_metadata = make_county_community_tract_all_metadata(acs_data, community_metadata),
     parcel_all_metadata = make_parcel_all_metadata(present_use_key,
-                                     condo_unit_type_key,
-                                     parcel_tract_overlay,
-                                     parcel_info_2005,
-                                     parcel_info_2010,
-                                     parcel_info_2013,
-                                     parcel_info_2014,
-                                     parcel_info_2015,
-                                     parcel_info_2016,
-                                     parcel_info_2017,
-                                     parcel_info_2018,
-                                     condo_info_2005,
-                                     condo_info_2010,
-                                     condo_info_2013,
-                                     condo_info_2014,
-                                     condo_info_2015,
-                                     condo_info_2017,
-                                     condo_info_2018,
-                                     res_bldg_2005,
-                                     res_bldg_2010,
-                                     res_bldg_2013,
-                                     res_bldg_2014,
-                                     res_bldg_2015,
-                                     res_bldg_2017,
-                                     res_bldg_2018,
-                                     parcel_sales,
-                                     variable_template),
+                                                   condo_unit_type_key,
+                                                   parcel_tract_overlay,
+                                                   parcel_info_2005,
+                                                   parcel_info_2010,
+                                                   parcel_info_2013,
+                                                   parcel_info_2014,
+                                                   parcel_info_2015,
+                                                   parcel_info_2016,
+                                                   parcel_info_2017,
+                                                   parcel_info_2018,
+                                                   condo_info_2005,
+                                                   condo_info_2010,
+                                                   condo_info_2013,
+                                                   condo_info_2014,
+                                                   condo_info_2015,
+                                                   condo_info_2017,
+                                                   condo_info_2018,
+                                                   res_bldg_2005,
+                                                   res_bldg_2010,
+                                                   res_bldg_2013,
+                                                   res_bldg_2014,
+                                                   res_bldg_2015,
+                                                   res_bldg_2017,
+                                                   res_bldg_2018,
+                                                   parcel_sales,
+                                                   variable_template),
     tmp = c("placeholder")
   )
 
@@ -382,13 +384,13 @@ get_variable_plan <- function(){
                                                          cpi,
                                                          variable_template),
     parcel_value_variables_part1 = make_parcel_value_variables_part1(parcel_all_metadata,
-                                        single_family_criteria,
-                                        condo_criteria,
-                                        cpi,
-                                        parcel_value),
+                                                                     single_family_criteria,
+                                                                     condo_criteria,
+                                                                     cpi,
+                                                                     parcel_value),
     parcel_value_variables_part2 = make_parcel_value_variables_part2(parcel_value_variables_part1),
     parcel_value_variables = make_parcel_value_variables(parcel_value_variables_part2,
-                                        variable_template),
+                                                         variable_template),
     tmp = c("placeholder")
   )
 
@@ -452,6 +454,7 @@ get_indicator_plan <- function(){
                                                            parcel_tract_overlay,
                                                            county_community_tract_all_metadata,
                                                            community_metadata),
+    change_endyears = make_change_endyears(),
     tmp = c("placeholder")
   )
 
@@ -464,58 +467,18 @@ get_indicator_plan <- function(){
                                                indicators_median_value,
                                                indicators_median_sales,
                                                indicator_template),
-    indicators_comparison = make_indicators_comparison(indicators_cnt_pct,
-                                   indicators_median,
-                                   indicator_template),
-    indicators_change = make_indicators_change(indicators_cnt_pct,
-                                                indicators_median,
-                                                indicator_template),
+    indicators_by_topic = make_indicators_by_topic(indicators_cnt_pct,
+                                                   indicators_median,
+                                                   model_table,
+                                                   indicator_topic_template),
     # sample_size_metadata = make_sample_size_metadata(indicators_cnt_pct,
     #                              indicators_median),
     # indicators = make_indicators(indicators_cnt_pct,
     #                              indicators_median,
     #                              sample_size_metadata),
 
-    # indicators_pct = make_indicators_pct(acs_data, hud_chas_data, acs_tables),
-    # housing_market_parcel_value = make_housing_market_parcel_value(present_use_key,
-    #                                                                condo_unit_type_key,
-    #                                                                single_family_criteria,
-    #                                                                condo_criteria,
-    #                                                                cpi,
-    #                                                                parcel_value,
-    #                                                                parcel_info_2005,
-    #                                                                parcel_info_2010,
-    #                                                                parcel_info_2018,
-    #                                                                condo_info_2005,
-    #                                                                condo_info_2010,
-    #                                                                condo_info_2018),
-    # housing_market_parcel_appr = make_housing_market_parcel_appr(housing_market_parcel_value),
-    # housing_market_sales = make_housing_market_sales(parcel_sales,
-    #                                                  sales_lut_key_list,
-    #                                                  sales_criteria,
-    #                                                  present_use_key,
-    #                                                  single_family_criteria,
-    #                                                  condo_unit_type_key,
-    #                                                  condo_criteria,
-    #                                                  cpi,
-    #                                                  parcel_info_2005,
-    #                                                  parcel_info_2010,
-    #                                                  parcel_info_2018,
-    #                                                  condo_info_2005,
-    #                                                  condo_info_2010,
-    #                                                  condo_info_2018,
-    #                                                  res_bldg_2005,
-    #                                                  res_bldg_2010,
-    #                                                  res_bldg_2018),
-    # housing_market_indicators = make_housing_market_indicators(census_tracts_2016,
-    #                                                            excluded_tract_geoids,
-    #                                                            parcel_boundaries,
-    #                                                            parcel_tract_overlay,
-    #                                                            housing_market_parcel_value,
-    #                                                            housing_market_parcel_appr),
-    # vulnerability_indicators = make_vulnerability_indicators(acs_indicators),
-    # demo_change_indicators = make_demo_change_indicators(acs_indicators),
-    tmp = c("placeholder")
+
+    tmp2 = c("placeholder")
   )
 
   # sample_size_plan <- drake::drake_plan(
@@ -523,7 +486,22 @@ get_indicator_plan <- function(){
   #                                          indicators_median)
   # )
 
-  indicator_plan <- drake::bind_plans(ind_prep_plan, ind_plan)
+  ind_type_plan <- drake::drake_plan(
+    indicators_comparison = make_indicators_comparison(indicators_by_topic,
+                                       change_endyears,
+                                       indicator_type_template),
+    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_topic,
+                                       change_endyears,
+                                       indicator_type_template),
+    indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
+                                                 change_endyears,
+                                                 indicator_type_template),
+    tmp3 = c("placeholder")
+  )
+
+
+
+  indicator_plan <- drake::bind_plans(ind_prep_plan, ind_plan, ind_type_plan)
 
   return(indicator_plan)
 
