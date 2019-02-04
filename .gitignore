@@ -5,4 +5,4 @@
 doc/*
 extdata/*
 inst/extdata/**/*.*
-plans/*
+tmp/*
