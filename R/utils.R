@@ -52,38 +52,10 @@ get_date_end <- function(x){
 }
 
 #' @export
-create_range_year <- Vectorize(SIMPLIFY = TRUE, USE.NAMES = FALSE,
-                               FUN = function(year_x, year_y){
-
-  # if nchar is 4
-  if(all(purrr::map_lgl(list(year_x, year_y), ~nchar(.x) == 4))){
-
-    year_range <- stringr::str_c(year_x, year_y, sep = "_")
-
-    return(year_range)
-  }
-
-  # if is.Date 0
-  if(all(map_lgl(list(year_x, year_y), lubridate::is.Date))){
-
-    year_range <- stringr::str_c(lubridate::year(year_x), lubridate::year(year_y), sep = "_")
-
-    return(year_range)
-  }
-
-  # if can be parsed as a date
-  if(all(map_lgl(list(year_x, year_y), ~ ! is.na(lubridate::as_date(.x))))){
-
-    year_range <- stringr::str_c(lubridate::year(year_x), lubridate::year(year_y), sep = "_")
-
-    return(year_range)
-    }
-
-
-  stop("The inputs are neither a 4-character string nor class = 'date'")
+create_range_year <- function(year_x, year_y){
+  stringr::str_c(lubridate::year(year_x), lubridate::year(year_y), sep = "_")
 
 }
-)
 
 #' @export
 create_range_date <- function(x,y){
