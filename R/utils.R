@@ -9,33 +9,37 @@ NULL
 rm_gc <- function(x){rm(x)
   gc(verbose = FALSE)
   invisible(NULL)
-  }
+}
 
 #' @export
 scale_pct_points <- function(x){
-        label <- stringr::str_c(scales::percent(x)," pts")
-        label <- ifelse(x>0,
-                        stringr::str_c("+",label),
-                        label)
-        label <- ifelse(x==0,
-                        "0",
-                        label)
-        return(label)
-    }
+  label <- stringr::str_c(scales::percent(x)," pts")
+  label <- ifelse(x>0,
+                  stringr::str_c("+",label),
+                  label)
+  label <- ifelse(x==0,
+                  "0",
+                  label)
+  return(label)
+}
 
 #' @export
-convert_to_2018_dollars <- function(value, year){
+convert_to_2018_dollars <- function(value, date_string){
 
-    # Note: this function can only convery sales after the year 1999 -- earlier years will return NA
+  # Note: this function can only convery sales after the year 1999 -- earlier years will return NA
 
-    # Check that `year` is a 4-digit character
+  # Check that `year` is a date-like character string in the following pattern: "YYYY-MM-DD"
 
-  if(!(is.character(year) & nchar(year) == 4L)){stop("The `year` argument must be a character vector with nchar == 4.\nFor example: '2012'")}
+  date_pattern <- "^\\d{4}-\\d{2}-\\d{2}$"
 
-    adj_rate <- cpi[as.character(2018)]/cpi[year]
+  if(! stringr::str_detect(date_string, date_pattern)){stop("The `date_string` argument must be a date-like character vector in the following format: 'YYYY-MM-DD'.")}
 
-    as.integer(round(as.double(value) * adj_rate ,digits = -2) )
-  }
+  year <- as.character(lubridate::year(date_string))
+
+  adj_rate <- cpi[as.character(2018)]/cpi[year]
+
+  as.integer(round(as.double(value) * adj_rate ,digits = -2) )
+}
 
 
 #' @export
