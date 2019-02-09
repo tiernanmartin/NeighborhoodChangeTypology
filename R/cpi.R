@@ -6,18 +6,16 @@
 #' @export
 prepare_cpi <- function(path){
 
-# NOTE: as of 10/3/2018, the blsAPI() function is not working.
-#       An issue has been filed with the package developer
-#      <https://github.com/mikeasilva/blsAPI/issues/19#issue-366444481>
-#      Until this gets resolved, this function should not be used.
-
-
   # GET DATA ----------------------------------------------------------------
 
-  uscpi_seriesid <- "CUSR0000SA0"
+  # NOTE: when adjusting housing prices or rent for inflation, use CPI less shetler
+  # source: <https://twitter.com/DanImmergluck/status/1055105151621574657?s=19>
+
+
+  seriesid_cpi_less_shelter <- "CUSR0000SA0L2"
 
   payload <- list(
-    'seriesid'= uscpi_seriesid,
+    'seriesid'= seriesid_cpi_less_shelter,
     'startyear'= 2000,
     'endyear'= 2018,
     'annualaverage' = TRUE)
