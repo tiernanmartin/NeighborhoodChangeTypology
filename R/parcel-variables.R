@@ -85,9 +85,11 @@ make_parcel_sales_variables <- function(parcel_sales,
                      META_SALE_REASON = META_SALE_REASON_DESC
     )
 
+ # ADJUST FOR INFLATION ----------------------------------------------------
+
   sales_2018_dollars <- sales_prep %>%
     dplyr::mutate(VARIABLE = "SP", # SP is my shorthand for "sale price"
-                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_GROUP_ID, convert_to_2018_dollars))  # note: the original SALE_PRICE variable is dropped
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars))  # note: the original SALE_PRICE variable is dropped
 
 
 
@@ -246,18 +248,19 @@ make_parcel_value_variables_part1 <- function(parcel_all_metadata,
     dplyr::distinct()
 
 
-  parcel_value_all_variables <- parcel_value %>%
+  parcel_value_all_variables <- parcel_value %>% slice(1:1000) %>%
     dplyr::group_by(GEOGRAPHY_ID,
                     DATE_GROUP_ID,
+                    DATE_END, # this field will be passed to convert_to_2018_dollars()
                     VARIABLE) %>%
     dplyr::summarise(ESTIMATE = sum(ESTIMATE, na.rm = TRUE),
                      MOE = dplyr::first(MOE)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(VARIABLE = stringr::str_c(VARIABLE,"_2018"),
-                  ESTIMATE = purrr::map2_int(ESTIMATE, DATE_GROUP_ID, convert_to_2018_dollars)) %>%
+                  ESTIMATE = purrr::map2_int(ESTIMATE, DATE_END, convert_to_2018_dollars)) %>%
     dplyr::left_join(parcel_value_join_cols, by = c("GEOGRAPHY_ID",
-                                                    "DATE_GROUP_ID"))
-
+                                                    "DATE_GROUP_ID",
+                                                    "DATE_END"))
   parcel_value_total_wide <- parcel_value_all_variables %>%
     tidyr::spread(VARIABLE, ESTIMATE) %>%
     dplyr::rename(ASSESSED_TOTAL_VALUE = VALUE_TOTAL_2018)
