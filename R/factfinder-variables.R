@@ -2,26 +2,28 @@
 #' @description Return a `tibble` of all of the US Census data variables
 #'   that are obtained from the American Factfinder user interface: \link{https://factfinder.census.gov/}
 #' @param factfinder_data Tibble, desc
-#' @param variable_template Tibble, desc
 #' @param census_geography_metadata desc
+#' @param cpi desc
+#' @param variable_template Tibble, desc
 #' @return a `tibble`
 
 #' @rdname factfinder-variables
 #' @export
-make_factfinder_variables <- function(factfinder_data, variable_template, census_geography_metadata){
+make_factfinder_variables <- function(factfinder_data, census_geography_metadata, cpi, variable_template){
 
-  # PREPARE LTDB DATA ROLES --------------------------------------------------------
+  # PREPARE LTDB DATA ROLES & ADJUST FOR INFLATION --------------------------
 
-  factfinder_variables_roles <- factfinder_data %>%
+  factfinder_variables_roles_2018_dollars <- factfinder_data %>%
     dplyr::mutate(INDICATOR = "VALUE",
                   VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
-                  VARIABLE_ROLE = "include") # there's only one variable and it is a value variable so its ROLE is "include"
+                  VARIABLE_ROLE = "include", # there's only one variable and it is a value variable so its ROLE is "include"
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars))
 
 
 
   # STANDARDIZE CENSUS GEOGRAPHY FIELDS -------------------------------------
 
-  factfinder_variable_geography <- factfinder_variables_roles %>%
+  factfinder_variable_geography <- factfinder_variables_roles_2018_dollars %>%
     dplyr::select(-GEOGRAPHY_ID_TYPE, -GEOGRAPHY_NAME, -GEOGRAPHY_TYPE) %>%  #drop all geography fields accept the join field (GEOGRAPHY_ID)
   dplyr::left_join(census_geography_metadata, by = c("GEOGRAPHY_ID"))
 

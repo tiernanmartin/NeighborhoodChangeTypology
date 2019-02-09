@@ -2,19 +2,17 @@
 #' @description Return a `tibble` of all of the American Community Survey data variables.
 #' @param acs_data Tibble, description.
 #' @param acs_tables desc
+#' @param cpi desc
 #' @param variable_template desc
 #' @return a `tibble`
 
 #' @rdname acs-variables
 #' @export
-make_acs_variables <- function(acs_data, acs_tables, variable_template){
+make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
 
   # PREPARE ACS DATA ROLES --------------------------------------------------------
 
   # Join each acs variable its respective indicator
-
-  # cnt_indicators <- acs_tables %>%
-  #   dplyr::filter(VARIABLE_ROLE %in% "COUNT")
 
 
   all_vars <- tidycensus::load_variables(2016, "acs5", cache = TRUE) %>%
@@ -24,9 +22,6 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
                      VARIABLE_SUBTOTAL_DESC = label,
                      CONCEPT = concept) %>%
     dplyr::inner_join(acs_tables, by = "VARIABLE")
-
-  # indicator_cnt_vars <- acs_tables %>%
-  #   dplyr::inner_join(all_vars, by = c(VARIABLE = "NAME"))
 
 
   # FIGURE OUT THE VARIABLE_ROLE INDICATORS
@@ -164,6 +159,16 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
   acs_vars_data <- acs_data %>%
     dplyr::full_join(acs_vars_join, by = c("SOURCE", "VARIABLE_SUBTOTAL"))
 
+
+ # ADJUST FOR INFLATION ----------------------------------------------------
+
+  acs_vars_data_2018_dollars <- acs_vars_data %>%
+    dplyr::mutate(ESTIMATE = dplyr::if_else(INDICATOR %in% c("RENT", "VALUE"), # only adjust ESTIMATE for the price-related INDICATORS
+                                            purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars),
+                                            ESTIMATE))
+
+
+
   # REFINE VARIABLE AND CREATE VARIABLE_DESC --------------------------------
 
   acs_vars_data <- acs_vars_data %>%
@@ -200,7 +205,7 @@ make_acs_variables <- function(acs_data, acs_tables, variable_template){
 
  acs_variables <- acs_vars_ready
 
-# CHECK DATA --------------------------------------------------------------
+  # CHECK DATA --------------------------------------------------------------
 
 
   check_acs_vars_ready <- function(){

@@ -4,23 +4,28 @@
 #'   that are obtained from the Brown University Longitudinal Tract Database (LTDB).
 #' @param ltdb_data Tibble, desc
 #' @param census_geography_metadata desc
+#' @param cpi desc
 #' @param variable_template Tibble, desc
 #' @return a `tibble`
 
 #' @rdname ltdb-variables
 #' @export
-make_ltdb_variables <- function(ltdb_data, census_geography_metadata, variable_template){
+make_ltdb_variables <- function(ltdb_data, census_geography_metadata, cpi, variable_template){
 
-  # PREPARE LTDB DATA ROLES --------------------------------------------------------
 
-  ltdb_variables_roles <- ltdb_data %>%
+# PREPARE LTDB DATA ROLES & ADJUST FOR INFLATION --------------------------
+
+
+  ltdb_variables_roles_2018_dollars <- ltdb_data %>%
     dplyr::mutate(INDICATOR = "VALUE",
                   VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
-                  VARIABLE_ROLE = "include") # there's only one variable and it is a value variable so its ROLE is "include"
+                  VARIABLE_ROLE = "include", # there's only one variable and it is a value variable so its ROLE is "include"
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars))
+
 
   # STANDARDIZE CENSUS GEOGRAPHY FIELDS -------------------------------------
 
-  ltdb_variables_geography <- ltdb_variables_roles %>%
+  ltdb_variables_geography <- ltdb_variables_roles_2018_dollars %>%
     dplyr::select(-GEOGRAPHY_ID_TYPE, -GEOGRAPHY_NAME, -GEOGRAPHY_TYPE) %>%  #drop all geography fields accept the join field (GEOGRAPHY_ID)
   dplyr::left_join(census_geography_metadata, by = c("GEOGRAPHY_ID"))
 

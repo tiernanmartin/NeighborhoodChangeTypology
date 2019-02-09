@@ -93,7 +93,7 @@ make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_tabl
     # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
     # If any NA's are showing up then something needs to be fixed
 
-     hud_chas_variables %>% dplyr::count(DATE_GROUP_ID, INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
+     hud_chas_variables %>% dplyr::count(DATE_GROUP_ID, GEOGRAPHY_TYPE, INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
   }
 
   # RETURN ------------------------------------------------------------------
