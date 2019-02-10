@@ -85,7 +85,7 @@ make_parcel_sales_variables <- function(parcel_sales,
                      META_SALE_REASON = META_SALE_REASON_DESC
     )
 
- # ADJUST FOR INFLATION ----------------------------------------------------
+  # ADJUST FOR INFLATION ----------------------------------------------------
 
   sales_2018_dollars <- sales_prep %>%
     dplyr::mutate(VARIABLE = "SP", # SP is my shorthand for "sale price"
@@ -134,7 +134,7 @@ make_parcel_sales_variables <- function(parcel_sales,
       META_PROP_TYPE_LGL = META_PROPERTY_TYPE %in% sales_criteria$property_type,
       META_REASON_LGL = META_SALE_REASON %in% sales_criteria$sale_reason,
       META_NBR_BLDG_LGL = META_NBR_BUILDINGS <= sales_criteria$buildings_on_property,
-      META_YEAR_LGL = as.numeric(DATE_GROUP_ID) %in% sales_criteria$date,
+      META_YEAR_LGL = as.numeric(stringr::str_extract(DATE_GROUP_ID,"\\d{4}$")) %in% sales_criteria$date, # get the end year from DATE_GROUP_ID
       META_SALE_CRITERIA_LGL = META_SQFT_LGL & META_PRICE_LGL & META_USE_LGL &  META_PROP_TYPE_LGL & META_REASON_LGL & META_NBR_BLDG_LGL & META_YEAR_LGL
     ) %>%
     dplyr::mutate(META_SALE_MEETS_CRITERIA_SF_LGL = META_USE_TYPE_SF_LGL & META_PROP_CLASS_SF_LGL & META_SALE_CRITERIA_LGL,
@@ -248,7 +248,7 @@ make_parcel_value_variables_part1 <- function(parcel_all_metadata,
     dplyr::distinct()
 
 
-  parcel_value_all_variables <- parcel_value %>% slice(1:1000) %>%
+  parcel_value_all_variables <- parcel_value %>%
     dplyr::group_by(GEOGRAPHY_ID,
                     DATE_GROUP_ID,
                     DATE_END, # this field will be passed to convert_to_2018_dollars()

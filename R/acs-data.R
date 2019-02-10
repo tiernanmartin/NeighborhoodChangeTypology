@@ -34,9 +34,10 @@ prepare_acs_data <- function(data_template, model_table, acs_tables, path){
   geographies <- c("tract","county")
 
   years <- data_key %>%
-    dplyr::filter(DATE_END >= 2010L) %>% # the tidycensus package only queries data from 2010 - present
+    dplyr::filter(as.numeric(DATE_END) >= 2010L) %>% # the tidycensus package only queries data from 2010 - present
     dplyr::arrange(DATE_END) %>%
     dplyr::pull(DATE_END) %>%
+    purrr::map_dbl(as.numeric) %>%
     unique()
 
   variables_types <- data_key %>%
@@ -63,10 +64,10 @@ prepare_acs_data <- function(data_template, model_table, acs_tables, path){
                        GEOGRAPHY_ID_TYPE = "GEOID",
                        GEOGRAPHY_NAME = NAME,
                        GEOGRAPHY_TYPE = geographies,
-                       DATE_BEGIN = get_date_begin(years - 4L), # creates the first day of the 5-year span
+                       DATE_BEGIN = get_date_begin(as.numeric(years) - 4L), # creates the first day of the 5-year span
                        DATE_END = get_date_end(years), # creates the last day of the 5-year span
-                       DATE_GROUP_ID = as.character(years),
-                       DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                       DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                       DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                        DATE_RANGE_TYPE = "five years",
                        VARIABLE = stringr::str_extract(VARIABLE_SUBTOTAL,".*(?=_\\d{3})"),
                        VARIABLE_SUBTOTAL,
@@ -130,8 +131,7 @@ make_acs_data <- function(path){
   acs_data <- suppressWarnings(suppressMessages(readr::read_csv(path))) %>%
     dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID),
                   DATE_BEGIN = as.character(DATE_BEGIN),
-                  DATE_END = as.character(DATE_END),
-                  DATE_GROUP_ID = as.character(DATE_GROUP_ID)
+                  DATE_END = as.character(DATE_END)
                   )
 
   return(acs_data)

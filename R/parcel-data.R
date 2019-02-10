@@ -80,9 +80,15 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
 
   rgdal::ogrListLayers("extdata/source/Year2010.gdb")
 
+  rgdal::ogrListLayers("extdata/source/Year2013.gdb")
+
+  rgdal::ogrListLayers("extdata/source/Year2014.gdb")
+
   rgdal::ogrListLayers("extdata/source/Year2015.gdb")
 
   rgdal::ogrListLayers("extdata/source/Year2016.gdb")
+
+  # rgdal::ogrListLayers("extdata/source/Year2017.gdb") # note: the contents of files in this geodatabase appear to be identical to those in Year2016.gdb
 
 
   # 2005
@@ -105,6 +111,23 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
   res_bldg_2010 <- sf::st_read(dsn = "extdata/source/Year2010.gdb", layer = "resbldg_extr")
 
 
+  # 2013
+
+  p_2013 <- sf::st_read(dsn = "extdata/source/Year2013.gdb", layer = "parcel_report_view")
+
+  condo_2013 <- sf::st_read(dsn = "extdata/source/Year2013.gdb", layer = "CONDOUNIT_EXTR")
+
+  res_bldg_2013 <- sf::st_read(dsn = "extdata/source/Year2013.gdb", layer = "RESBLDG_EXTR")
+
+  # 2014
+
+  p_2014 <- sf::st_read(dsn = "extdata/source/Year2014.gdb", layer = "parcel_report_view")
+
+  condo_2014 <- sf::st_read(dsn = "extdata/source/Year2014.gdb", layer = "CONDOUNIT_EXTR")
+
+  res_bldg_2014 <- sf::st_read(dsn = "extdata/source/Year2014.gdb", layer = "RESBLDG_EXTR")
+
+
   # 2015
 
   p_2015 <- sf::st_read(dsn = "extdata/source/Year2015.gdb", layer = "PARCEL_EXTR")
@@ -118,17 +141,21 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
 
   p_2016 <- sf::st_read(dsn = "extdata/source/Year2016.gdb", layer = "PARCEL_EXTR")
 
+  condo_2016 <- sf::st_read(dsn = "extdata/source/Year2016.gdb", layer = "CONDOUNIT_EXTR")
+
+  res_bldg_2016 <- sf::st_read(dsn = "extdata/source/Year2016.gdb", layer = "RESBLDG_EXTR")
 
   # 2017
 
-  p_2017 <- readr::read_csv("extdata/source/Year2017/EXTR_Parcel.csv") %>%
+  p_2017 <- readr::read_csv("extdata/source/Year-2017/EXTR_Parcel_20171013.csv") %>%
     janitor::clean_names(case = "screaming_snake")
 
-  condo_2017 <- readr::read_csv("extdata/source/Year2017/EXTR_CondoUnit2.csv") %>%
+  condo_2017 <- readr::read_csv("extdata/source/Year-2017/EXTR_CondoUnit2.csv") %>%
     janitor::clean_names(case = "screaming_snake")
 
-  res_bldg_2017 <- readr::read_csv("extdata/source/Year2017/EXTR_ResBldg.csv") %>%
+  res_bldg_2017 <- readr::read_csv("extdata/source/Year-2017/EXTR_ResBldg.csv") %>%
     janitor::clean_names(case = "screaming_snake")
+
 
 
   # WRITE DATA --------------------------------------------------------------
@@ -152,10 +179,18 @@ prepare_parcel_data <- function(model_table, acs_tables, zip_path){
     p_2010,     "EXTR_Parcel_2010.csv",
     res_bldg_2010,    "EXTR_ResBldg_2010.csv",
     condo_2010, "EXTR_Condo_Unit_2010.csv",
+    p_2013,     "EXTR_Parcel_2013.csv",
+    condo_2013, "EXTR_Condo_Unit_2013.csv",
+    res_bldg_2013,    "EXTR_ResBldg_2013.csv",
+    p_2014,     "EXTR_Parcel_2014.csv",
+    condo_2014, "EXTR_Condo_Unit_2014.csv",
+    res_bldg_2014,    "EXTR_ResBldg_2014.csv",
     p_2015,     "EXTR_Parcel_2015.csv",
     condo_2015, "EXTR_Condo_Unit_2015.csv",
     res_bldg_2015,    "EXTR_ResBldg_2015.csv",
     p_2016,     "EXTR_Parcel_2016.csv",
+    condo_2016, "EXTR_Condo_Unit_2016.csv",
+    res_bldg_2016,    "EXTR_ResBldg_2016.csv",
     p_2017,     "EXTR_Parcel_2017.csv",
     condo_2017, "EXTR_CondoUnit2_2017.csv",
     res_bldg_2017,    "EXTR_ResBldg_2017.csv"
@@ -189,10 +224,10 @@ make_parcel_value <- function(data_template, zip_path, file_path){
 
 
   parcel_value_long <- parcel_value_filter %>%
-    dplyr::mutate(DATE_BEGIN = get_date_end(TAX_YR), # date of the last day of the calendar year
-                  DATE_END = get_date_end(TAX_YR), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+    dplyr::mutate(DATE_BEGIN = as.character(get_date_end(TAX_YR)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(TAX_YR)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day",
                   VALUE_IMPROVEMENT = IMPS_VAL,
                      VALUE_TOTAL = LAND_VAL) %>%
@@ -256,7 +291,6 @@ make_parcel_sales <- function(data_template, zip_path, file_path){
     janitor::clean_names(case = "screaming_snake")
 
   parcel_sales_long <- parcel_sales_raw %>%
-    # dplyr::mutate(ENDYEAR = as.integer(stringr::str_extract(DOCUMENT_DATE, "\\d{4}$"))) %>%
     tidyr::gather(VARIABLE, ESTIMATE, SALE_PRICE) %>%
     dplyr::rename_at(dplyr::vars(-dplyr::matches("VARIABLE|ESTIMATE")), dplyr::funs(stringr::str_c("META_",.)))
 
@@ -268,8 +302,8 @@ make_parcel_sales <- function(data_template, zip_path, file_path){
                   GEOGRAPHY_TYPE = "parcel",
                   DATE_BEGIN = as.Date(META_DOCUMENT_DATE, format = "%m/%d/%Y"), # date of the sale document
                   DATE_END = as.Date(META_DOCUMENT_DATE, format = "%m/%d/%Y"), # also the date of the sale document
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day",
                   VARIABLE,
                   VARIABLE_SUBTOTAL = NA_character_,
@@ -322,10 +356,10 @@ make_parcel_info_2005 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2005L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2005L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2005L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2005L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -349,10 +383,10 @@ make_parcel_info_2010 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2010L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2010L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2010L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2010L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -377,10 +411,10 @@ make_parcel_info_2013 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2013L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2013L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2013L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2013L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -405,10 +439,10 @@ make_parcel_info_2014 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2014L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2014L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2014L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2014L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -433,10 +467,10 @@ make_parcel_info_2015 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2015L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2015L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2015L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2015L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -461,10 +495,10 @@ make_parcel_info_2016 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2016L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2016L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2016L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2016L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -492,15 +526,14 @@ make_parcel_info_2017 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2017L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2017L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2017L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2017L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
   return(parcel_info_2017)
-
 }
 
 #' @rdname parcel-data
@@ -523,10 +556,10 @@ make_parcel_info_2018 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2018L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2018L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2018L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2018L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -582,10 +615,10 @@ make_condo_info_2005 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2005L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2005L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2005L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2005L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -611,10 +644,10 @@ make_condo_info_2010 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2010L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2010L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2010L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2010L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -640,10 +673,10 @@ make_condo_info_2013 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2013L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2013L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2013L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2013L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -669,10 +702,10 @@ make_condo_info_2014 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2014L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2014L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2014L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2014L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -698,14 +731,44 @@ make_condo_info_2015 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2015L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2015L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2015L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2015L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
   return(condo_info_2015)
+}
+
+#' @rdname parcel-data
+#' @export
+make_condo_info_2016 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  condo_info_2016_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(FOOTAGE = FT,
+                  UNIT_TYPE = UNITTYPE) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.))) %>%
+    dplyr::mutate(META_PIN = make_pin(META_MAJOR, META_MINOR))
+
+
+  condo_info_2016 <- metadata_template %>%
+    dplyr::full_join(condo_info_2016_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  DATE_BEGIN = as.character(get_date_end(2016L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2016L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+  return(condo_info_2016)
 }
 
 #' @rdname parcel-data
@@ -726,10 +789,10 @@ make_condo_info_2017 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2017L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2017L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2017L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2017L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -754,10 +817,10 @@ make_condo_info_2018 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2018L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2018L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2018L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2018L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -783,10 +846,10 @@ make_res_bldg_2005 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2005L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2005L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2005L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2005L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -812,10 +875,10 @@ make_res_bldg_2010 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2010L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2010L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2010L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2010L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -841,10 +904,10 @@ make_res_bldg_2013 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2013L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2013L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2013L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2013L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -870,10 +933,10 @@ make_res_bldg_2014 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2014L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2014L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2014L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2014L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -899,14 +962,43 @@ make_res_bldg_2015 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2015L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2015L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2015L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2015L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
   return(res_bldg_2015)
+}
+
+#' @rdname parcel-data
+#' @export
+make_res_bldg_2016 <- function(metadata_template, zip_path, file_path){
+
+  NeighborhoodChangeTypology::extract_file(zip_path, file_path)
+
+  res_bldg_2016_raw <- suppressWarnings(suppressMessages(readr::read_csv(file_path))) %>%
+    janitor::clean_names(case = "screaming_snake") %>%
+    dplyr::rename(SQ_FT_TOT_LIVING = SQFTTOTLIVING,
+                  BLDG_NBR = BLDGNBR,
+                  YR_BUILT = YRBUILT) %>%
+    dplyr::rename_all(dplyr::funs(stringr::str_c("META_",.)))
+
+  res_bldg_2016 <- metadata_template %>%
+    dplyr::full_join(res_bldg_2016_raw, by = c(GEOGRAPHY_ID = "META_PIN")) %>%
+    dplyr::mutate(SOURCE = "ASSESSOR",
+                  GEOGRAPHY_ID_TYPE = "PIN",
+                  GEOGRAPHY_NAME = NA_character_,
+                  GEOGRAPHY_TYPE = "parcel",
+                  DATE_BEGIN = as.character(get_date_end(2016L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2016L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
+                  DATE_RANGE_TYPE = "one day") %>%
+    dplyr::mutate_if(lubridate::is.Date, as.character)
+
+  return(res_bldg_2016)
 }
 
 #' @rdname parcel-data
@@ -926,10 +1018,10 @@ make_res_bldg_2017 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2017L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2017L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2017L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2017L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -953,19 +1045,13 @@ make_res_bldg_2018 <- function(metadata_template, zip_path, file_path){
                   GEOGRAPHY_ID_TYPE = "PIN",
                   GEOGRAPHY_NAME = NA_character_,
                   GEOGRAPHY_TYPE = "parcel",
-                  DATE_BEGIN = get_date_end(2018L), # date of the last day of the calendar year
-                  DATE_END = get_date_end(2018L), # also the date of the last day of the calendar year
-                  DATE_GROUP_ID = as.character(lubridate::year(DATE_END)),
-                  DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                  DATE_BEGIN = as.character(get_date_end(2018L)), # date of the last day of the calendar year
+                  DATE_END = as.character(get_date_end(2018L)), # also the date of the last day of the calendar year
+                  DATE_GROUP_ID = create_range_year(DATE_BEGIN, DATE_END),
+                  DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                   DATE_RANGE_TYPE = "one day") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
   return(res_bldg_2018)
 }
-
-
-
-
-
-
 

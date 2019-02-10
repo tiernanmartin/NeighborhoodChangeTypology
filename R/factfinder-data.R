@@ -56,10 +56,10 @@ prepare_factfinder_data <- function(data_template, acs_tables, path){
                      GEOGRAPHY_ID_TYPE = "GEOID",
                      GEOGRAPHY_NAME = GEO_DISPLAY_LABEL,
                      GEOGRAPHY_TYPE = "county",
-                     DATE_BEGIN = get_date_begin(2000L), # creates the first day of the 5-year span
-                     DATE_END = get_date_end(2000L), # creates the last day of the 5-year span
-                     DATE_GROUP_ID = "2000",
-                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                     DATE_BEGIN = get_date_begin("2000"), # creates the first day of the 5-year span
+                     DATE_END = get_date_end("2000"), # creates the last day of the 5-year span
+                     DATE_GROUP_ID = create_range_year(DATE_BEGIN,DATE_END),
+                     DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one year",
                      VARIABLE,
                      VARIABLE_SUBTOTAL = VARIABLE,
@@ -113,7 +113,6 @@ make_factfinder_data <- function(path){
     dplyr::mutate(GEOGRAPHY_ID = as.character(GEOGRAPHY_ID),
                   DATE_BEGIN = as.character(DATE_BEGIN),
                   DATE_END = as.character(DATE_END),
-                  DATE_GROUP_ID = as.character(DATE_GROUP_ID),
                   MOE = as.numeric(MOE))
 
   return(factfinder_data)

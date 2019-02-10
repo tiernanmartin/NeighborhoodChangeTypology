@@ -17,6 +17,7 @@
 #' @param condo_info_2013 desc
 #' @param condo_info_2014 desc
 #' @param condo_info_2015 desc
+#' @param condo_info_2016 desc
 #' @param condo_info_2017 desc
 #' @param condo_info_2018 desc
 #' @param res_bldg_2005 desc
@@ -24,6 +25,7 @@
 #' @param res_bldg_2013 desc
 #' @param res_bldg_2014 desc
 #' @param res_bldg_2015 desc
+#' @param res_bldg_2016 desc
 #' @param res_bldg_2017 desc
 #' @param res_bldg_2018 desc
 #' @param parcel_sales  desc
@@ -48,6 +50,7 @@ make_parcel_all_metadata <- function(present_use_key,
                                      condo_info_2013,
                                      condo_info_2014,
                                      condo_info_2015,
+                                     condo_info_2016,
                                      condo_info_2017,
                                      condo_info_2018,
                                      res_bldg_2005,
@@ -55,6 +58,7 @@ make_parcel_all_metadata <- function(present_use_key,
                                      res_bldg_2013,
                                      res_bldg_2014,
                                      res_bldg_2015,
+                                     res_bldg_2016,
                                      res_bldg_2017,
                                      res_bldg_2018,
                                      parcel_sales,
@@ -100,7 +104,8 @@ make_parcel_all_metadata <- function(present_use_key,
 
   prep_res_bldg <- function(x){
 
-    x %>% dplyr::transmute(SOURCE,
+    x %>%
+      dplyr::transmute(SOURCE,
                            GEOGRAPHY_ID,
                            GEOGRAPHY_ID_TYPE,
                            GEOGRAPHY_NAME,
@@ -125,69 +130,11 @@ make_parcel_all_metadata <- function(present_use_key,
                         res_bldg_2013,
                         res_bldg_2014,
                         res_bldg_2015,
-                        res_bldg_2017, # res_bldg_2016 is unnavailable but it will be imputed in the next step
+                        res_bldg_2016,
+                        res_bldg_2017, # note: it seems that this information is identical to `res_bldg_2016``
                         res_bldg_2018)
 
-  res_bldg_no_2016 <- purrr::map_dfr(res_bldg_list, prep_res_bldg)
-
-
-  sale_2016 <- parcel_sales %>%
-    dplyr::filter(DATE_GROUP_ID %in% "2016") %>%
-    dplyr::transmute(GEOGRAPHY_ID,
-                     SOLD_2016 = TRUE)
-
-  res_2015_2017_distinct <- res_bldg_no_2016 %>%
-    dplyr::filter(DATE_GROUP_ID %in% c("2015", "2017")) %>%
-    dplyr::left_join(sale_2016, by = "GEOGRAPHY_ID") %>%
-    dplyr::mutate(SOLD_2016 = dplyr::case_when(
-      is.na(SOLD_2016) ~ FALSE,
-      TRUE ~ TRUE
-    )) %>%
-    dplyr::distinct()
-
-  res_2015_2017_wide <- res_2015_2017_distinct %>%
-    tidyr::unite("GEOGRAPHY_ID_BLDG", c(GEOGRAPHY_ID, META_BLDG_NBR)) %>%
-    tidyr::gather(META_VAR, VAL, dplyr::matches("META")) %>%
-    dplyr::mutate(YEAR = stringr::str_c("YEAR_", DATE_GROUP_ID)) %>%
-    dplyr::select(-dplyr::starts_with("DATE")) %>%
-    tidyr::spread(YEAR, VAL)
-
-  res_2016_raw <- res_2015_2017_wide  %>%
-    dplyr::mutate(YEAR_2016 = dplyr::case_when(
-      YEAR_2015 %in% YEAR_2017 ~ YEAR_2017, # if they're the same, return the 2017 value
-      SOLD_2016 ~ YEAR_2017, # if not the same and the prop sold in 2016, return 2017 value
-      is.na(YEAR_2015) ~ YEAR_2017,
-      is.na(YEAR_2017) ~ YEAR_2015,
-      TRUE ~ NA_character_
-    )) %>%
-    tidyr::gather(VAR, VAL, dplyr::matches("YEAR_")) %>%
-    dplyr::mutate(VAR = stringr::str_remove(VAR,"YEAR_")) %>%
-    dplyr::rename(DATE_GROUP_ID = VAR) %>%
-    tidyr::spread(META_VAR, VAL) %>%
-    dplyr::filter(DATE_GROUP_ID %in% "2016") %>%
-    dplyr::select(-SOLD_2016)
-
-  res_2016_ready <- res_2016_raw %>%
-    tidyr::separate(GEOGRAPHY_ID_BLDG, into = c("GEOGRAPHY_ID", "META_BLDG_NBR"), sep = "_") %>%
-    dplyr::transmute(SOURCE,
-                     GEOGRAPHY_ID,
-                     GEOGRAPHY_ID_TYPE,
-                     GEOGRAPHY_NAME,
-                     GEOGRAPHY_TYPE,
-                     DATE_BEGIN = "2016-12-31",
-                     DATE_END = "2016-12-31",
-                     DATE_GROUP_ID = "2016",
-                     DATE_RANGE = "20161231_20161231",
-                     DATE_RANGE_TYPE = "one day",
-                     META_PROPERTY_CATEGORY,
-                     META_BLDG_NBR = as.double(META_BLDG_NBR), # make it match the class in res_bldg_no_2016
-                     META_LIVING_SQ_FT = as.double(META_LIVING_SQ_FT), # make it match the class in res_bldg_no_2016
-                     META_NBR_BUILDINGS = as.integer(META_NBR_BUILDINGS) # make it match the class in res_bldg_no_2016
-    )
-
-  res_bldg_all <- list(res_bldg_no_2016,
-                       res_2016_ready) %>%
-    purrr::map_dfr(c) %>%
+  res_bldg_all <- purrr::map_dfr(res_bldg_list, prep_res_bldg) %>%
     dplyr::left_join(p_all, by = c("SOURCE",
                                    "GEOGRAPHY_ID",
                                    "GEOGRAPHY_ID_TYPE",
@@ -198,6 +145,8 @@ make_parcel_all_metadata <- function(present_use_key,
                                    "DATE_END",
                                    "DATE_RANGE",
                                    "DATE_RANGE_TYPE"))
+
+
 
 
   # PREP: CONDO_UNIT  --------------------------------------------------------
@@ -227,61 +176,11 @@ make_parcel_all_metadata <- function(present_use_key,
                      condo_info_2013,
                      condo_info_2014,
                      condo_info_2015,
-                     condo_info_2017, # condo_info_2016 is unnavailable but it will be imputed in the next step
+                     condo_info_2016,
+                     condo_info_2017, # note: it seems that this information is identical to `condo_info_2016`
                      condo_info_2018)
 
-  condo_no_2016 <- purrr::map_dfr(condo_list, prep_condo_unit)
-
-  condo_2015_2017_distinct <- condo_no_2016 %>%
-    dplyr::filter(DATE_GROUP_ID %in% c("2015", "2017")) %>%
-    dplyr::left_join(sale_2016, by = "GEOGRAPHY_ID") %>%
-    dplyr::mutate(SOLD_2016 = dplyr::case_when(
-      is.na(SOLD_2016) ~ FALSE,
-      TRUE ~ TRUE
-    )) %>%
-    dplyr::distinct()
-
-  condo_2015_2017_wide <- condo_2015_2017_distinct %>%
-    tidyr::gather(META_VAR, VAL, dplyr::matches("META")) %>%
-    dplyr::mutate(YEAR = stringr::str_c("YEAR_", DATE_GROUP_ID)) %>%
-    dplyr::select(-dplyr::starts_with("DATE")) %>%
-    tidyr::spread(YEAR, VAL)
-
-  condo_2016_raw <- condo_2015_2017_wide  %>%
-    dplyr::mutate(YEAR_2016 = dplyr::case_when(
-      YEAR_2015 %in% YEAR_2017 ~ YEAR_2017, # if they're the same, return the 2017 value
-      SOLD_2016 ~ YEAR_2017, # if not the same and the prop sold in 2016, return 2017 value
-      is.na(YEAR_2015) ~ YEAR_2017,
-      is.na(YEAR_2017) ~ YEAR_2015,
-      TRUE ~ NA_character_
-    )) %>%
-    tidyr::gather(VAR, VAL, dplyr::matches("YEAR_")) %>%
-    dplyr::mutate(VAR = stringr::str_remove(VAR,"YEAR_")) %>%
-    dplyr::rename(DATE_GROUP_ID = VAR) %>%
-    tidyr::spread(META_VAR, VAL) %>%
-    dplyr::filter(DATE_GROUP_ID %in% "2016") %>%
-    dplyr::select(-SOLD_2016)
-
-  condo_2016_ready <- condo_2016_raw %>%
-    dplyr::transmute(SOURCE,
-                     GEOGRAPHY_ID,
-                     GEOGRAPHY_ID_TYPE,
-                     GEOGRAPHY_NAME,
-                     GEOGRAPHY_TYPE,
-                     DATE_BEGIN = "2016-12-31",
-                     DATE_END = "2016-12-31",
-                     DATE_GROUP_ID = "2016",
-                     DATE_RANGE = "20161231_20161231",
-                     DATE_RANGE_TYPE = "one day",
-                     META_PROPERTY_CATEGORY,
-                     META_CONDO_UNIT_TYPE,
-                     META_LIVING_SQ_FT = as.double(META_LIVING_SQ_FT), # make it match the class in res_bldg_no_2016
-                     META_NBR_BUILDINGS = as.integer(META_NBR_BUILDINGS) # make it match the class in res_bldg_no_2016
-    )
-
-  condo_all <- list(condo_no_2016,
-                    condo_2016_ready) %>%
-    purrr::map_dfr(c)
+  condo_all <-  purrr::map_dfr(condo_list, prep_condo_unit)
 
   # PREP: PROPERTY (RES + CONDO) ----------------------------------------------------------
 
@@ -340,6 +239,11 @@ make_parcel_all_metadata <- function(present_use_key,
   # CHECK THE COUNTS (PROP_TYPE by YEAR) ------------------------------------
 
   check_prop_type_by_year <- function(){
+
+    # note: for both condo and res the 2017 data exactly match the 2016 data
+    # this is probably inaccurate (there must have been _some_ changes between those years),
+    # but it is the data that was provided by the Assessor's office
+
     parcel_all_metadata_ready %>% dplyr::count(META_PROPERTY_CATEGORY, DATE_GROUP_ID)
   }
 

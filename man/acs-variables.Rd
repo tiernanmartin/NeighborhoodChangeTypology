@@ -4,12 +4,14 @@
 \alias{make_acs_variables}
 \title{Prepare ACS Data Variables}
 \usage{
-make_acs_variables(acs_data, acs_tables, variable_template)
+make_acs_variables(acs_data, acs_tables, cpi, variable_template)
 }
 \arguments{
 \item{acs_data}{Tibble, description.}
 
 \item{acs_tables}{desc}
+
+\item{cpi}{desc}
 
 \item{variable_template}{desc}
 }
