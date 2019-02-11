@@ -142,6 +142,22 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
                      VARIABLE_ROLE = "include"
     )
 
+  multifamily_vars_join <- all_vars %>%
+    dplyr::filter(INDICATOR %in% "MULTIFAMILY") %>%
+    dplyr::transmute(SOURCE,
+                     INDICATOR = "MULTIFAMILY",
+                     VARIABLE_SUBTOTAL,
+                     VARIABLE_ROLE = dplyr::case_when(
+                       stringr::str_detect(VARIABLE_SUBTOTAL_DESC, "Total$") ~ "total",
+                       stringr::str_detect(VARIABLE_SUBTOTAL_DESC, "2$") ~ "count", # remember: this is **count** data not value data ($ is for the end of the string)
+                       stringr::str_detect(VARIABLE_SUBTOTAL_DESC, "3 or 4$") ~ "count",
+                       stringr::str_detect(VARIABLE_SUBTOTAL_DESC, "5 to 9$") ~ "count",
+                       stringr::str_detect(VARIABLE_SUBTOTAL_DESC, "10 to 19$") ~ "count",
+                       stringr::str_detect(VARIABLE_SUBTOTAL_DESC, "20 to 49$") ~ "count",
+                       stringr::str_detect(VARIABLE_SUBTOTAL_DESC, "50 or more$") ~ "count",
+                       TRUE ~ "omit")
+    )
+
   acs_vars_join <- list(population_vars_join,
                         race_vars_join,
                         ed_vars_join,
@@ -150,7 +166,8 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
                         burden_own_vars_join,
                         burden_rent_vars_join,
                         rent_vars_join,
-                        value_vars_join) %>%
+                        value_vars_join,
+                        multifamily_vars_join) %>%
     purrr::reduce(dplyr::bind_rows)
 
 
@@ -160,7 +177,7 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
     dplyr::full_join(acs_vars_join, by = c("SOURCE", "VARIABLE_SUBTOTAL"))
 
 
- # ADJUST FOR INFLATION ----------------------------------------------------
+  # ADJUST FOR INFLATION ----------------------------------------------------
 
   acs_vars_data_2018_dollars <- acs_vars_data %>%
     dplyr::mutate(ESTIMATE = dplyr::if_else(INDICATOR %in% c("RENT", "VALUE"), # only adjust ESTIMATE for the price-related INDICATORS
@@ -172,7 +189,7 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
   # REFINE VARIABLE AND CREATE VARIABLE_DESC --------------------------------
 
   acs_vars_data <- acs_vars_data %>%
-    dplyr::mutate(VARIABLE = dplyr::case_when(
+    dplyr::mutate(VARIABLE = dplyr::case_when( # the cost burden vars need to be distinguishable from one another
       INDICATOR %in% "COST_BURDEN_OWN" ~ stringr::str_c(VARIABLE,"_OWN"),
       INDICATOR %in% "COST_BURDEN_RENT" ~ stringr::str_c(VARIABLE,"_RENT"),
       TRUE ~ VARIABLE
@@ -203,7 +220,7 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
                             "ESTIMATE",
                             "MOE"))
 
- acs_variables <- acs_vars_ready
+  acs_variables <- acs_vars_ready
 
   # CHECK DATA --------------------------------------------------------------
 
@@ -213,7 +230,7 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
     # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
     # If any NA's are showing up then something needs to be fixed
 
-     acs_variables %>% dplyr::count(DATE_GROUP_ID,INDICATOR, VARIABLE, VARIABLE_ROLE) %>% print(n=Inf)
+    acs_variables %>% dplyr::count(DATE_GROUP_ID, INDICATOR, VARIABLE, VARIABLE_ROLE) %>% print(n=Inf)
   }
 
 
