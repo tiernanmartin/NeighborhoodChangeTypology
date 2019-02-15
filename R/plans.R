@@ -1,3 +1,4 @@
+
 # PROJECT TEMPLATES PLAN --------------------------------------------------------------
 #' @title Get the Project Templates Plan
 #' @description Use \code{\link[drake]{drake_plan}} to create the project's
@@ -26,7 +27,7 @@ get_templates_plan <- function(){
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
   templates_plan <- drake::drake_plan(
-    model_table = make_model_table(),
+    model_table_inputs = make_model_table_inputs(),
     metadata_template = make_metadata_template(),
     data_template = make_data_template(),
     variable_template = make_variable_template(),
@@ -34,8 +35,7 @@ get_templates_plan <- function(){
     indicator_topic_template = make_indicator_topic_template(),
     indicator_type_template = make_indicator_type_template(),
     acs_tables = make_acs_tables()
-
-  )
+    )
 
   return(templates_plan)
 
@@ -75,7 +75,7 @@ get_data_source_plan <- function(){
   #                 long-running uploads to OSF.io
 
   prep_plan <- drake::drake_plan(
-    acs_data_prep_status = target(command = prepare_acs_data(data_template, model_table, acs_tables, path = file_out("extdata/source/acs-data.csv")),
+    acs_data_prep_status = target(command = prepare_acs_data(data_template, model_table_inputs, acs_tables, path = file_out("extdata/source/acs-data.csv")),
                                   trigger = trigger(mode = "condition", condition = FALSE)),
     hud_chas_data_prep_status = target(command = prepare_hud_chas_data(zip_path = file_out("extdata/source/hud-chas-data.zip")),
                                        trigger = trigger(mode = "condition", condition = FALSE)),
@@ -91,7 +91,7 @@ get_data_source_plan <- function(){
                                      trigger = trigger(mode = "condition", condition = FALSE)),
     parcel_boundaries_prep_status = target(prepare_parcel_boundaries(path = file_out("extdata/source/parcel_SHP.zip")),
                                            trigger = trigger(mode = "condition", condition = FALSE)),
-    parcel_data_prep_status = target(prepare_parcel_data(model_table, acs_tables, zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2013-2014-2015-2016-2017-2018.zip")),
+    parcel_data_prep_status = target(prepare_parcel_data(model_table_inputs, acs_tables, zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2013-2014-2015-2016-2017-2018.zip")),
                                      trigger = trigger(mode = "condition", condition = FALSE)),
     census_tracts_2016_prep_status = target(prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg")),
                                             trigger = trigger(mode = "condition", condition = FALSE)),
@@ -334,7 +334,10 @@ get_data_cache_plan <- function(){
 #' }
 get_variable_plan <- function(){
 
-  pkgconfig::set_config("drake::strings_in_dots" = "literals")
+  pkgconfig::set_config("drake::strings_in_dots" = "literals",
+                        "future.globals.maxSize"= 891289600)
+
+  options(future.globals.maxSize= 891289600)
 
   var_prep_plan <- drake::drake_plan(
     parcel_tract_overlay = make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016),
@@ -383,7 +386,7 @@ get_variable_plan <- function(){
 
   var_plan <- drake::drake_plan(
     acs_variables = make_acs_variables(acs_data, acs_tables, cpi, variable_template),
-    hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table, census_geography_metadata, variable_template),
+    hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table_inputs, census_geography_metadata, variable_template),
     ltdb_variables = make_ltdb_variables(ltdb_data, census_geography_metadata, cpi, variable_template),
     factfinder_variables = make_factfinder_variables(factfinder_data, census_geography_metadata, cpi, variable_template),
     parcel_sales_variables = make_parcel_sales_variables(parcel_sales,
@@ -457,11 +460,19 @@ get_indicator_plan <- function(){
                                                                        factfinder_variables,
                                                                        county_community_tract_all_metadata,
                                                                        community_metadata),
-    indicators_median_value = make_indicators_median_value(parcel_value_variables,
+    indicators_median_sales = make_indicators_median_sales(parcel_sales_variables,
                                                            parcel_tract_overlay,
                                                            county_community_tract_all_metadata,
                                                            community_metadata),
-    indicators_median_sales = make_indicators_median_sales(parcel_sales_variables,
+    indicators_median_value_3year = make_indicators_median_value_3year(parcel_value_variables,
+                                                           parcel_tract_overlay,
+                                                           county_community_tract_all_metadata,
+                                                           community_metadata),
+    indicators_median_value_1year = make_indicators_median_value_1year(parcel_value_variables,
+                                                           parcel_tract_overlay,
+                                                           county_community_tract_all_metadata,
+                                                           community_metadata),
+    indicators_median_value_quarter = make_indicators_median_value_quarter(parcel_value_variables,
                                                            parcel_tract_overlay,
                                                            county_community_tract_all_metadata,
                                                            community_metadata),
@@ -475,12 +486,14 @@ get_indicator_plan <- function(){
                                                  indicators_cnt_pct_sales,
                                                  indicator_template),
     indicators_median = make_indicators_median(indicators_median_acs_ltdb_ff,
-                                               indicators_median_value,
-                                               indicators_median_sales,
-                                               indicator_template),
+                                   indicators_median_value_3year,
+                                   indicators_median_value_1year,
+                                   indicators_median_value_quarter,
+                                   indicators_median_sales,
+                                   indicator_template),
     indicators_by_topic = make_indicators_by_topic(indicators_cnt_pct,
                                                    indicators_median,
-                                                   model_table,
+                                                   model_table_inputs,
                                                    indicator_topic_template),
     # sample_size_metadata = make_sample_size_metadata(indicators_cnt_pct,
     #                              indicators_median),
@@ -498,15 +511,15 @@ get_indicator_plan <- function(){
   # )
 
   ind_type_plan <- drake::drake_plan(
-    indicators_comparison = make_indicators_comparison(indicators_by_topic,
-                                                       change_endyears,
-                                                       indicator_type_template),
-    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_topic,
-                                                                           change_endyears,
-                                                                           indicator_type_template),
-    indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
-                                                                           change_endyears,
-                                                                           indicator_type_template),
+    # indicators_comparison = make_indicators_comparison(indicators_by_topic,
+    #                                                    change_endyears,
+    #                                                    indicator_type_template),
+    # indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_topic,
+    #                                                                        change_endyears,
+    #                                                                        indicator_type_template),
+    # indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
+    #                                                                        change_endyears,
+    #                                                                        indicator_type_template),
     tmp3 = c("placeholder")
   )
 
@@ -549,7 +562,7 @@ get_model_plan <- function(){
   coo_original_plan <- drake::drake_plan()
 
   portland_plan <- drake::drake_plan(
-    portland_model_vulnerability = make_portland_model_vulnerability(),
+    # portland_model_vulnerability = make_portland_model_vulnerability(),
     tmp_portland_plan = c("tmp")
   )
 

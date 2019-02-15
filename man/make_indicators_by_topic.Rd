@@ -4,15 +4,15 @@
 \alias{make_indicators_by_topic}
 \title{Make The Indicators by Topic}
 \usage{
-make_indicators_by_topic(indicators_cnt_pct, indicators_median, model_table,
-  indicator_topic_template)
+make_indicators_by_topic(indicators_cnt_pct, indicators_median,
+  model_table_inputs, indicator_topic_template)
 }
 \arguments{
 \item{indicators_cnt_pct}{desc}
 
 \item{indicators_median}{desc}
 
-\item{model_table}{desc}
+\item{model_table_inputs}{desc}
 
 \item{indicator_topic_template}{desc}
 }

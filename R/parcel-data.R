@@ -1,7 +1,7 @@
 
 #' @title Make A Tibble of The Project's Tax Assessor Variables
 #' @description Return a `tibble` of all of the
-#' @param model_table Tibble, the `model_table` object
+#' @param model_table_inputs Tibble, the `model_table_inputs` object
 #' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
 #' @param zip_path Character, the file path of the archive file
@@ -12,7 +12,7 @@
 
 #' @rdname parcel-data
 #' @export
-prepare_parcel_data <- function(model_table, acs_tables, zip_path){
+prepare_parcel_data <- function(model_table_inputs, acs_tables, zip_path){
 
 
   # GET DATA ----------------------------------------------------------------

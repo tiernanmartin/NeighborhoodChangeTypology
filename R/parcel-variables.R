@@ -89,7 +89,7 @@ make_parcel_sales_variables <- function(parcel_sales,
 
   sales_2018_dollars <- sales_prep %>%
     dplyr::mutate(VARIABLE = "SP", # SP is my shorthand for "sale price"
-                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars))  # note: the original SALE_PRICE variable is dropped
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi))  # note: the original SALE_PRICE variable is dropped
 
 
 
@@ -257,7 +257,7 @@ make_parcel_value_variables_part1 <- function(parcel_all_metadata,
                      MOE = dplyr::first(MOE)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(VARIABLE = stringr::str_c(VARIABLE,"_2018"),
-                  ESTIMATE = purrr::map2_int(ESTIMATE, DATE_END, convert_to_2018_dollars)) %>%
+                  ESTIMATE = purrr::map2_int(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi)) %>%
     dplyr::left_join(parcel_value_join_cols, by = c("GEOGRAPHY_ID",
                                                     "DATE_GROUP_ID",
                                                     "DATE_END"))
@@ -357,14 +357,16 @@ check_criteria_results <- function(...){
 
 
   p_complete <- parcel_value_variables_part1 %>%
-    dplyr::mutate(META_SF_COMPLETE_LGL = purrr::map_lgl(data,
+    dplyr::mutate(META_SF_COMPLETE_LGL = purrr::map_lgl(data,  # purrr::map_lgl didn't provide any speed boost
                                           check_criteria_results,
                                           year_list = year_list,
-                                          criteria_col = "META_MEETS_CRITERIA_SF_LGL"),
+                                          criteria_col = "META_MEETS_CRITERIA_SF_LGL"
+                                          ),
            META_CONDO_COMPLETE_LGL = purrr::map_lgl(data,
                                           check_criteria_results,
                                           year_list = year_list,
-                                          criteria_col = "META_MEETS_CRITERIA_CONDO_LGL")
+                                          criteria_col = "META_MEETS_CRITERIA_CONDO_LGL"
+                                          )
            ) %>%
     tidyr::unnest()
 
@@ -502,7 +504,7 @@ check_criteria_results <- function(...){
 
 
   p_complete <- parcel_value_variables_nested %>%
-    dplyr::mutate(META_SF_COMPLETE_LGL = purrr::map_lgl(data,
+    dplyr::mutate(META_SF_COMPLETE_LGL = purrr::map_lgl(data, # purrr::map_lgl doesn't provide the desired speed boost
                                           check_criteria_results,
                                           year_list = year_list,
                                           criteria_col = "META_MEETS_CRITERIA_SF_LGL"),

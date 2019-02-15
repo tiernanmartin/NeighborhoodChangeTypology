@@ -4,6 +4,13 @@
 #' @import purrr
 NULL
 
+#' @export
+convert_to_complex_pin <- function(x){
+
+  # converts a condo unit PIN (parcel identification number) in the condo complex PIN
+
+  stringr::str_replace(x,".{4}$","0000")
+  }
 
 #' @export
 rm_gc <- function(x){rm(x)
@@ -24,7 +31,7 @@ scale_pct_points <- function(x){
 }
 
 #' @export
-convert_to_2018_dollars <- function(value, date_string){
+convert_to_2018_dollars <- function(value, date_string, cpi){
 
   # Note: this function can only convery sales after the year 1999 -- earlier years will return NA
 
@@ -54,6 +61,19 @@ get_date_end <- function(x){
     magrittr::subtract(1) %>%
     lubridate::ymd()
 }
+
+#' @export
+get_year_quarter <- function(date_x){
+    stringr::str_c(lubridate::year(date_x),"Q",lubridate::quarter(date_x))
+  }
+
+
+#' @export
+create_range_quarter <- function(date_x, date_y){
+  stringr::str_c(get_year_quarter(date_x), get_year_quarter(date_y), sep = "_")
+
+}
+
 
 #' @export
 create_range_year <- function(year_x, year_y){

@@ -20,7 +20,7 @@ make_ltdb_variables <- function(ltdb_data, census_geography_metadata, cpi, varia
     dplyr::mutate(INDICATOR = "VALUE",
                   VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
                   VARIABLE_ROLE = "include", # there's only one variable and it is a value variable so its ROLE is "include"
-                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars))
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi))
 
 
   # STANDARDIZE CENSUS GEOGRAPHY FIELDS -------------------------------------

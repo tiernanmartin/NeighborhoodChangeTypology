@@ -368,17 +368,13 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
 
   # SUMMARIZE BY YEAR --------------------------------------------
 
-  # all_geog_value_cnt_day <- list(parcel_value_cnt, parcel_value_community_cnt, parcel_value_county_cnt) %>%
-  #   purrr::map_dfr(c) %>%
-  #   dplyr::mutate(VARIABLE_ROLE = toupper(VARIABLE_ROLE))
-
   summarize_by_year <- function(x, variable_role){
 
     x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "year"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "year") - 1,
                     DATE_GROUP_ID = DATE_GROUP_ID,
-                    DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                    DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one year") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
       dplyr::group_by(SOURCE,
@@ -412,27 +408,22 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
 
   # SUMMARIZE BY QUARTER ----------------------------------------------------
 
-
-  get_year_quarter <- function(x){
-    stringr::str_c(lubridate::year(x),"_","Q",lubridate::quarter(x))
-  }
-
-  get_qtr_sequence <- function(x){
-    seq(from = lubridate::ymd(stringr::str_c(x,"01-01")),
-        to = lubridate::ymd(stringr::str_c(x,"12-31")),
+  get_qtr_sequence <- function(date_x, date_y){
+    seq(from = lubridate::floor_date(lubridate::ymd(date_x), unit = "year"),
+        to = lubridate::ceiling_date(lubridate::ymd(date_y), unit = "year")-1,
         by = "quarter")
   }
 
+
   date_cols_qtr_full <- parcel_value_cnt %>%
-    dplyr::select(DATE_GROUP_ID) %>%
+    dplyr::select(DATE_BEGIN, DATE_END) %>%
     dplyr::distinct() %>%
-    dplyr::transmute(QTR_DATE = purrr::map(DATE_GROUP_ID, get_qtr_sequence)
-    )%>%
+    dplyr::transmute(QTR_DATE = purrr::map2(DATE_BEGIN, DATE_END,get_qtr_sequence)) %>%
     tidyr::unnest() %>%
     dplyr::transmute(DATE_BEGIN = lubridate::floor_date(lubridate::date(QTR_DATE), unit = "quarter"),
                      DATE_END = lubridate::ceiling_date(lubridate::date(QTR_DATE), unit = "quarter") - 1,
-                     DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
-                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                     DATE_GROUP_ID = create_range_quarter(DATE_BEGIN, DATE_END),
+                     DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one quarter") %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
@@ -441,9 +432,9 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
 
     summary_by_qtr_Q4_only <- x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "quarter"),
-                    DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
-                    DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
-                    DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
+                     DATE_GROUP_ID = create_range_quarter(DATE_BEGIN, DATE_END),
+                     DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one quarter") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
       dplyr::group_by(SOURCE,
@@ -461,7 +452,7 @@ make_indicators_cnt_pct_value <- function(parcel_value_variables,
       dplyr::left_join(county_community_tract_all_metadata, by = "GEOGRAPHY_ID")
 
     replace_q4 <- function(x, q){
-      x %>% dplyr::mutate( DATE_GROUP_ID = stringr::str_replace(DATE_GROUP_ID, "Q4",q))
+      x %>% dplyr::mutate( DATE_GROUP_ID = stringr::str_replace_all(DATE_GROUP_ID, "Q4",q))
     }
 
     summary_by_qtr_all <- list("Q1", "Q2", "Q3") %>%
@@ -622,11 +613,12 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
 
 
   summarize_by_year <- function(x, variable_role){
+
     x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "year"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "year") - 1,
                     DATE_GROUP_ID = DATE_GROUP_ID,
-                    DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                    DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one year") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
       dplyr::group_by(SOURCE,
@@ -662,27 +654,23 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
   # SUMMARIZE BY QUARTER ----------------------------------------------------
 
 
-  get_year_quarter <- function(x){
-    stringr::str_c(lubridate::year(x),"_","Q",lubridate::quarter(x))
-  }
-
-  get_qtr_sequence <- function(x){
-    seq(from = lubridate::ymd(stringr::str_c(x,"01-01")),
-        to = lubridate::ymd(stringr::str_c(x,"12-31")),
+  get_qtr_sequence <- function(date_x, date_y){
+    seq(from = lubridate::floor_date(lubridate::ymd(date_x), unit = "year"),
+        to = lubridate::ceiling_date(lubridate::ymd(date_y), unit = "year")-1,
         by = "quarter")
   }
 
   date_cols_qtr_full <- parcel_sales_cnt %>%
-    dplyr::select(DATE_GROUP_ID) %>%
+    dplyr::select(DATE_BEGIN, DATE_END) %>%
     dplyr::distinct() %>%
-    dplyr::transmute(QTR_DATE = purrr::map(DATE_GROUP_ID, get_qtr_sequence)
-    )%>%
+    dplyr::transmute(QTR_DATE = purrr::map2(DATE_BEGIN, DATE_END,get_qtr_sequence)) %>%
     tidyr::unnest() %>%
     dplyr::transmute(DATE_BEGIN = lubridate::floor_date(lubridate::date(QTR_DATE), unit = "quarter"),
                      DATE_END = lubridate::ceiling_date(lubridate::date(QTR_DATE), unit = "quarter") - 1,
-                     DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
-                     DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                     DATE_GROUP_ID = create_range_quarter(DATE_BEGIN, DATE_END),
+                     DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                      DATE_RANGE_TYPE = "one quarter") %>%
+    dplyr::distinct() %>%
     dplyr::mutate_if(lubridate::is.Date, as.character)
 
 
@@ -692,8 +680,8 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
     summary_by_qtr <- x %>%
       dplyr::mutate(DATE_BEGIN = lubridate::floor_date(lubridate::date(DATE_BEGIN), unit = "quarter"),
                     DATE_END = lubridate::ceiling_date(lubridate::date(DATE_BEGIN), unit = "quarter") - 1,
-                    DATE_GROUP_ID = get_year_quarter(DATE_BEGIN),
-                    DATE_RANGE = create_daterange(DATE_BEGIN, DATE_END),
+                    DATE_GROUP_ID = create_range_quarter(DATE_BEGIN, DATE_END),
+                    DATE_RANGE = create_range_date(DATE_BEGIN, DATE_END),
                     DATE_RANGE_TYPE = "one quarter") %>%
       dplyr::mutate_if(lubridate::is.Date,as.character) %>%
       dplyr::group_by(SOURCE,
@@ -717,7 +705,7 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
     # it is possible that not every combination of DATE_GROUP_ID and quarter will be present
     #  if that is the case, use dplyr::expand() to add the missing combinations
 
-    summary_by_qtr_complete <- summary_by_qtr %>%
+    summary_by_qtr_complete <- summary_by_qtr %>%  # expand the data to include all DATE_GROUP_ID values (e.g.,"2005Q2_2005Q2") in the data
       tidyr::expand(tidyr::nesting(SOURCE,
                                    GEOGRAPHY_ID,
                                    VARIABLE,
@@ -791,3 +779,4 @@ make_indicators_cnt_pct_sales <- function(parcel_sales_variables,
   return(indicators_cnt_pct_sales)
 
 }
+

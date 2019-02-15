@@ -3,18 +3,31 @@
 \name{make_indicators_median}
 \alias{make_indicators_median}
 \alias{make_indicators_median_acs_ltdb_ff}
-\alias{make_indicators_median_value}
+\alias{make_indicators_median_value_3year}
+\alias{make_indicators_median_value_1year}
+\alias{make_indicators_median_value_quarter}
+\alias{make_indicators_median_value_archive}
 \alias{make_indicators_median_sales}
 \title{Make The Median Indicators}
 \usage{
-make_indicators_median(indicators_median_acs_ltdb_ff, indicators_median_value,
-  indicators_median_sales, indicator_template)
+make_indicators_median(indicators_median_acs_ltdb_ff,
+  indicators_median_value_3year, indicators_median_value_1year,
+  indicators_median_value_quarter, indicators_median_sales, indicator_template)
 
 make_indicators_median_acs_ltdb_ff(acs_variables, ltdb_variables,
   factfinder_variables, county_community_tract_all_metadata, community_metadata)
 
-make_indicators_median_value(parcel_value_variables, parcel_tract_overlay,
+make_indicators_median_value_3year(parcel_value_variables, parcel_tract_overlay,
   county_community_tract_all_metadata, community_metadata)
+
+make_indicators_median_value_1year(parcel_value_variables, parcel_tract_overlay,
+  county_community_tract_all_metadata, community_metadata)
+
+make_indicators_median_value_quarter(parcel_value_variables,
+  parcel_tract_overlay, county_community_tract_all_metadata, community_metadata)
+
+make_indicators_median_value_archive(parcel_value_variables,
+  parcel_tract_overlay, county_community_tract_all_metadata, community_metadata)
 
 make_indicators_median_sales(parcel_sales_variables, parcel_tract_overlay,
   county_community_tract_all_metadata, community_metadata)
@@ -22,7 +35,11 @@ make_indicators_median_sales(parcel_sales_variables, parcel_tract_overlay,
 \arguments{
 \item{indicators_median_acs_ltdb_ff}{desc}
 
-\item{indicators_median_value}{desc}
+\item{indicators_median_value_3year}{desc}
+
+\item{indicators_median_value_1year}{desc}
+
+\item{indicators_median_value_quarter}{desc}
 
 \item{indicators_median_sales}{desc}
 
@@ -51,4 +68,7 @@ a \code{tibble}
 Make the ACS Inidcators related to a _value of a population.
 An example of the type of indicator included in this object might be
 the count of renter households, while the median rent price would \emph{not} be included.
+}
+\note{
+These functions are modularized in order to avoid hitting memory limits; ideally, this would all be performed in a single function.
 }

@@ -181,7 +181,7 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
 
   acs_vars_data_2018_dollars <- acs_vars_data %>%
     dplyr::mutate(ESTIMATE = dplyr::if_else(INDICATOR %in% c("RENT", "VALUE"), # only adjust ESTIMATE for the price-related INDICATORS
-                                            purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars),
+                                            purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi),
                                             ESTIMATE))
 
 

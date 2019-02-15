@@ -5,18 +5,18 @@
 #'   (2006-2010 and 2011-2015).
 #' @param hud_chas_data Tibble, desc
 #' @param hud_chas_data_lut Tibble, desc
-#' @param model_table Tibble, desc
+#' @param model_table_inputs Tibble, desc
 #' @param census_geography_metadata desc
 #' @param variable_template Tibble, desc
 #' @return a `tibble`
 
 #' @rdname hud-chas-variables
 #' @export
-make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_table, census_geography_metadata, variable_template){
+make_hud_chas_variables <- function(hud_chas_data, hud_chas_data_lut, model_table_inputs, census_geography_metadata, variable_template){
 
   # PREPARE HUD CHAS DATA ROLES --------------------------------------------------------
 
-  chas_inds <- model_table %>%
+  chas_inds <- model_table_inputs %>%
     dplyr::filter(SOURCE %in% "CHAS") %>%  # right now, CHAS data is only used for the INCOME indicator
     dplyr::select(SOURCE, INDICATOR) %>%
     dplyr::distinct()

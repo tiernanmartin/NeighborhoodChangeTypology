@@ -32,7 +32,7 @@
 \alias{make_res_bldg_2018}
 \title{Make A Tibble of The Project's Tax Assessor Variables}
 \usage{
-prepare_parcel_data(model_table, acs_tables, zip_path)
+prepare_parcel_data(model_table_inputs, acs_tables, zip_path)
 
 make_parcel_value(data_template, zip_path, file_path)
 
@@ -91,7 +91,7 @@ make_res_bldg_2017(metadata_template, zip_path, file_path)
 make_res_bldg_2018(metadata_template, zip_path, file_path)
 }
 \arguments{
-\item{model_table}{Tibble, the \code{model_table} object}
+\item{model_table_inputs}{Tibble, the \code{model_table_inputs} object}
 
 \item{acs_tables}{Tibble, the \code{acs_table} object}
 

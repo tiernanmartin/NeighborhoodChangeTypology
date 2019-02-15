@@ -17,7 +17,8 @@ make_factfinder_variables <- function(factfinder_data, census_geography_metadata
     dplyr::mutate(INDICATOR = "VALUE",
                   VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
                   VARIABLE_ROLE = "include", # there's only one variable and it is a value variable so its ROLE is "include"
-                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars))
+                  ESTIMATE = convert_to_2018_dollars(ESTIMATE, DATE_END, cpi = cpi)
+                  )
 
 
 

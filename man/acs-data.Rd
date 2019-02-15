@@ -5,14 +5,14 @@
 \alias{make_acs_data}
 \title{Make A Tibble of The Project's ACS Variables}
 \usage{
-prepare_acs_data(data_template, model_table, acs_tables, path)
+prepare_acs_data(data_template, model_table_inputs, acs_tables, path)
 
 make_acs_data(path)
 }
 \arguments{
 \item{data_template}{Tibble, the \code{data_template} object}
 
-\item{model_table}{Tibble, the \code{model_table} object}
+\item{model_table_inputs}{Tibble, the \code{model_table_inputs} object}
 
 \item{acs_tables}{Tibble, the \code{acs_table} object}
 

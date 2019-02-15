@@ -4,14 +4,14 @@
 #'   that are used in the Neighborhood Change Typology model for both 5-year spans
 #'   (2006-2010 and 2013-2017).
 #' @param data_template Tibble, the `data_template` object
-#' @param model_table Tibble, the `model_table` object
+#' @param model_table_inputs Tibble, the `model_table_inputs` object
 #' @param acs_tables Tibble, the `acs_table` object
 #' @param path Character, the path or connection to write to.
 #' @return a `tibble`
 
 #' @rdname acs-data
 #' @export
-prepare_acs_data <- function(data_template, model_table, acs_tables, path){
+prepare_acs_data <- function(data_template, model_table_inputs, acs_tables, path){
 
 
   # GET DATA ----------------------------------------------------------------
@@ -22,7 +22,7 @@ prepare_acs_data <- function(data_template, model_table, acs_tables, path){
                      LABEL = label,
                      TOPIC = concept)
 
-  data_key <- model_table %>%
+  data_key <- model_table_inputs %>%
     dplyr::select(MODEL, TOPIC, -MEASURE_TYPE, INDICATOR, SOURCE, DATE_END) %>%
     dplyr::inner_join(dplyr::select(acs_tables,-TOPIC), by = "INDICATOR") %>%
     dplyr::inner_join(all_census_vars, by = "VARIABLE")

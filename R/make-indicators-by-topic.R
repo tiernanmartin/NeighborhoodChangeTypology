@@ -2,17 +2,17 @@
 #' @description Description
 #' @param indicators_cnt_pct desc
 #' @param indicators_median desc
-#' @param model_table desc
+#' @param model_table_inputs desc
 #' @param indicator_topic_template desc
 #' @return a `tibble`
 #' @export
 make_indicators_by_topic <- function(indicators_cnt_pct,
                                      indicators_median,
-                                     model_table,
+                                     model_table_inputs,
                                      indicator_topic_template){
 
 
-  topic_join  <- model_table %>%
+  topic_join  <- model_table_inputs %>%
     dplyr::select(TOPIC, INDICATOR) %>%
     dplyr::distinct() %>%
     dplyr::mutate(INDICATOR = stringr::str_replace_all(INDICATOR,"\\s","_"))

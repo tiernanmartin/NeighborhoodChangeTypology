@@ -4,7 +4,7 @@
 \alias{make_hud_chas_variables}
 \title{Make A Tibble of The Project's HUD CHAS Variables}
 \usage{
-make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table,
+make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table_inputs,
   census_geography_metadata, variable_template)
 }
 \arguments{
@@ -12,7 +12,7 @@ make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table,
 
 \item{hud_chas_data_lut}{Tibble, desc}
 
-\item{model_table}{Tibble, desc}
+\item{model_table_inputs}{Tibble, desc}
 
 \item{census_geography_metadata}{desc}
 
