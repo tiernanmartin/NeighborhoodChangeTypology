@@ -5,6 +5,14 @@
 NULL
 
 #' @export
+g <- dplyr::glimpse
+
+#' @export
+to_caps_underscores <- function(x){
+  toupper(stringr::str_replace_all(x,"\\s","_"))
+}
+
+#' @export
 convert_to_complex_pin <- function(x){
 
   # converts a condo unit PIN (parcel identification number) in the condo complex PIN
