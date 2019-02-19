@@ -4,9 +4,11 @@
 \alias{make_portland_model_vulnerability}
 \title{Make The Portland Model}
 \usage{
-make_portland_model_vulnerability(indicators_comparison)
+make_portland_model_vulnerability(model_table, indicators_comparison)
 }
 \arguments{
+\item{model_table}{desc}
+
 \item{indicators_comparison}{Tibble, Temporary description.}
 }
 \value{
