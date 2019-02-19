@@ -1,83 +1,124 @@
 #' @title Make The Change in Comparison Indicators
 #' @description Description
 #' @param indicators_by_topic desc
-#' @param change_endyears desc
+#' @param change_dategroupid_long desc
 #' @param indicator_topic_template desc
 #' @return a `tibble`
 #' @export
 make_indicators_change_in_comparison <- function(indicators_comparison,
-                                                 change_endyears,
+                                                 change_dategroupid_long,
                                                  indicator_type_template){
+
+
+
+  # NOTE --------------------------------------------------------------------
+
 
   # This applies only to housing market indicators
 
   # PREPARE DATA --------------------------------------------------------
 
   inds_housing <- indicators_comparison %>%
-    dplyr::filter(TOPIC %in% "HOUSING MARKET")
+    dplyr::rename(DATE_GROUP_ID_JOIN = DATE_GROUP_ID) %>%
+    dplyr::filter(TOPIC %in% "HOUSING_MARKET") %>%
+    dplyr::select(-SOURCE, -VARIABLE_DESC)   # these columns shouldn't be included in the CHANGE indicator
 
-  inds <- inds_housing %>%
-    dplyr::filter(!DATE_RANGE_TYPE %in% "one quarter") %>% # drop the quarter spans
-    dplyr::mutate(DATE_GROUP_ID_JOIN = stringr::str_c("YEAR_", DATE_GROUP_ID)) %>%
-    dplyr::filter(!is.na(GEOGRAPHY_ID))
 
-  inds_drop_source_fields <- inds %>%
-    dplyr::select(-SOURCE, -VARIABLE_DESC) # these columns shouldn't be included in the CHANGE indicator
+  inds_housing_long <- inds_housing %>%
+    tidyr::gather(VALUE_TYPE, VALUE, c(ESTIMATE, MOE, INDICATOR_TYPE_THRESHOLD_VALUE, INDICATOR_TYPE_VALUE, INDICATOR_TYPE_VALUE_DESC))
 
-  inds_long <- inds_drop_source_fields %>%
-    tidyr::gather(VALUE_TYPE, VALUE, ESTIMATE, MOE, INDICATOR_TYPE_THRESHOLD_VALUE, INDICATOR_TYPE_VALUE, INDICATOR_TYPE_VALUE_DESC)
 
-  change_endyears_long <- change_endyears %>%
-    dplyr::mutate(CHANGE_RANGE = as.character(glue::glue("YEAR_{BEGIN}_TO_YEAR_{END}"))) %>%
-    tidyr::gather(INDICATOR_ROLE, DATE_GROUP_ID_JOIN, BEGIN, END) %>%
-    dplyr::mutate(DATE_GROUP_ID_JOIN = stringr::str_c("YEAR_", DATE_GROUP_ID_JOIN))
-
-  # note: the left_join() below removes many unused DATE_GROUP_ID records
-  # use the function below to check these
-
-  check_unused_change_years <- function(){
-    anti_join(inds_long, change_endyears_long, by = c("INDICATOR",
-                                                      "VARIABLE",
-                                                      "DATE_GROUP_ID_JOIN")) %>%
-      count(INDICATOR, VARIABLE,DATE_RANGE_TYPE,DATE_GROUP_ID) %>% print(n=Inf)
+  check_inds_housing_long <- function(){
+    # look at the long data structure (value-type fields are all stored in the VALUE field, which coerces them to character)
+    inds_housing_long %>% count(VALUE_TYPE)
   }
 
 
-  change_endyears_wide <-  change_endyears_long %>%
-    dplyr::left_join(inds_long, by = c("INDICATOR", # switched from left_ to inner_
-                                       "VARIABLE",
-                                       "DATE_GROUP_ID_JOIN")) %>%
-    dplyr::filter(! is.na(VALUE_TYPE)) %>% # remove a few records that have NA in many of the metadata fields
-    dplyr::select(-dplyr::starts_with("DATE")) %>%
-    dplyr::mutate(GROUP_ID = dplyr::group_indices(.,TOPIC, INDICATOR, VARIABLE,CHANGE_RANGE,GEOGRAPHY_ID,MEASURE_TYPE)) %>%
+  # JOIN + SPREAD DATA ------------------------------------------------------
 
-    tidyr::unite("TYPE_ROLE_YEAR", c(VALUE_TYPE, INDICATOR_ROLE)) %>%
+  inds_housing_change_dategroupid_join <- change_dategroupid_long %>%
+    dplyr::left_join(inds_housing_long,
+                     by = c("TOPIC",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "DATE_GROUP_ID_JOIN")) %>%
+    dplyr::filter(TOPIC %in% "HOUSING_MARKET") # Change in comparison only applies to HOUSING_MARKET -related indicators
+
+
+  inds_wide <- inds_housing_change_dategroupid_join %>%
+    #drop fields that will impede spread()
+    dplyr::select(-DATE_GROUP_ID_JOIN, -DATE_BEGIN, -DATE_END, -DATE_RANGE, -DATE_RANGE_TYPE, -INDICATOR_TYPE_MODEL) %>%
+    dplyr::mutate(DATE_TYPE = stringr::str_extract(DATE_TYPE, "BEGIN|END")) %>%
+    # GROUP_ID in preparation for spread()
+    dplyr::mutate(GROUP_ID = dplyr::group_indices(.,TOPIC, INDICATOR, VARIABLE, DATE_GROUP_ID, GEOGRAPHY_ID, MEASURE_TYPE)) %>%
+    tidyr::unite("TYPE_ROLE_YEAR", c(VALUE_TYPE, DATE_TYPE)) %>%
     tidyr::spread(TYPE_ROLE_YEAR, VALUE) %>%
     dplyr::select(-GROUP_ID)
 
-  change_endyears_wide_change <- change_endyears_wide %>%
-    dplyr::mutate(INDICATOR_TYPE = "CHANGE",
+
+  change_dategroupid_wide_change <- inds_wide %>%
+    dplyr::mutate(INDICATOR_TYPE = "RELATIVE_CHANGE",
                   INDICATOR_TYPE_VALUE_CHANGE = stringr::str_c(INDICATOR_TYPE_VALUE_DESC_BEGIN," -> ",INDICATOR_TYPE_VALUE_DESC_END),
                   INDICATOR_TYPE_MODEL = INDICATOR_TYPE_VALUE_CHANGE)
 
 
+  # VISUALIZE DATA ----------------------------------------------------------
+
+  check_change_dategroupid_wide_change_na <- function(){
+
+    # check the NA's first
+    change_dategroupid_wide_change %>%
+      filter(is.na(INDICATOR_TYPE_MODEL)) %>%
+      count(GEOGRAPHY_TYPE,GEOGRAPHY_ID) %>% print(n=Inf)
+
+  }
+
+  view_change_dategroupid_wide_change_by_dategroupid <- function(){
+
+
+    # check the change types (INDICATOR_TYPE_MODEL)
+    change_dategroupid_wide_change %>%
+      filter(! is.na(INDICATOR_TYPE_MODEL)) %>%
+      count(DATE_GROUP_ID, INDICATOR, VARIABLE, INDICATOR_TYPE_MODEL) %>% View()
+
+  }
+
+  view_change_dategroupid_wide_change_by_ind <- function(){
+
+    # check the change types (INDICATOR_TYPE_MODEL)
+    change_dategroupid_wide_change %>%
+      filter(! is.na(INDICATOR_TYPE_MODEL)) %>%
+      count(INDICATOR, VARIABLE, DATE_GROUP_ID, INDICATOR_TYPE_MODEL) %>% View()
+  }
+
+
+
+
   # JOIN DATE_* FIELDS ------------------------------------------------------
 
-  date_group_id_fields <- inds_drop_source_fields %>%
+  date_group_id_fields <- inds_housing %>%
     dplyr::select(-MEASURE_TYPE, -ESTIMATE, -MOE,-dplyr::matches("^INDICATOR_")) %>%
     dplyr::distinct()
 
 
-  change_endyears_all_fields <- change_endyears_wide_change %>%
-    dplyr::mutate(RNUM = dplyr::row_number(),
-                  DATE_GROUP_ID = stringr::str_remove_all(CHANGE_RANGE, "TO_")
-    ) %>%
-    tidyr::separate(DATE_GROUP_ID, into = c("DATE_GROUP_ID_BEGIN", "DATE_GROUP_ID_END"),sep = "_(?=YEAR)") %>%
-    tidyr::gather(DATE_GROUP_ID_ROLE, DATE_GROUP_ID_JOIN, DATE_GROUP_ID_BEGIN, DATE_GROUP_ID_END) %>%
-    dplyr::left_join(date_group_id_fields, by = c("INDICATOR", "VARIABLE", "GEOGRAPHY_ID", "GEOGRAPHY_ID_TYPE", "GEOGRAPHY_NAME", "GEOGRAPHY_TYPE", "TOPIC", "DATE_GROUP_ID_JOIN")) %>%
-    dplyr::mutate(DATE_GROUP_ID_ROLE = stringr::str_extract(DATE_GROUP_ID_ROLE,"BEGIN$|END$")) %>%
+  change_dategroupid_all_fields <- change_dategroupid_wide_change %>%
+    dplyr::mutate(DATE_GROUP_ID_SEPARATE = DATE_GROUP_ID,
+                  RNUM = dplyr::row_number()) %>%
+    tidyr::separate(DATE_GROUP_ID_SEPARATE, into = c("BEGIN_DATE_GROUP_ID", "END_DATE_GROUP_ID"),sep = "_TO_") %>%
+    tidyr::gather(DATE_TYPE, DATE_GROUP_ID_JOIN, c(BEGIN_DATE_GROUP_ID, END_DATE_GROUP_ID)) %>%
+    dplyr::left_join(date_group_id_fields,
+                     by = c("TOPIC",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "GEOGRAPHY_ID",
+                            "GEOGRAPHY_ID_TYPE",
+                            "GEOGRAPHY_NAME",
+                            "GEOGRAPHY_TYPE",
+                            "DATE_GROUP_ID_JOIN")) %>%
+    dplyr::mutate(DATE_TYPE = stringr::str_extract(DATE_TYPE,"^BEGIN|^END")) %>%
+    dplyr::rename(DATE_ROLE = DATE_TYPE) %>%
     tidyr::gather(DATE_FIELD_TYPE, DATE_FIELD_VAL, DATE_GROUP_ID, DATE_BEGIN, DATE_END, DATE_RANGE, DATE_RANGE_TYPE) %>%
-    tidyr::unite("ROLE_DATE_FIELD_TYPE", c(DATE_GROUP_ID_ROLE,DATE_FIELD_TYPE)) %>%
+    tidyr::unite("ROLE_DATE_FIELD_TYPE", c(DATE_ROLE, DATE_FIELD_TYPE)) %>%
     dplyr::select(-DATE_GROUP_ID_JOIN) %>% # this messess up the spread()
     tidyr::spread(ROLE_DATE_FIELD_TYPE,DATE_FIELD_VAL) %>%
     dplyr::mutate(DATE_GROUP_ID = END_DATE_GROUP_ID,
@@ -85,12 +126,17 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
                   DATE_END = END_DATE_END,
                   DATE_RANGE = stringr::str_remove_all(stringr::str_c(DATE_BEGIN,DATE_END),"\\-"),
                   DATE_RANGE_TYPE = stringr::str_c("change (",BEGIN_DATE_RANGE_TYPE, " to ",END_DATE_RANGE_TYPE,")")) %>%
-    dplyr::select(-dplyr::starts_with("BEGIN"),-dplyr::starts_with("END"), -CHANGE_RANGE, -RNUM)
+    dplyr::select(-dplyr::starts_with("BEGIN"),
+                  -dplyr::starts_with("END"),
+                  # -INDICATOR_TYPE_THRESHOLD_VALUE,
+                  # -INDICATOR_TYPE_VALUE,
+                  # -INDICATOR_TYPE_VALUE_DESC,
+                  -RNUM)
 
 
 
   # CREATE SOURCE AND VARIABLE_DESC ----------------------------------------------------
-  change_endyears_var_desc <- change_endyears_all_fields %>%
+  change_dategroupid_var_desc <- change_dategroupid_all_fields %>%
     dplyr::mutate(SOURCE = "MULTIPLE",
                   VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, VARIABLE, sep = "_"))
 
@@ -99,7 +145,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
   # Note: this just makes sure that the columns have the same order as the indicator_template
 
   indicators_change_in_comparison_ready <- indicator_type_template %>%
-    dplyr::full_join(change_endyears_var_desc,
+    dplyr::full_join(change_dategroupid_var_desc,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
@@ -118,9 +164,28 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
                             "INDICATOR_TYPE",
                             "INDICATOR_TYPE_THRESHOLD",
                             "INDICATOR_TYPE_DESC",
-                            "INDICATOR_TYPE_MODEL"))
+                            "INDICATOR_TYPE_MODEL")) %>%
+    dplyr::select(dplyr::starts_with("SOURCE"),
+                  dplyr::starts_with("GEOGRAPHY"),
+                  dplyr::starts_with("DATE"),
+                  TOPIC,
+                  INDICATOR,
+                  dplyr::starts_with("VARIABLE"),
+                  MEASURE_TYPE,
+                  dplyr::starts_with("ESTIMATE"),
+                  dplyr::starts_with("MOE"),
+                  dplyr::starts_with("INDICATOR"),
+                  dplyr::everything()) %>%
+    # fields that were gather()'ed need to be coerced back to numeric
+    dplyr::mutate_at(dplyr::vars(dplyr::matches("ESTIMATE|VALUE_BEGIN|VALUE_END")),as.numeric)
 
   indicators_change_in_comparison <- indicators_change_in_comparison_ready
+
+
+  # NOTES -------------------------------------------------------------------
+
+  # Fields like INDICATOR_TYPE_THRESHOLD_VALUE or INDICATOR_TYPE_VALUE are NA;
+  # this is because those values are stored in *_BEGIN or *_END fields
 
   # RETURN ------------------------------------------------------------------
 

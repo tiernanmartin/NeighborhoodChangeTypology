@@ -22,22 +22,31 @@
 #' }
 
 #' @export
-get_templates_plan <- function(){
+get_project_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  templates_plan <- drake::drake_plan(
+  tables_plan <- drake::drake_plan(
+    acs_tables = make_acs_tables(),
     model_table_inputs = make_model_table_inputs(),
+    model_table_production = make_model_table_production(),
+    change_dategroupid_long = make_change_dategroupid_long(model_table_production)
+  )
+
+  templates_plan <- drake::drake_plan(
     metadata_template = make_metadata_template(),
     data_template = make_data_template(),
     variable_template = make_variable_template(),
     indicator_template = make_indicator_template(),
     indicator_topic_template = make_indicator_topic_template(),
-    indicator_type_template = make_indicator_type_template(),
-    acs_tables = make_acs_tables()
-    )
+    indicator_type_template = make_indicator_type_template()
 
-  return(templates_plan)
+  )
+
+  project_plan <- drake::bind_plans(tables_plan,
+                                    templates_plan)
+
+  return(project_plan)
 
 }
 
@@ -76,27 +85,27 @@ get_data_source_plan <- function(){
 
   prep_plan <- drake::drake_plan(
     acs_data_prep_status = target(command = prepare_acs_data(data_template, model_table_inputs, acs_tables, path = file_out("extdata/source/acs-data.csv")),
-                                  trigger = trigger(mode = "condition", condition = FALSE)),
+                                  trigger = trigger(mode = "blacklist", condition = FALSE)),
     hud_chas_data_prep_status = target(command = prepare_hud_chas_data(zip_path = file_out("extdata/source/hud-chas-data.zip")),
-                                       trigger = trigger(mode = "condition", condition = FALSE)),
+                                       trigger = trigger(mode = "blacklist", condition = FALSE)),
     ltdb_data_prep_status = target(command = prepare_ltdb_data(data_template, acs_tables, path = file_out("extdata/source/ltdb-data.csv")),
-                                   trigger = trigger(mode = "condition", condition = FALSE)),
+                                   trigger = trigger(mode = "blacklist", condition = FALSE)),
     factfinder_data_prep_status = target(command = prepare_factfinder_data(data_template, acs_tables, path = file_out("extdata/source/factfinder-data.csv")),
-                                         trigger = trigger(mode = "condition", condition = FALSE)),
+                                         trigger = trigger(mode = "blacklist", condition = FALSE)),
     kc_boundary_prep_status = target(prepare_kc_boundary(path = file_out("extdata/source/kc-boundary.gpkg")),
-                                     trigger = trigger(mode = "condition", condition = FALSE)),
+                                     trigger = trigger(mode = "blacklist", condition = FALSE)),
     white_center_place_prep_status = target(prepare_white_center_place(path = file_out("extdata/source/white-center-place.gpkg")),
-                                            trigger = trigger(mode = "condition", condition = FALSE)),
+                                            trigger = trigger(mode = "blacklist", condition = FALSE)),
     waterbodies_prep_status = target(prepare_waterbodies(path = file_out("extdata/source/ECY_WAT_NHDWAMajor.zip")),
-                                     trigger = trigger(mode = "condition", condition = FALSE)),
+                                     trigger = trigger(mode = "blacklist", condition = FALSE)),
     parcel_boundaries_prep_status = target(prepare_parcel_boundaries(path = file_out("extdata/source/parcel_SHP.zip")),
-                                           trigger = trigger(mode = "condition", condition = FALSE)),
+                                           trigger = trigger(mode = "blacklist", condition = FALSE)),
     parcel_data_prep_status = target(prepare_parcel_data(model_table_inputs, acs_tables, zip_path = file_out("extdata/source/kc-assessor-parcels-2005-2010-2013-2014-2015-2016-2017-2018.zip")),
-                                     trigger = trigger(mode = "condition", condition = FALSE)),
+                                     trigger = trigger(mode = "blacklist", condition = FALSE)),
     census_tracts_2016_prep_status = target(prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg")),
-                                            trigger = trigger(mode = "condition", condition = FALSE)),
+                                            trigger = trigger(mode = "blacklist", condition = FALSE)),
     cpi_prep_status = target(prepare_cpi(path= file_out("extdata/source/cpi-2000-2018.csv")),
-                             trigger = trigger(mode = "condition", condition = FALSE))
+                             trigger = trigger(mode = "blacklist", condition = FALSE))
 
   )
 
@@ -106,57 +115,57 @@ get_data_source_plan <- function(){
                                                          project_id = "sj7n9",
                                                          file_id = "xhzv8",
                                                          path = file_in("extdata/source/acs-data.csv")),
-                                    trigger = trigger(command = FALSE)),
+                                    trigger = trigger(mode = "blacklist", condition = FALSE)),
     hud_chas_data_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
                                                                         project_id = "sj7n9",
                                                                         file_id = "rc8wk",
                                                                         path = file_in("extdata/source/hud-chas-data.zip")),
-                                         trigger = trigger(command = FALSE)),
+                                         trigger = trigger(mode = "blacklist", condition = FALSE)),
     ltdb_data_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                           project_id = "sj7n9",
                                                           file_id = "7xwga",
                                                           path = file_in("extdata/source/ltdb-data.csv")),
-                                     trigger = trigger(command = FALSE)),
+                                     trigger = trigger(mode = "blacklist", condition = FALSE)),
     factfinder_data_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                                 project_id = "sj7n9",
                                                                 file_id = "9cvqf",
                                                                 path = file_in("extdata/source/factfinder-data.csv")),
-                                           trigger = trigger(command = FALSE)),
+                                           trigger = trigger(mode = "blacklist", condition = FALSE)),
     kc_boundary_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                             project_id = "sj7n9",
                                                             file_id = "mzd5v",
                                                             path = file_in("extdata/source/kc-boundary.gpkg")),
-                                       trigger = trigger(command = FALSE)),
+                                       trigger = trigger(mode = "blacklist", condition = FALSE)),
     white_center_place_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                                    project_id = "sj7n9",
                                                                    file_id = "ctbqp",
                                                                    path = file_in("extdata/source/white-center-place.gpkg")),
-                                              trigger = trigger(command = FALSE)),
+                                              trigger = trigger(mode = "blacklist", condition = FALSE)),
     waterbodies_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                             project_id = "sj7n9",
                                                             file_id = "gevkt",
                                                             path = file_in("extdata/source/ECY_WAT_NHDWAMajor.zip")),
-                                       trigger = trigger(command = FALSE)),
+                                       trigger = trigger(mode = "blacklist", condition = FALSE)),
     parcel_boundaries_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                                   project_id = "sj7n9",
                                                                   file_id = "2ufmh",
                                                                   path = file_in("extdata/source/parcel_SHP.zip")),
-                                             trigger = trigger(command = FALSE)),
+                                             trigger = trigger(mode = "blacklist", condition = FALSE)),
     parcel_data_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                             project_id = "sj7n9",
                                                             file_id = "9t5vc",
                                                             path = file_in("extdata/source/kc-assessor-parcels-2005-2010-2013-2014-2015-2016-2017-2018.zip")),
-                                       trigger = trigger(command = FALSE)),
+                                       trigger = trigger(mode = "blacklist", condition = FALSE)),
     census_tracts_2016_upload_status = target(osf_upload_or_update(has_osf_access = has_osf_access,
                                                                    project_id = "sj7n9",
                                                                    file_id = "cagvu",
                                                                    path = file_in("extdata/source/census-tracts-2016.gpkg")),
-                                              trigger = trigger(command = FALSE)),
+                                              trigger = trigger(mode = "blacklist", condition = FALSE)),
     cpi_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
                                                               project_id = "sj7n9",
                                                               file_id = "8y3cj",
                                                               path = file_in("extdata/source/cpi-2000-2018.csv")),
-                               trigger = trigger(condition = FALSE))
+                               trigger = trigger(mode = "blacklist", condition = FALSE))
   )
 
   # target_archive_plan <- drake::drake_plan(
@@ -381,14 +390,14 @@ get_variable_plan <- function(){
                                                    res_bldg_2018,
                                                    parcel_sales,
                                                    variable_template),
-    tmp = c("placeholder")
+    var_prep_plan_tmp = c("placeholder")
   )
 
   var_plan <- drake::drake_plan(
     acs_variables = make_acs_variables(acs_data, acs_tables, cpi, variable_template),
     hud_chas_variables = make_hud_chas_variables(hud_chas_data, hud_chas_data_lut, model_table_inputs, census_geography_metadata, variable_template),
-    ltdb_variables = make_ltdb_variables(ltdb_data, census_geography_metadata, cpi, variable_template),
-    factfinder_variables = make_factfinder_variables(factfinder_data, census_geography_metadata, cpi, variable_template),
+    ltdb_variables = make_ltdb_variables(ltdb_data, acs_tables, census_geography_metadata, cpi, variable_template),
+    factfinder_variables = make_factfinder_variables(factfinder_data, acs_tables, census_geography_metadata, cpi, variable_template),
     parcel_sales_variables = make_parcel_sales_variables(parcel_sales,
                                                          parcel_all_metadata,
                                                          sales_lut_key_list,
@@ -405,7 +414,7 @@ get_variable_plan <- function(){
     parcel_value_variables_part2 = make_parcel_value_variables_part2(parcel_value_variables_part1),
     parcel_value_variables = make_parcel_value_variables(parcel_value_variables_part2,
                                                          variable_template),
-    tmp = c("placeholder")
+    var_plan_tmp = c("placeholder")
   )
 
   variable_plan <- drake::bind_plans(var_prep_plan, var_plan)
@@ -465,19 +474,18 @@ get_indicator_plan <- function(){
                                                            county_community_tract_all_metadata,
                                                            community_metadata),
     indicators_median_value_3year = make_indicators_median_value_3year(parcel_value_variables,
-                                                           parcel_tract_overlay,
-                                                           county_community_tract_all_metadata,
-                                                           community_metadata),
+                                                                       parcel_tract_overlay,
+                                                                       county_community_tract_all_metadata,
+                                                                       community_metadata),
     indicators_median_value_1year = make_indicators_median_value_1year(parcel_value_variables,
-                                                           parcel_tract_overlay,
-                                                           county_community_tract_all_metadata,
-                                                           community_metadata),
+                                                                       parcel_tract_overlay,
+                                                                       county_community_tract_all_metadata,
+                                                                       community_metadata),
     indicators_median_value_quarter = make_indicators_median_value_quarter(parcel_value_variables,
-                                                           parcel_tract_overlay,
-                                                           county_community_tract_all_metadata,
-                                                           community_metadata),
-    change_endyears = make_change_endyears(),
-    tmp = c("placeholder")
+                                                                           parcel_tract_overlay,
+                                                                           county_community_tract_all_metadata,
+                                                                           community_metadata),
+    ind_prep_plan_tmp = c("placeholder")
   )
 
   ind_plan <- drake::drake_plan(
@@ -486,11 +494,11 @@ get_indicator_plan <- function(){
                                                  indicators_cnt_pct_sales,
                                                  indicator_template),
     indicators_median = make_indicators_median(indicators_median_acs_ltdb_ff,
-                                   indicators_median_value_3year,
-                                   indicators_median_value_1year,
-                                   indicators_median_value_quarter,
-                                   indicators_median_sales,
-                                   indicator_template),
+                                               indicators_median_value_3year,
+                                               indicators_median_value_1year,
+                                               indicators_median_value_quarter,
+                                               indicators_median_sales,
+                                               indicator_template),
     indicators_by_topic = make_indicators_by_topic(indicators_cnt_pct,
                                                    indicators_median,
                                                    model_table_inputs,
@@ -502,7 +510,7 @@ get_indicator_plan <- function(){
     #                              sample_size_metadata),
 
 
-    tmp2 = c("placeholder")
+    ind_plan_tmp = c("placeholder")
   )
 
   # sample_size_plan <- drake::drake_plan(
@@ -511,16 +519,17 @@ get_indicator_plan <- function(){
   # )
 
   ind_type_plan <- drake::drake_plan(
-    # indicators_comparison = make_indicators_comparison(indicators_by_topic,
-    #                                                    change_endyears,
-    #                                                    indicator_type_template),
-    # indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_topic,
-    #                                                                        change_endyears,
-    #                                                                        indicator_type_template),
-    # indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
-    #                                                                        change_endyears,
-    #                                                                        indicator_type_template),
-    tmp3 = c("placeholder")
+    indicators_comparison = make_indicators_comparison(indicators_by_topic,
+                                                       model_table_production,
+                                                       indicator_type_template),
+    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_topic,
+                                                                           model_table_production,
+                                                                           change_dategroupid_long,
+                                                                           indicator_type_template),
+    indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
+                                                                           change_dategroupid_long,
+                                                                           indicator_type_template),
+    ind_type_plan_tmp = c("placeholder")
   )
 
 
@@ -563,13 +572,17 @@ get_model_plan <- function(){
 
   portland_plan <- drake::drake_plan(
     # portland_model_vulnerability = make_portland_model_vulnerability(),
-    tmp_portland_plan = c("tmp")
+    portland_plan_tmp = c("placeholder")
   )
 
-  coo_original_updated_plan <- drake::drake_plan()
+  coo_original_updated_plan <- drake::drake_plan(
+
+    coo_original_updated_plan_tmp =  c("placeholder")
+  )
 
   original_revised <- drake::drake_plan(
     # typology = make_typology(vulnerability_indicators, demo_change_indicators, housing_market_indicators, census_tracts_2016_trimmed)
+    original_revised_plan_tmp =  c("placeholder")
   )
 
   model_plan <- bind_plans(coo_original_plan,
@@ -611,7 +624,7 @@ get_workflow_plan <- function(){
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
   workflow_plan <- drake::bind_plans(
-    get_templates_plan(),
+    get_project_plan(),
     # get_data_source_plan(),  # this only needs to be included when a data source is added or changed
     get_data_cache_plan(),
     get_variable_plan(),

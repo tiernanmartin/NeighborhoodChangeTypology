@@ -22,11 +22,11 @@ make_sales_lut_key_list <- function(parcel_lut_2018){
               CODE = META_LU_ITEM,
               DESC = META_LU_DESCRIPTION
     ) %>%
-    tidyr::gather(TYPE, VAL, -matches("COL|RNUM")) %>%
+    tidyr::gather(TYPE, VAL, -dplyr::matches("COL|RNUM")) %>%
     tidyr::unite(NEW, c("COL_NAME", "TYPE"), sep = "_") %>%
     dplyr::mutate(NEW = stringr::str_replace(NEW, "_CODE", "")) %>%
     split(.$COL) %>%
-    purrr::map(~ tidyr::spread(.x, NEW, VAL) %>% dplyr::select(-matches("RNUM|COL")))
+    purrr::map(~ tidyr::spread(.x, NEW, VAL) %>% dplyr::select(-dplyr::matches("RNUM|COL")))
 
   return(sales_lut_key_list)
 }

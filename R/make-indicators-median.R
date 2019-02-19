@@ -443,7 +443,8 @@ make_indicators_median_value_quarter <- function(parcel_value_variables,
                       VARIABLE_ROLE,
                       INDICATOR,
                       DATE_GROUP_ID) %>%
-      dplyr::summarise(ESTIMATE = as.integer(round(median(ESTIMATE, na.rm = TRUE),0)),
+      dplyr::summarise(MEASURE_TYPE = "MEDIAN", # this is less costly than adding this field to the group_by() call
+                       ESTIMATE = as.integer(round(median(ESTIMATE, na.rm = TRUE),0)),
                        N = n(),
                        NAS = sum(is.na(ESTIMATE)),
                        MOE = NA_real_) %>%

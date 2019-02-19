@@ -1,15 +1,25 @@
 #' @title Make The Comparison Indicators
 #' @description Description
 #' @param indicators_by_topic desc
-#' @param change_endyears desc
+#' @param model_table_production desc
 #' @param indicator_type_template desc
 #' @return a `tibble`
 #' @export
 make_indicators_comparison <- function(indicators_by_topic,
-                                       change_endyears,
+                                       model_table_production,
                                        indicator_type_template){
 
+  # NOTE --------------------------------------------------------------------
+
   # This applies to vulnerability and housing market indicators
+
+
+  # CREATE THE FILTER-JOIN OBJECT -------------------------------------------
+
+  inds_table_filter_join <- model_table_production %>%
+    dplyr::select(TOPIC, INDICATOR, VARIABLE, MEASURE_TYPE, DATE_GROUP_ID) %>%
+    dplyr::distinct() %>%
+    dplyr::arrange(TOPIC, INDICATOR, VARIABLE, MEASURE_TYPE, DATE_GROUP_ID)
 
 
   # REFORMAT ----------------------------------------------------------------
@@ -69,14 +79,16 @@ make_indicators_comparison <- function(indicators_by_topic,
 
       df_community_tract <- data %>%
         dplyr::filter(GEOGRAPHY_TYPE %in% c("tract", "community")) %>%
-        dplyr::mutate(INDICATOR_TYPE_THRESHOLD_VALUE = county_median,
-                      INDICATOR_TYPE_THRESHOLD = "MEDIAN",
+        dplyr::mutate(INDICATOR_TYPE_THRESHOLD_VALUE = county_median) %>% # create the threshold value
+        dplyr::mutate(INDICATOR_TYPE = "RELATIVE",
                       INDICATOR_TYPE_DESC = "RELATIVE TO MEDIAN",
                       INDICATOR_TYPE_VALUE =  plyr::round_any(ESTIMATE - INDICATOR_TYPE_THRESHOLD_VALUE, accuracy = .001),
                       INDICATOR_TYPE_VALUE_DESC = dplyr::case_when(
                         INDICATOR_TYPE_VALUE>= 0 ~ "GREATER THAN / EQUAL TO MEDIAN",
                         TRUE ~ "LESS THAN MEDIAN"
                       ),
+                      INDICATOR_TYPE_THRESHOLD = "MEDIAN",
+                      INDICATOR_TYPE_THRESHOLD_VALUE,
                       INDICATOR_TYPE_MODEL = INDICATOR_TYPE_VALUE_DESC
         )
 
@@ -89,7 +101,7 @@ make_indicators_comparison <- function(indicators_by_topic,
 
     # IF TOPIC %in% HOUSING MARKET --------------------------------------------
 
-    if(topic %in% "HOUSING MARKET"){
+    if(topic %in% "HOUSING_MARKET"){
 
       get_q4_lower <- function(x) {
 
@@ -107,6 +119,7 @@ make_indicators_comparison <- function(indicators_by_topic,
 
       df_tract <- data %>%
         dplyr::filter(GEOGRAPHY_TYPE %in% c("tract")) %>%
+        dplyr::mutate(INDICATOR_TYPE_THRESHOLD_VALUE = county_q4_lower) %>% # create the threshold value
         dplyr::mutate(
           INDICATOR_TYPE = "RELATIVE",
           INDICATOR_TYPE_DESC = "QUINTILE",
@@ -115,21 +128,23 @@ make_indicators_comparison <- function(indicators_by_topic,
             INDICATOR_TYPE_VALUE <= 3 ~ "LOW/MED",
             TRUE ~ "HIGH"
           ),
-          INDICATOR_TYPE_THRESHOLD_VALUE = county_q4_lower,
+          INDICATOR_TYPE_THRESHOLD_VALUE,
           INDICATOR_TYPE_THRESHOLD = "Q4 LOWER BOUND",
           INDICATOR_TYPE_MODEL = INDICATOR_TYPE_VALUE_DESC
         )
 
       df_community <- data %>%
         dplyr::filter(GEOGRAPHY_TYPE %in% c("community")) %>%
+        dplyr::mutate(INDICATOR_TYPE_THRESHOLD_VALUE = county_q4_lower) %>% # create the threshold value
         dplyr::mutate(
+          INDICATOR_TYPE = "RELATIVE",
           INDICATOR_TYPE_DESC = "QUINTILE",
-          INDICATOR_TYPE_VALUE = NA_real_, # should be double not integer
+          INDICATOR_TYPE_VALUE = NA_real_, # should be double not integer # also, don't calculate the quintile because the data only contain the "community" aggregations (not the tracts)
           INDICATOR_TYPE_VALUE_DESC = dplyr::case_when(
             ESTIMATE <= county_q4_lower ~ "LOW/MED",
             TRUE ~ "HIGH"
           ),
-          INDICATOR_TYPE_THRESHOLD_VALUE = county_q4_lower,
+          INDICATOR_TYPE_THRESHOLD_VALUE,
           INDICATOR_TYPE_THRESHOLD = "Q4 LOWER BOUND",
           INDICATOR_TYPE_MODEL = INDICATOR_TYPE_VALUE_DESC
         )
@@ -150,10 +165,19 @@ make_indicators_comparison <- function(indicators_by_topic,
   }
 
 
-  # CREATE COMPARISON ----
 
-  inds_vuln_housing <- ind_type_fields %>%
-    dplyr::filter(TOPIC %in% c("VULNERABILITY", "HOUSING MARKET")) %>%
+  # CREATE COMPARISON -------------------------------------------------------
+
+  inds_in_models <-  ind_type_fields %>%
+    dplyr::semi_join(inds_table_filter_join,  # only include the indicators that are used in the models
+                     by = c("TOPIC",
+                            "INDICATOR",
+                            "VARIABLE",
+                            "MEASURE_TYPE",
+                            "DATE_GROUP_ID"))
+
+  inds_vuln_housing <- inds_in_models %>%
+    dplyr::filter(TOPIC %in% c("VULNERABILITY", "HOUSING_MARKET")) %>%
     dplyr::filter(! is.na(GEOGRAPHY_ID)) # for some unknown reason there are NA GEOGRAPHY_IDs in the ASSESSOR rows
 
   inds_vuln_housing_comparison <- inds_vuln_housing %>%
@@ -193,9 +217,30 @@ make_indicators_comparison <- function(indicators_by_topic,
                             "INDICATOR_TYPE_DESC",
                             "INDICATOR_TYPE_VALUE",
                             "INDICATOR_TYPE_VALUE_DESC",
-                            "INDICATOR_TYPE_MODEL"))
+                            "INDICATOR_TYPE_MODEL")) %>%
+    dplyr::select(dplyr::starts_with("SOURCE"),
+                  dplyr::starts_with("GEOGRAPHY"),
+                  dplyr::starts_with("DATE"),
+                  TOPIC,
+                  INDICATOR,
+                  dplyr::starts_with("VARIABLE"),
+                  MEASURE_TYPE,
+                  dplyr::starts_with("ESTIMATE"),
+                  dplyr::starts_with("MOE"),
+                  dplyr::starts_with("INDICATOR"),
+                  dplyr::everything())
 
   indicators_comparison <- indicators_comparison_ready
+
+
+
+  # VISUALIZE: COUNT --------------------------------------------------------
+
+  vis_count <- function(){
+    indicators_comparison %>%
+    filter(! GEOGRAPHY_TYPE %in% "county") %>% # INDICATOR_TYPE_MODEL values for the county are all NA
+    count(GEOGRAPHY_TYPE,TOPIC,INDICATOR,VARIABLE,DATE_GROUP_ID, INDICATOR_TYPE_MODEL) %>% print(n=Inf)
+  }
 
   # RETURN ------------------------------------------------------------------
 

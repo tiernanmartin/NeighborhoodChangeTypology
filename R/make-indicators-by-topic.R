@@ -15,7 +15,7 @@ make_indicators_by_topic <- function(indicators_cnt_pct,
   topic_join  <- model_table_inputs %>%
     dplyr::select(TOPIC, INDICATOR) %>%
     dplyr::distinct() %>%
-    dplyr::mutate(INDICATOR = stringr::str_replace_all(INDICATOR,"\\s","_"))
+    dplyr::mutate_all(to_caps_underscores) # replace spaces with "_" and make everything all caps
 
   topic_burden_fields <- tibble::tibble(TOPIC = c("VULNERABILITY","VULNERABILITY"),
                                         INDICATOR = c("COST_BURDEN_OWN", "COST_BURDEN_RENT")
@@ -35,10 +35,10 @@ make_indicators_by_topic <- function(indicators_cnt_pct,
 
 
 
-  # INVERT DEMOGRAPHIC CHANGE INDICATORS ------------------------------------
+  # INVERT DEMOGRAPHIC_CHANGE INDICATORS ------------------------------------
 
   ind_topic_demo_change <-  ind_topic %>%
-    dplyr::filter(TOPIC %in% "DEMOGRAPHIC CHANGE")
+    dplyr::filter(TOPIC %in% "DEMOGRAPHIC_CHANGE")
 
 
   indicators_demo_change_wide <- ind_topic_demo_change %>%
@@ -94,7 +94,7 @@ make_indicators_by_topic <- function(indicators_cnt_pct,
 # COMBINE INDICATOR OBJECTS -----------------------------------------------
 
   ind_topic_vuln_hous <- ind_topic %>%
-    dplyr::filter(! TOPIC %in% "DEMOGRAPHIC CHANGE")
+    dplyr::filter(! TOPIC %in% "DEMOGRAPHIC_CHANGE")
 
 
   ind_topic_all <- list(ind_topic_vuln_hous,
