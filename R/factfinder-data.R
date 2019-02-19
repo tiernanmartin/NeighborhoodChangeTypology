@@ -41,12 +41,18 @@ prepare_factfinder_data <- function(data_template, acs_tables, path){
 
   # get the ACS code for the VALUE variable ("B25077")
   acs_variables_value <- acs_tables %>%
-    dplyr::filter(INDICATOR %in% "VALUE") %>%
+    dplyr::filter(INDICATOR %in% c("VALUE", "RENT")) %>%
     dplyr::pull(VARIABLE)
 
+  acs_ltdb_join <- tibble::tibble(VARIABLE_ACS = acs_variables_value,
+                                  VARIABLE_LTDB = c("HC01_VC73",  "HC01_VC104"))
+
   kc_median_home_value_2000 <- kc_2000_raw %>%
-    dplyr::filter(DESCRIPTION %in% "Number; Specified owner-occupied units - VALUE - Median (dollars)") %>%
-    dplyr::mutate(VARIABLE = acs_variables_value) # change the VARIABLE from Factfinder format to ACS API format
+    dplyr::filter(DESCRIPTION %in% c("Number; Specified owner-occupied units - VALUE - Median (dollars)",
+                                     "Number; Specified renter-occupied units - GROSS RENT - Median (dollars)")) %>%
+    dplyr::left_join(acs_ltdb_join, by = c(VARIABLE = "VARIABLE_LTDB")) %>%
+    dplyr::select(-VARIABLE) %>%
+    dplyr::rename(VARIABLE = VARIABLE_ACS)
 
   # REFORMAT DATA -----------------------------------------------------------
 

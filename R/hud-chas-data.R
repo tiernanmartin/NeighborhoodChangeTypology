@@ -99,7 +99,7 @@ make_hud_chas_data <- function(data_template, zip_path, file_path){
 
     readr::read_csv(x) %>%
       janitor::clean_names("screaming_snake") %>%
-      dplyr::mutate_at(dplyr::vars(-matches("T7")),as.character)
+      dplyr::mutate_at(dplyr::vars(-dplyr::matches("T7")),as.character)
   }
 
 

@@ -2,6 +2,7 @@
 #' @description Return a `tibble` of all of the US Census data variables
 #'   that are obtained from the American Factfinder user interface: \link{https://factfinder.census.gov/}
 #' @param factfinder_data Tibble, desc
+#' @param acs_tables desc
 #' @param census_geography_metadata desc
 #' @param cpi desc
 #' @param variable_template Tibble, desc
@@ -9,13 +10,16 @@
 
 #' @rdname factfinder-variables
 #' @export
-make_factfinder_variables <- function(factfinder_data, census_geography_metadata, cpi, variable_template){
+make_factfinder_variables <- function(factfinder_data, acs_tables, census_geography_metadata, cpi, variable_template){
 
   # PREPARE LTDB DATA ROLES & ADJUST FOR INFLATION --------------------------
 
+
+  indicator_join <- acs_tables %>% dplyr::select(VARIABLE, INDICATOR)
+
   factfinder_variables_roles_2018_dollars <- factfinder_data %>%
-    dplyr::mutate(INDICATOR = "VALUE",
-                  VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
+    dplyr::left_join(indicator_join, by = "VARIABLE") %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
                   VARIABLE_ROLE = "include", # there's only one variable and it is a value variable so its ROLE is "include"
                   ESTIMATE = convert_to_2018_dollars(ESTIMATE, DATE_END, cpi = cpi)
                   )

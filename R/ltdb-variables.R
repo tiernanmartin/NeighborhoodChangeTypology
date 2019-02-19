@@ -3,6 +3,7 @@
 #' @description Return a `tibble` of all of the US Census data variables
 #'   that are obtained from the Brown University Longitudinal Tract Database (LTDB).
 #' @param ltdb_data Tibble, desc
+#'@param acs_tables Tibble, desc
 #' @param census_geography_metadata desc
 #' @param cpi desc
 #' @param variable_template Tibble, desc
@@ -10,15 +11,17 @@
 
 #' @rdname ltdb-variables
 #' @export
-make_ltdb_variables <- function(ltdb_data, census_geography_metadata, cpi, variable_template){
+make_ltdb_variables <- function(ltdb_data, acs_tables, census_geography_metadata, cpi, variable_template){
 
 
 # PREPARE LTDB DATA ROLES & ADJUST FOR INFLATION --------------------------
 
+  indicator_join <- acs_tables %>% dplyr::select(VARIABLE, INDICATOR)
+
 
   ltdb_variables_roles_2018_dollars <- ltdb_data %>%
-    dplyr::mutate(INDICATOR = "VALUE",
-                  VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
+    dplyr::left_join(indicator_join, by = "VARIABLE") %>%
+    dplyr::mutate(VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
                   VARIABLE_ROLE = "include", # there's only one variable and it is a value variable so its ROLE is "include"
                   ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi))
 
