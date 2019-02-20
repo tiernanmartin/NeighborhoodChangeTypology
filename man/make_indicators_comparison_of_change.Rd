@@ -4,13 +4,15 @@
 \alias{make_indicators_comparison_of_change}
 \title{Make The Change in Comparison Indicators}
 \usage{
-make_indicators_comparison_of_change(indicators_by_topic, change_endyears,
-  indicator_type_template)
+make_indicators_comparison_of_change(indicators_by_topic,
+  model_table_production, change_dategroupid_long, indicator_type_template)
 }
 \arguments{
 \item{indicators_by_topic}{desc}
 
-\item{change_endyears}{desc}
+\item{model_table_production}{desc}
+
+\item{change_dategroupid_long}{desc}
 
 \item{indicator_type_template}{desc}
 }
