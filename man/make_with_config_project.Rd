@@ -4,7 +4,14 @@
 \alias{make_with_config_project}
 \title{Make a (Congifured) Drake Plan}
 \usage{
-make_with_config_project(plan)
+make_with_config_project(plan, .beep = TRUE, .beep_on_error = TRUE)
+}
+\arguments{
+\item{plan}{drake plan}
+
+\item{.beep}{logical (default = TRUE), whether to play the "ping" sound after the plan is made}
+
+\item{.beep_on_error}{logical (default = TRUE), whether to play the "facebook" sound if the plan returns an error}
 }
 \value{
 The master internal configuration list, mostly containing arguments to make() and important objects constructed along the way. See drake_config() for more details.
