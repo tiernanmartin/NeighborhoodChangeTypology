@@ -4,7 +4,14 @@
 \alias{make_census_tracts_2016_trimmed}
 \title{Make King County's Census Tract Boundaries (2016) Without Waterbodies}
 \usage{
-make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies)
+make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies, acs_data)
+}
+\arguments{
+\item{census_tracts_2016}{desc}
+
+\item{waterbodies}{desc}
+
+\item{acs_data}{desc}
 }
 \value{
 a MULTIPOLYGON simple feature (class =  \code{sf})

@@ -1,5 +1,6 @@
 
-# PROJECT TEMPLATES PLAN --------------------------------------------------------------
+# PROJECT PLAN ------------------------------------------------------------
+
 #' @title Get the Project Templates Plan
 #' @description Use \code{\link[drake]{drake_plan}} to create the project's
 #'   templates plan.
@@ -350,7 +351,7 @@ get_variable_plan <- function(){
 
   var_prep_plan <- drake::drake_plan(
     parcel_tract_overlay = make_parcel_tract_overlay(parcel_boundaries, census_tracts_2016),
-    census_tracts_2016_trimmed = make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies),
+    census_tracts_2016_trimmed = make_census_tracts_2016_trimmed(census_tracts_2016, waterbodies, acs_data),
     present_use_key = make_present_use_key(parcel_lut_2005, parcel_lut_2018),
     condo_unit_type_key = make_condo_unit_type_key(parcel_lut_2005, parcel_lut_2018),
     sales_lut_key_list = make_sales_lut_key_list(parcel_lut_2018),
