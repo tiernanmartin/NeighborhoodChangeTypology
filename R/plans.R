@@ -530,6 +530,8 @@ get_indicator_plan <- function(){
     indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
                                                                            change_dategroupid_long,
                                                                            indicator_type_template),
+    indicators_proximity = make_indicators_proximity(census_tracts_2016_trimmed,
+                                                     indicator_type_template),
     ind_type_plan_tmp = c("placeholder")
   )
 
