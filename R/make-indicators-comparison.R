@@ -1,6 +1,6 @@
 #' @title Make The Comparison Indicators
 #' @description Description
-#' @param indicators_by_topic desc
+#' @param indicators_by_dimension desc
 #' @param model_table_production desc
 #' @param indicator_type_template desc
 #' @return a `tibble`
@@ -17,9 +17,9 @@ make_indicators_comparison <- function(indicators_by_topic,
   # CREATE THE FILTER-JOIN OBJECT -------------------------------------------
 
   inds_table_filter_join <- model_table_production %>%
-    dplyr::select(TOPIC, INDICATOR, VARIABLE, MEASURE_TYPE, DATE_GROUP_ID) %>%
+    dplyr::select(DIMENSION, INDICATOR, VARIABLE, MEASURE_TYPE, DATE_GROUP_ID) %>%
     dplyr::distinct() %>%
-    dplyr::arrange(TOPIC, INDICATOR, VARIABLE, MEASURE_TYPE, DATE_GROUP_ID)
+    dplyr::arrange(DIMENSION, INDICATOR, VARIABLE, MEASURE_TYPE, DATE_GROUP_ID)
 
 
   # REFORMAT ----------------------------------------------------------------
@@ -37,7 +37,7 @@ make_indicators_comparison <- function(indicators_by_topic,
                             "DATE_END",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
-                            "TOPIC",
+                            "DIMENSION",
                             "INDICATOR",
                             "VARIABLE",
                             "VARIABLE_DESC",
@@ -65,7 +65,7 @@ make_indicators_comparison <- function(indicators_by_topic,
       dplyr::filter(GEOGRAPHY_TYPE %in% c("county"))
 
 
-    # IF TOPIC %in% VULNERABILITY ---------------------------------------------
+    # IF DIMENSION %in% VULNERABILITY ---------------------------------------------
 
     if(topic %in% "VULNERABILITY"){
 
@@ -99,7 +99,7 @@ make_indicators_comparison <- function(indicators_by_topic,
 
     }
 
-    # IF TOPIC %in% HOUSING MARKET --------------------------------------------
+    # IF DIMENSION %in% HOUSING MARKET --------------------------------------------
 
     if(topic %in% "HOUSING_MARKET"){
 
@@ -170,20 +170,20 @@ make_indicators_comparison <- function(indicators_by_topic,
 
   inds_in_models <-  ind_type_fields %>%
     dplyr::semi_join(inds_table_filter_join,  # only include the indicators that are used in the models
-                     by = c("TOPIC",
+                     by = c("DIMENSION",
                             "INDICATOR",
                             "VARIABLE",
                             "MEASURE_TYPE",
                             "DATE_GROUP_ID"))
 
   inds_vuln_housing <- inds_in_models %>%
-    dplyr::filter(TOPIC %in% c("VULNERABILITY", "HOUSING_MARKET")) %>%
+    dplyr::filter(DIMENSION %in% c("VULNERABILITY", "HOUSING_MARKET")) %>%
     dplyr::filter(! is.na(GEOGRAPHY_ID)) # for some unknown reason there are NA GEOGRAPHY_IDs in the ASSESSOR rows
 
   inds_vuln_housing_comparison <- inds_vuln_housing %>%
-    tidyr::nest(-TOPIC, -INDICATOR, -VARIABLE, -DATE_GROUP_ID,-MEASURE_TYPE) %>%
+    tidyr::nest(-DIMENSION, -INDICATOR, -VARIABLE, -DATE_GROUP_ID,-MEASURE_TYPE) %>%
     dplyr::mutate(COMP_FIELDS = purrr::pmap(list("data" = data,
-                                                 "topic" = TOPIC,
+                                                 "topic" = DIMENSION,
                                                  "measure_type" = MEASURE_TYPE), get_comparison_fields)) %>%
     dplyr::select(-data) %>%
     tidyr::unnest()
@@ -204,7 +204,7 @@ make_indicators_comparison <- function(indicators_by_topic,
                             "DATE_END",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
-                            "TOPIC",
+                            "DIMENSION",
                             "INDICATOR",
                             "VARIABLE",
                             "VARIABLE_DESC",
@@ -221,7 +221,7 @@ make_indicators_comparison <- function(indicators_by_topic,
     dplyr::select(dplyr::starts_with("SOURCE"),
                   dplyr::starts_with("GEOGRAPHY"),
                   dplyr::starts_with("DATE"),
-                  TOPIC,
+                  DIMENSION,
                   INDICATOR,
                   dplyr::starts_with("VARIABLE"),
                   MEASURE_TYPE,
@@ -239,7 +239,7 @@ make_indicators_comparison <- function(indicators_by_topic,
   vis_count <- function(){
     indicators_comparison %>%
     filter(! GEOGRAPHY_TYPE %in% "county") %>% # INDICATOR_TYPE_MODEL values for the county are all NA
-    count(GEOGRAPHY_TYPE,TOPIC,INDICATOR,VARIABLE,DATE_GROUP_ID, INDICATOR_TYPE_MODEL) %>% print(n=Inf)
+    count(GEOGRAPHY_TYPE,DIMENSION,INDICATOR,VARIABLE,DATE_GROUP_ID, INDICATOR_TYPE_MODEL) %>% print(n=Inf)
   }
 
   # RETURN ------------------------------------------------------------------

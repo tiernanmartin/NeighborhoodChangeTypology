@@ -5,7 +5,7 @@
 \alias{make_metadata_template}
 \alias{make_variable_template}
 \alias{make_indicator_template}
-\alias{make_indicator_topic_template}
+\alias{make_indicator_dimension_template}
 \alias{make_indicator_type_template}
 \title{Make Template Objects}
 \usage{
@@ -17,7 +17,7 @@ make_variable_template()
 
 make_indicator_template()
 
-make_indicator_topic_template()
+make_indicator_dimension_template()
 
 make_indicator_type_template()
 }

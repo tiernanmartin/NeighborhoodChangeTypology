@@ -39,7 +39,7 @@ get_project_plan <- function(){
     data_template = make_data_template(),
     variable_template = make_variable_template(),
     indicator_template = make_indicator_template(),
-    indicator_topic_template = make_indicator_topic_template(),
+    indicator_dimension_template = make_indicator_dimension_template(),
     indicator_type_template = make_indicator_type_template()
 
   )
@@ -500,10 +500,10 @@ get_indicator_plan <- function(){
                                                indicators_median_value_quarter,
                                                indicators_median_sales,
                                                indicator_template),
-    indicators_by_topic = make_indicators_by_topic(indicators_cnt_pct,
+    indicators_by_dimension = make_indicators_by_dimension(indicators_cnt_pct,
                                                    indicators_median,
                                                    model_table_inputs,
-                                                   indicator_topic_template),
+                                                   indicator_dimension_template),
     # sample_size_metadata = make_sample_size_metadata(indicators_cnt_pct,
     #                              indicators_median),
     # indicators = make_indicators(indicators_cnt_pct,
@@ -520,10 +520,10 @@ get_indicator_plan <- function(){
   # )
 
   ind_type_plan <- drake::drake_plan(
-    indicators_comparison = make_indicators_comparison(indicators_by_topic,
+    indicators_comparison = make_indicators_comparison(indicators_by_dimension,
                                                        model_table_production,
                                                        indicator_type_template),
-    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_topic,
+    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_dimension,
                                                                            model_table_production,
                                                                            change_dategroupid_long,
                                                                            indicator_type_template),

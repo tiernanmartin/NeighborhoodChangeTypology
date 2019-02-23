@@ -112,7 +112,7 @@ return(indicator_template)
 
 #' @rdname templates
 #' @export
-make_indicator_topic_template <- function(){
+make_indicator_dimension_template <- function(){
 
 indicator_topic_template <- tibble::tibble(SOURCE = NA_character_,
                                      GEOGRAPHY_ID = NA_character_,
@@ -124,7 +124,7 @@ indicator_topic_template <- tibble::tibble(SOURCE = NA_character_,
                                   DATE_END = NA_character_,
                                 DATE_RANGE = NA_character_,
                            DATE_RANGE_TYPE = NA_character_,
-                                     TOPIC = NA_character_,
+                                     DIMENSION = NA_character_,
                                  INDICATOR = NA_character_,
                                   VARIABLE = NA_character_,
                              VARIABLE_DESC = NA_character_,
@@ -151,7 +151,7 @@ indicator_type_template <- tibble::tibble(SOURCE = NA_character_,
                                   DATE_END = NA_character_,
                                 DATE_RANGE = NA_character_,
                            DATE_RANGE_TYPE = NA_character_,
-                                     TOPIC = NA_character_,
+                                     DIMENSION = NA_character_,
                                  INDICATOR = NA_character_,
                                   VARIABLE = NA_character_,
                              VARIABLE_DESC = NA_character_,

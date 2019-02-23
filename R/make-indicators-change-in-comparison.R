@@ -1,6 +1,6 @@
 #' @title Make The Change in Comparison Indicators
 #' @description Description
-#' @param indicators_by_topic desc
+#' @param indicators_by_dimension desc
 #' @param change_dategroupid_long desc
 #' @param indicator_topic_template desc
 #' @return a `tibble`
@@ -20,7 +20,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
   inds_housing <- indicators_comparison %>%
     dplyr::rename(DATE_GROUP_ID_JOIN = DATE_GROUP_ID) %>%
-    dplyr::filter(TOPIC %in% "HOUSING_MARKET") %>%
+    dplyr::filter(DIMENSION %in% "HOUSING_MARKET") %>%
     dplyr::select(-SOURCE, -VARIABLE_DESC)   # these columns shouldn't be included in the CHANGE indicator
 
 
@@ -38,11 +38,11 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
   inds_housing_change_dategroupid_join <- change_dategroupid_long %>%
     dplyr::left_join(inds_housing_long,
-                     by = c("TOPIC",
+                     by = c("DIMENSION",
                             "INDICATOR",
                             "VARIABLE",
                             "DATE_GROUP_ID_JOIN")) %>%
-    dplyr::filter(TOPIC %in% "HOUSING_MARKET") # Change in comparison only applies to HOUSING_MARKET -related indicators
+    dplyr::filter(DIMENSION %in% "HOUSING_MARKET") # Change in comparison only applies to HOUSING_MARKET -related indicators
 
 
   inds_wide <- inds_housing_change_dategroupid_join %>%
@@ -50,7 +50,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
     dplyr::select(-DATE_GROUP_ID_JOIN, -DATE_BEGIN, -DATE_END, -DATE_RANGE, -DATE_RANGE_TYPE, -INDICATOR_TYPE_MODEL) %>%
     dplyr::mutate(DATE_TYPE = stringr::str_extract(DATE_TYPE, "BEGIN|END")) %>%
     # GROUP_ID in preparation for spread()
-    dplyr::mutate(GROUP_ID = dplyr::group_indices(.,TOPIC, INDICATOR, VARIABLE, DATE_GROUP_ID, GEOGRAPHY_ID, MEASURE_TYPE)) %>%
+    dplyr::mutate(GROUP_ID = dplyr::group_indices(.,DIMENSION, INDICATOR, VARIABLE, DATE_GROUP_ID, GEOGRAPHY_ID, MEASURE_TYPE)) %>%
     tidyr::unite("TYPE_ROLE_YEAR", c(VALUE_TYPE, DATE_TYPE)) %>%
     tidyr::spread(TYPE_ROLE_YEAR, VALUE) %>%
     dplyr::select(-GROUP_ID)
@@ -107,7 +107,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
     tidyr::separate(DATE_GROUP_ID_SEPARATE, into = c("BEGIN_DATE_GROUP_ID", "END_DATE_GROUP_ID"),sep = "_TO_") %>%
     tidyr::gather(DATE_TYPE, DATE_GROUP_ID_JOIN, c(BEGIN_DATE_GROUP_ID, END_DATE_GROUP_ID)) %>%
     dplyr::left_join(date_group_id_fields,
-                     by = c("TOPIC",
+                     by = c("DIMENSION",
                             "INDICATOR",
                             "VARIABLE",
                             "GEOGRAPHY_ID",
@@ -156,7 +156,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
                             "DATE_END",
                             "DATE_RANGE",
                             "DATE_RANGE_TYPE",
-                            "TOPIC",
+                            "DIMENSION",
                             "INDICATOR",
                             "VARIABLE",
                             "VARIABLE_DESC",
@@ -168,7 +168,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
     dplyr::select(dplyr::starts_with("SOURCE"),
                   dplyr::starts_with("GEOGRAPHY"),
                   dplyr::starts_with("DATE"),
-                  TOPIC,
+                  DIMENSION,
                   INDICATOR,
                   dplyr::starts_with("VARIABLE"),
                   MEASURE_TYPE,

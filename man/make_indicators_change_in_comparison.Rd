@@ -10,7 +10,7 @@ make_indicators_change_in_comparison(indicators_comparison,
 \arguments{
 \item{change_dategroupid_long}{desc}
 
-\item{indicators_by_topic}{desc}
+\item{indicators_by_dimension}{desc}
 
 \item{indicator_topic_template}{desc}
 }

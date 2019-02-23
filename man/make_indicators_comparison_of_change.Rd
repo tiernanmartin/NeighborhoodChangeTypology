@@ -8,13 +8,13 @@ make_indicators_comparison_of_change(indicators_by_topic,
   model_table_production, change_dategroupid_long, indicator_type_template)
 }
 \arguments{
-\item{indicators_by_topic}{desc}
-
 \item{model_table_production}{desc}
 
 \item{change_dategroupid_long}{desc}
 
 \item{indicator_type_template}{desc}
+
+\item{indicators_by_dimension}{desc}
 }
 \value{
 a \code{tibble}

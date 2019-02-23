@@ -4,7 +4,6 @@
 \alias{make_acs_tables}
 \alias{make_model_table_inputs}
 \alias{make_model_table_production}
-\alias{make_model_table_archive}
 \title{Make A Tibble of the Project Models}
 \usage{
 make_acs_tables()
@@ -12,8 +11,6 @@ make_acs_tables()
 make_model_table_inputs(path)
 
 make_model_table_production(path)
-
-make_model_table_archive()
 }
 \value{
 a \code{tibble}

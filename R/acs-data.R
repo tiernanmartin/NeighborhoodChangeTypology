@@ -23,7 +23,7 @@ prepare_acs_data <- function(data_template, model_table_inputs, acs_tables, path
                      TOPIC = concept)
 
   data_key <- model_table_inputs %>%
-    dplyr::select(MODEL, TOPIC, -MEASURE_TYPE, INDICATOR, SOURCE, DATE_END) %>%
+    dplyr::select(MODEL, DIMENSION, -MEASURE_TYPE, INDICATOR, SOURCE, DATE_END) %>%
     dplyr::inner_join(dplyr::select(acs_tables,-TOPIC), by = "INDICATOR") %>%
     dplyr::inner_join(all_census_vars, by = "VARIABLE")
 

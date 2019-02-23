@@ -8,11 +8,11 @@ make_indicators_comparison(indicators_by_topic, model_table_production,
   indicator_type_template)
 }
 \arguments{
-\item{indicators_by_topic}{desc}
-
 \item{model_table_production}{desc}
 
 \item{indicator_type_template}{desc}
+
+\item{indicators_by_dimension}{desc}
 }
 \value{
 a \code{tibble}

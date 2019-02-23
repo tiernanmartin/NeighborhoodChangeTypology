@@ -14,7 +14,7 @@ make_change_dategroupid_long <- function(model_table_production){
     dplyr::mutate(DATE_GROUP_ID_SEPARATE = DATE_GROUP_ID) %>%
     tidyr::separate(DATE_GROUP_ID_SEPARATE, into = c("BEGIN_DATE_GROUP_ID", "END_DATE_GROUP_ID"),sep = "_TO_") %>%  # separate BEGIN and END into fields
     dplyr::distinct() %>%
-    dplyr::arrange(TOPIC, INDICATOR, VARIABLE, BEGIN_DATE_GROUP_ID)
+    dplyr::arrange(DIMENSION, INDICATOR, VARIABLE, BEGIN_DATE_GROUP_ID)
 
   change_dategroupid_long <- change_dategroupid_wide %>%
       tidyr::gather(DATE_TYPE, DATE_GROUP_ID_JOIN, c(BEGIN_DATE_GROUP_ID, END_DATE_GROUP_ID))
