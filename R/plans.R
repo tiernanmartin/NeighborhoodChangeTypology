@@ -105,9 +105,7 @@ get_data_source_plan <- function(){
                                      trigger = trigger(mode = "blacklist", condition = FALSE)),
     census_tracts_2016_prep_status = target(prepare_census_tracts_2016(path = file_out("extdata/source/census-tracts-2016.gpkg")),
                                             trigger = trigger(mode = "blacklist", condition = FALSE)),
-    cpi_all_prep_status = target(prepare_cpi_all(path= file_out("extdata/source/cpi-all-2000-2018.csv")),
-                             trigger = trigger(mode = "blacklist", condition = FALSE)),
-    cpi_less_shelter_prep_status = target(prepare_cpi_less_shelter(path= file_out("extdata/source/cpi-less-shelter-2000-2018.csv")),
+    cpi_prep_status = target(prepare_cpi(path= file_out("extdata/source/cpi-2000-2018.csv")),
                              trigger = trigger(mode = "blacklist", condition = FALSE))
 
   )
@@ -164,17 +162,17 @@ get_data_source_plan <- function(){
                                                                    file_id = "cagvu",
                                                                    path = file_in("extdata/source/census-tracts-2016.gpkg")),
                                               trigger = trigger(mode = "blacklist", condition = FALSE)),
-    cpi_all_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
+    cpi_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
                                                               project_id = "sj7n9",
-                                                              file_id = NULL,
-                                                              path = file_in("extdata/source/cpi-all-2000-2018.csv")),
-                               trigger = trigger(mode = "blacklist", condition = FALSE)),
-    cpi_less_shelter_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
-                                                              project_id = "sj7n9",
-                                                              file_id = NULL,
-                                                              path = file_in("extdata/source/cpi-less-shelter-2000-2018.csv")),
+                                                              file_id = "8y3cj",
+                                                              path = file_in("extdata/source/cpi-2000-2018.csv")),
                                trigger = trigger(mode = "blacklist", condition = FALSE))
   )
+
+  # target_archive_plan <- drake::drake_plan(
+  #
+  #
+  # )
 
 
   data_source_plan <- drake::bind_plans(prep_plan, upload_plan)
@@ -210,9 +208,7 @@ get_data_cache_plan <- function(){
                                          trigger = trigger(change = get_osf_version("sj7n9", "census-tracts-2016.gpkg"))),
     parcel_data_filepath = target(command = osf_download_files(id = "9t5vc", path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2013-2014-2015-2016-2017-2018.zip")),
                                   trigger = trigger(change = get_osf_version("sj7n9", "kc-assessor-parcels-2005-2010-2013-2014-2015-2016-2017-2018.zip"))),
-    cpi_all_filepath = target(command = osf_download_files(id = "8y3cj", path = file_out("extdata/osf/cpi-all-2000-2018.csv")),
-                          trigger = trigger(change = get_osf_version("sj7n9", "cpi-2000-2018.csv"))),
-    cpi_less_shelter_filepath = target(command = osf_download_files(id = "8y3cj", path = file_out("extdata/osf/cpi-less-shelter-2000-2018.csv")),
+    cpi_filepath = target(command = osf_download_files(id = "8y3cj", path = file_out("extdata/osf/cpi-2000-2018.csv")),
                           trigger = trigger(change = get_osf_version("sj7n9", "cpi-2000-2018.csv")))
   )
 
@@ -314,8 +310,7 @@ get_data_cache_plan <- function(){
     res_bldg_2018 = make_res_bldg_2018(metadata_template,
                                        zip_path = file_in("extdata/osf/kc-assessor-parcels-2005-2010-2013-2014-2015-2016-2017-2018.zip"),
                                        file_path = file_out("extdata/osf/kc-assessor-parcels-2005-2010-2013-2014-2015-2016-2017-2018/EXTR_ResBldg_2018.csv")),
-    cpi_all = make_all_shelter(path = file_in("extdata/osf/cpi-all-2000-2018.csv")),
-    cpi_less_shelter = make_cpi_less_shelter(path = file_in("extdata/osf/cpi-less-shelter-2000-2018.csv"))
+    cpi = make_cpi(path = file_in("extdata/osf/cpi-2000-2018.csv"))
   )
 
   data_cache_plan <- drake::bind_plans(download_plan, ready_plan)

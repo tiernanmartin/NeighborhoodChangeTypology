@@ -39,7 +39,7 @@ scale_pct_points <- function(x){
 }
 
 #' @export
-convert_to_2018_dollars <- function(value, date_string, cpi){
+convert_to_2018_dollars <- function(value, date_string, cpi, series_title = "less_shelter"){
 
   # Note: this function can only convery sales after the year 1999 -- earlier years will return NA
 
@@ -51,7 +51,9 @@ convert_to_2018_dollars <- function(value, date_string, cpi){
 
   year <- as.character(lubridate::year(date_string))
 
-  adj_rate <- cpi[as.character(2018)]/cpi[year]
+  cpi_series <- cpi[[series_title]]
+
+  adj_rate <- cpi_series[as.character(2018)]/cpi_series[year]
 
   as.integer(round(as.double(value) * adj_rate ,digits = -2) )
 }
