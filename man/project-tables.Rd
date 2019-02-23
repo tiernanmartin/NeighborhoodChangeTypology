@@ -9,9 +9,9 @@
 \usage{
 make_acs_tables()
 
-make_model_table_inputs()
+make_model_table_inputs(path)
 
-make_model_table_production()
+make_model_table_production(path)
 
 make_model_table_archive()
 }
