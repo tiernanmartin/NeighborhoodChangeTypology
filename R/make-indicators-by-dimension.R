@@ -3,45 +3,45 @@
 #' @param indicators_cnt_pct desc
 #' @param indicators_median desc
 #' @param model_table_inputs desc
-#' @param indicator_DIMENSION_template desc
+#' @param indicator_dimension_template desc
 #' @return a `tibble`
 #' @export
-make_indicators_by_DIMENSION <- function(indicators_cnt_pct,
+make_indicators_by_dimension <- function(indicators_cnt_pct,
                                      indicators_median,
                                      model_table_inputs,
-                                     indicator_DIMENSION_template){
+                                     indicator_dimension_template){
 
 
-  DIMENSION_join  <- model_table_inputs %>%
+  dimension_join  <- model_table_inputs %>%
     dplyr::select(DIMENSION, INDICATOR) %>%
     dplyr::distinct() %>%
     dplyr::mutate_all(to_caps_underscores) # replace spaces with "_" and make everything all caps
 
-  DIMENSION_burden_fields <- tibble::tibble(DIMENSION = c("VULNERABILITY","VULNERABILITY"),
+  dimension_burden_fields <- tibble::tibble(DIMENSION = c("VULNERABILITY","VULNERABILITY"),
                                         INDICATOR = c("COST_BURDEN_OWN", "COST_BURDEN_RENT")
   )
 
-  DIMENSION_join_all <- DIMENSION_join %>%
+  dimension_join_all <- dimension_join %>%
     dplyr::filter(! INDICATOR %in% "COST_BURDEN") %>% # drop COST_BURDEN
-    dplyr::bind_rows(DIMENSION_burden_fields) %>%  # replace it with COST_BURDEN_OWN and COST_BURDEN_RENT
+    dplyr::bind_rows(dimension_burden_fields) %>%  # replace it with COST_BURDEN_OWN and COST_BURDEN_RENT
     dplyr::arrange(DIMENSION)
 
   # ADD DIMENSION FIELD ---------------------------------------------------------
 
-  ind_DIMENSION <- list(indicators_cnt_pct,
+  ind_dimension <- list(indicators_cnt_pct,
                     indicators_median) %>%
     purrr::map_dfr(c) %>%
-    dplyr::left_join(DIMENSION_join_all, by = c("INDICATOR"))
+    dplyr::left_join(dimension_join_all, by = c("INDICATOR"))
 
 
 
   # INVERT DEMOGRAPHIC_CHANGE INDICATORS ------------------------------------
 
-  ind_DIMENSION_demo_change <-  ind_DIMENSION %>%
+  ind_dimension_demo_change <-  ind_dimension %>%
     dplyr::filter(DIMENSION %in% "DEMOGRAPHIC_CHANGE")
 
 
-  indicators_demo_change_wide <- ind_DIMENSION_demo_change %>%
+  indicators_demo_change_wide <- ind_dimension_demo_change %>%
     tidyr::gather(VALUE_TYPE, VALUE, ESTIMATE, MOE) %>%
     tidyr::unite("VALUE_MEASURE",c(VALUE_TYPE, MEASURE_TYPE)) %>%
     dplyr::select(-VARIABLE_DESC) %>% # needs to be remove for spread() to work
@@ -74,7 +74,7 @@ make_indicators_by_DIMENSION <- function(indicators_cnt_pct,
     tidyr::gather(VALUE_MEASURE, VALUE, dplyr::matches("ESTIMATE|MOE")) %>%
     tidyr::separate(VALUE_MEASURE, into = c("VALUE_TYPE","MEASURE_TYPE")) %>%
     tidyr::spread(VALUE_TYPE, VALUE) %>%
-    dplyr::left_join(dplyr::select(ind_DIMENSION_demo_change,-dplyr::matches("ESTIMATE|MOE")), # get VARIABLE_DESC back
+    dplyr::left_join(dplyr::select(ind_dimension_demo_change,-dplyr::matches("ESTIMATE|MOE")), # get VARIABLE_DESC back
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
@@ -93,11 +93,11 @@ make_indicators_by_DIMENSION <- function(indicators_cnt_pct,
 
 # COMBINE INDICATOR OBJECTS -----------------------------------------------
 
-  ind_DIMENSION_vuln_hous <- ind_DIMENSION %>%
+  ind_dimension_vuln_hous <- ind_dimension %>%
     dplyr::filter(! DIMENSION %in% "DEMOGRAPHIC_CHANGE")
 
 
-  ind_DIMENSION_all <- list(ind_DIMENSION_vuln_hous,
+  ind_dimension_all <- list(ind_dimension_vuln_hous,
                         indicators_demo_change_long) %>%
     purrr::map_dfr(c)
 
@@ -106,8 +106,8 @@ make_indicators_by_DIMENSION <- function(indicators_cnt_pct,
 
   # Note: this just makes sure that the columns have the same order as the indicator_template
 
-  indicators_by_DIMENSION_ready <- indicator_DIMENSION_template %>%
-    dplyr::full_join(ind_DIMENSION_all,
+  indicators_by_dimension_ready <- indicator_dimension_template %>%
+    dplyr::full_join(ind_dimension_all,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
@@ -126,11 +126,11 @@ make_indicators_by_DIMENSION <- function(indicators_cnt_pct,
                             "ESTIMATE",
                             "MOE"))
 
-  indicators_by_DIMENSION <- indicators_by_DIMENSION_ready
+  indicators_by_dimension <- indicators_by_dimension_ready
 
   # RETURN ------------------------------------------------------------------
 
-  return(indicators_by_DIMENSION)
+  return(indicators_by_dimension)
 
 }
 

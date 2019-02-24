@@ -521,18 +521,18 @@ get_indicator_plan <- function(){
   # )
 
   ind_type_plan <- drake::drake_plan(
-    indicators_comparison = make_indicators_comparison(indicators_by_dimension,
-                                                       model_table_production,
-                                                       indicator_type_template),
-    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_dimension,
-                                                                           model_table_production,
-                                                                           change_dategroupid_long,
-                                                                           indicator_type_template),
-    indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
-                                                                           change_dategroupid_long,
-                                                                           indicator_type_template),
-    indicators_proximity = make_indicators_proximity(census_tracts_2016_trimmed,
-                                                     indicator_type_template),
+    # indicators_comparison = make_indicators_comparison(indicators_by_dimension,
+    #                                                    model_table_production,
+    #                                                    indicator_type_template),
+    # indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_dimension,
+    #                                                                        model_table_production,
+    #                                                                        change_dategroupid_long,
+    #                                                                        indicator_type_template),
+    # indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
+    #                                                                        change_dategroupid_long,
+    #                                                                        indicator_type_template),
+    # indicators_proximity = make_indicators_proximity(census_tracts_2016_trimmed,
+    #                                                  indicator_type_template),
     ind_type_plan_tmp = c("placeholder")
   )
 
