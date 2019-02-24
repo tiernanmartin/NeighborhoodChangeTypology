@@ -23,7 +23,8 @@ make_ltdb_variables <- function(ltdb_data, acs_tables, census_geography_metadata
     dplyr::left_join(indicator_join, by = "VARIABLE") %>%
     dplyr::mutate(VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
                   VARIABLE_ROLE = "include", # there's only one variable and it is a value variable so its ROLE is "include"
-                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi))
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi, series_title = "less_shelter"))
+
 
 
   # STANDARDIZE CENSUS GEOGRAPHY FIELDS -------------------------------------

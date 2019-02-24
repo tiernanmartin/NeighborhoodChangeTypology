@@ -5,7 +5,6 @@
 \alias{make_parcel_value_variables_part1}
 \alias{make_parcel_value_variables_part2}
 \alias{make_parcel_value_variables}
-\alias{make_parcel_value_variables_archive}
 \title{Make Parcel Variables}
 \usage{
 make_parcel_sales_variables(parcel_sales, parcel_all_metadata,
@@ -18,9 +17,6 @@ make_parcel_value_variables_part1(parcel_all_metadata, single_family_criteria,
 make_parcel_value_variables_part2(parcel_value_variables_part1)
 
 make_parcel_value_variables(parcel_value_variables_part2, variable_template)
-
-make_parcel_value_variables_archive(parcel_value_variables_nested,
-  variable_template)
 }
 \arguments{
 \item{parcel_sales}{Tibble, Temporary description}

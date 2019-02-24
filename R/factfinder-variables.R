@@ -21,7 +21,7 @@ make_factfinder_variables <- function(factfinder_data, acs_tables, census_geogra
     dplyr::left_join(indicator_join, by = "VARIABLE") %>%
     dplyr::mutate(VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"),
                   VARIABLE_ROLE = "include", # there's only one variable and it is a value variable so its ROLE is "include"
-                  ESTIMATE = convert_to_2018_dollars(ESTIMATE, DATE_END, cpi = cpi)
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi, series_title = "less_shelter")
                   )
 
 

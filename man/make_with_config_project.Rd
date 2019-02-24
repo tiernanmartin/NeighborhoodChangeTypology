@@ -4,10 +4,13 @@
 \alias{make_with_config_project}
 \title{Make a (Congifured) Drake Plan}
 \usage{
-make_with_config_project(plan, .beep = TRUE, .beep_on_error = TRUE)
+make_with_config_project(plan, .garbage_collection = FALSE, .beep = TRUE,
+  .beep_on_error = TRUE)
 }
 \arguments{
 \item{plan}{drake plan}
+
+\item{.garbage_collection}{logical (default = FALSE), whether to run \code{gc()} on the plan}
 
 \item{.beep}{logical (default = TRUE), whether to play the "ping" sound after the plan is made}
 

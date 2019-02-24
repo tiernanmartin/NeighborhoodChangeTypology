@@ -89,7 +89,7 @@ make_parcel_sales_variables <- function(parcel_sales,
 
   sales_2018_dollars <- sales_prep %>%
     dplyr::mutate(VARIABLE = "SP", # SP is my shorthand for "sale price"
-                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi))  # note: the original SALE_PRICE variable is dropped
+                  ESTIMATE = purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi, series_title = "less_shelter"))  # note: the original SALE_PRICE variable is dropped
 
 
 
@@ -257,7 +257,7 @@ make_parcel_value_variables_part1 <- function(parcel_all_metadata,
                      MOE = dplyr::first(MOE)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(VARIABLE = stringr::str_c(VARIABLE,"_2018"),
-                  ESTIMATE = purrr::map2_int(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi)) %>%
+                  ESTIMATE = purrr::map2_int(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi, series_title = "less_shelter")) %>%
     dplyr::left_join(parcel_value_join_cols, by = c("GEOGRAPHY_ID",
                                                     "DATE_GROUP_ID",
                                                     "DATE_END"))
@@ -473,130 +473,3 @@ make_parcel_value_variables <- function(parcel_value_variables_part2,
 }
 
 
-#' @rdname parcel-variables
-#' @export
-make_parcel_value_variables_archive <- function(parcel_value_variables_nested,
-                                        variable_template
-){
-
-  # ASSIGN ROLES BY CRITERIA ------------------------------------------------
-
-  year_list <- parcel_value_variables_nested %>%
-    tidyr::unnest() %>%
-    dplyr::distinct(DATE_GROUP_ID) %>%
-    dplyr::arrange(DATE_GROUP_ID) %>%
-    dplyr::pull("DATE_GROUP_ID")
-
-check_criteria <- function(x, year_list, criteria_col){
-
-   all(year_list %in% x$DATE_GROUP_ID) & all(x[[criteria_col]])
-
-}
-
-check_criteria_safely <- purrr::safely(check_criteria, otherwise = FALSE, quiet = TRUE)
-
-check_criteria_results <- function(...){
-
-  safe_list <- check_criteria_safely(...)
-
-  safe_list[["result"]]
-}
-
-
-  p_complete <- parcel_value_variables_nested %>%
-    dplyr::mutate(META_SF_COMPLETE_LGL = purrr::map_lgl(data, # purrr::map_lgl doesn't provide the desired speed boost
-                                          check_criteria_results,
-                                          year_list = year_list,
-                                          criteria_col = "META_MEETS_CRITERIA_SF_LGL"),
-           META_CONDO_COMPLETE_LGL = purrr::map_lgl(data,
-                                          check_criteria_results,
-                                          year_list = year_list,
-                                          criteria_col = "META_MEETS_CRITERIA_CONDO_LGL")
-           ) %>%
-    tidyr::unnest()
-
-  rm_gc(parcel_value_variables_nested)
-
-  # convert the data back to long format and select only the ASSESSED_TOTAL_VALUE rows
-
-  p_long <- p_complete %>%
-    tidyr::gather(VARIABLE, ESTIMATE, dplyr::matches("VALUE")) %>%
-    dplyr::filter(VARIABLE %in% "ASSESSED_TOTAL_VALUE") %>%
-    dplyr::mutate(VARIABLE = "ATV")  # ATV is shorthand for ASSESSED_TOTAL_VALUE
-
-  rm_gc(p_complete)
-
-  # ASSIGN VARIABLE ROLES ---------------------------------------------------
-
-  p_var_roles <- p_long %>%
-    dplyr::mutate(VARIABLE_ALT_1 = "SF",
-                  VARIABLE_ALT_2 = "CONDO",
-                  VARIABLE_ALT_3 = "ALL") %>%
-    tidyr::gather(VAR, VARIABLE_ALT, dplyr::starts_with("VARIABLE_ALT")) %>%
-    dplyr::select(-VAR) %>%
-    dplyr::mutate(INDICATOR = "ASSESSED_VALUE",
-                  MEASURE_TYPE = "VALUE") %>%
-    dplyr::mutate(VARIABLE_ROLE = dplyr::case_when(
-      VARIABLE_ALT %in% "SF" & META_MEETS_CRITERIA_SF_LGL ~ "include",
-      VARIABLE_ALT %in% "CONDO" & META_MEETS_CRITERIA_CONDO_LGL ~ "include",
-      VARIABLE_ALT %in% "ALL" & META_MEETS_CRITERIA_ALL_LGL ~ "include",
-      TRUE ~ "omit"
-    )) %>%
-    tidyr::unite("VARIABLE", c("VARIABLE","VARIABLE_ALT"))
-
- rm_gc(p_long)
-
-  # CREATE VARIABLE_DESC ----------------------------------------------------
-
-  p_var_desc <- p_var_roles %>%
-    dplyr::mutate(VARIABLE_DESC = stringr::str_replace(VARIABLE, "ATV","ASSESSED_TOTAL_VALUE")
-    )
-
-  rm_gc(p_var_roles)
-
-  # ARRANGE COLUMNS WITH TEMPLATE -------------------------------------------
-
-
-
-  parcel_value_reformat <- variable_template %>%
-    dplyr::full_join(p_var_desc,
-                     by = c("SOURCE",
-                            "GEOGRAPHY_ID",
-                            "GEOGRAPHY_ID_TYPE",
-                            "GEOGRAPHY_NAME",
-                            "GEOGRAPHY_TYPE",
-                            "DATE_GROUP_ID",
-                            "DATE_BEGIN",
-                            "DATE_END",
-                            "DATE_RANGE",
-                            "DATE_RANGE_TYPE",
-                            "INDICATOR",
-                            "VARIABLE",
-                            "VARIABLE_DESC",
-                            "VARIABLE_SUBTOTAL",
-                            "VARIABLE_SUBTOTAL_DESC",
-                            "VARIABLE_ROLE",
-                            "MEASURE_TYPE",
-                            "ESTIMATE",
-                            "MOE"))
-
-  rm_gc(p_var_desc)
-
-  # CHECK DATA --------------------------------------------------------------
-
-
-  check_parcel_value_variable <- function(){
-
-    # This function shows all of the INDICATOR values and their INDICATOR_ROLEs.
-    # If any NA's are showing up then something needs to be fixed
-
-    parcel_value_reformat %>% dplyr::count(DATE_GROUP_ID, INDICATOR, VARIABLE, VARIABLE_DESC, VARIABLE_ROLE) %>% print(n=Inf)
-  }
-
-
-  # RETURN ------------------------------------------------------------------
-
-  return(parcel_value_reformat)
-
-
-}

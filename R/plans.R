@@ -87,7 +87,7 @@ get_data_source_plan <- function(){
 
   prep_plan <- drake::drake_plan(
     acs_data_prep_status = target(command = prepare_acs_data(data_template, model_table_inputs, acs_tables, path = file_out("extdata/source/acs-data.csv")),
-                                  trigger = trigger(mode = "blacklist", condition = FALSE)),
+                                  trigger = trigger(mode = "blacklist", condition = TRUE)),
     hud_chas_data_prep_status = target(command = prepare_hud_chas_data(zip_path = file_out("extdata/source/hud-chas-data.zip")),
                                        trigger = trigger(mode = "blacklist", condition = FALSE)),
     ltdb_data_prep_status = target(command = prepare_ltdb_data(data_template, acs_tables, path = file_out("extdata/source/ltdb-data.csv")),
@@ -117,7 +117,7 @@ get_data_source_plan <- function(){
                                                          project_id = "sj7n9",
                                                          file_id = "xhzv8",
                                                          path = file_in("extdata/source/acs-data.csv")),
-                                    trigger = trigger(mode = "blacklist", condition = FALSE)),
+                                    trigger = trigger(mode = "blacklist", condition = TRUE)),
     hud_chas_data_upload_status = target(command = osf_upload_or_update(has_osf_access = has_osf_access,
                                                                         project_id = "sj7n9",
                                                                         file_id = "rc8wk",

@@ -101,9 +101,9 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
 
 
   burden_own_vars_join <- all_vars %>%
-    dplyr::filter(INDICATOR %in% "COST BURDEN") %>%
+    dplyr::filter(INDICATOR %in% "OWNER_COST_BURDEN") %>%
     dplyr::transmute(SOURCE,
-                     INDICATOR = "COST_BURDEN_OWN",
+                     INDICATOR,
                      VARIABLE_SUBTOTAL,
                      VARIABLE_ROLE = dplyr::case_when(
                        VARIABLE_SUBTOTAL_DESC %in% "Estimate!!Total!!Owner-occupied housing units" ~ "total",
@@ -114,9 +114,9 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
                      ))
 
   burden_rent_vars_join <- all_vars %>%
-    dplyr::filter(INDICATOR %in% "COST BURDEN") %>%
+    dplyr::filter(INDICATOR %in% "RENTER_COST_BURDEN") %>%
     dplyr::transmute(SOURCE,
-                     INDICATOR = "COST_BURDEN_RENT",
+                     INDICATOR,
                      VARIABLE_SUBTOTAL,
                      VARIABLE_ROLE = dplyr::case_when(
                        VARIABLE_SUBTOTAL_DESC %in% "Estimate!!Total!!Renter-occupied housing units" ~ "total",
@@ -138,6 +138,14 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
     dplyr::filter(INDICATOR %in% "VALUE") %>%
     dplyr::transmute(SOURCE,
                      INDICATOR = "VALUE",
+                     VARIABLE_SUBTOTAL,
+                     VARIABLE_ROLE = "include"
+    )
+
+  median_inc_vars_join <- all_vars %>%
+    dplyr::filter(INDICATOR %in% "INCOME" & MEASURE_TYPE %in% c("MEDIAN")) %>%
+    dplyr::transmute(SOURCE,
+                     INDICATOR = "INCOME",
                      VARIABLE_SUBTOTAL,
                      VARIABLE_ROLE = "include"
     )
@@ -167,6 +175,7 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
                         burden_rent_vars_join,
                         rent_vars_join,
                         value_vars_join,
+                        median_inc_vars_join,
                         multifamily_vars_join) %>%
     purrr::reduce(dplyr::bind_rows)
 
@@ -180,18 +189,30 @@ make_acs_variables <- function(acs_data, acs_tables, cpi, variable_template){
   # ADJUST FOR INFLATION ----------------------------------------------------
 
   acs_vars_data_2018_dollars <- acs_vars_data %>%
-    dplyr::mutate(ESTIMATE = dplyr::if_else(INDICATOR %in% c("RENT", "VALUE"), # only adjust ESTIMATE for the price-related INDICATORS
-                                            purrr::map2_dbl(ESTIMATE, DATE_END, convert_to_2018_dollars, cpi = cpi),
-                                            ESTIMATE))
+    dplyr::mutate(ESTIMATE = dplyr::case_when(
+      # only adjust ESTIMATE for the median income INDICATOR
+     INDICATOR %in% c("INCOME") & MEASURE_TYPE %in% c("MEDIAN") ~ purrr::map2_dbl(ESTIMATE,
+                                                            DATE_END,
+                                                            convert_to_2018_dollars,
+                                                            cpi = cpi,
+                                                            series_title = "all"),
+     # only adjust ESTIMATE for the price-related INDICATORS
+     INDICATOR %in% c("RENT", "VALUE") ~ purrr::map2_dbl(ESTIMATE,
+                                                            DATE_END,
+                                                            convert_to_2018_dollars,
+                                                            cpi = cpi,
+                                                            series_title = "less_shelter"),
+     TRUE ~ ESTIMATE)
+    )
 
 
 
   # REFINE VARIABLE AND CREATE VARIABLE_DESC --------------------------------
 
-  acs_vars_data <- acs_vars_data %>%
+  acs_vars_data <- acs_vars_data_2018_dollars %>%
     dplyr::mutate(VARIABLE = dplyr::case_when( # the cost burden vars need to be distinguishable from one another
-      INDICATOR %in% "COST_BURDEN_OWN" ~ stringr::str_c(VARIABLE,"_OWN"),
-      INDICATOR %in% "COST_BURDEN_RENT" ~ stringr::str_c(VARIABLE,"_RENT"),
+      INDICATOR %in% "OWNER_COST_BURDEN" ~ stringr::str_c(VARIABLE,"_OWN"),
+      INDICATOR %in% "RENTER_COST_BURDEN" ~ stringr::str_c(VARIABLE,"_RENT"),
       TRUE ~ VARIABLE
     )) %>%
     dplyr::mutate(VARIABLE_DESC = stringr::str_c(INDICATOR, SOURCE, sep = "_"))

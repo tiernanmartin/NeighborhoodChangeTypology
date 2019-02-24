@@ -38,26 +38,6 @@ scale_pct_points <- function(x){
   return(label)
 }
 
-#' @export
-convert_to_2018_dollars <- function(value, date_string, cpi, series_title = "less_shelter"){
-
-  # Note: this function can only convery sales after the year 1999 -- earlier years will return NA
-
-  # Check that `year` is a date-like character string in the following pattern: "YYYY-MM-DD"
-
-  date_pattern <- "^\\d{4}-\\d{2}-\\d{2}$"
-
-  if(! stringr::str_detect(date_string, date_pattern)){stop("The `date_string` argument must be a date-like character vector in the following format: 'YYYY-MM-DD'.")}
-
-  year <- as.character(lubridate::year(date_string))
-
-  cpi_series <- cpi[[series_title]]
-
-  adj_rate <- cpi_series[as.character(2018)]/cpi_series[year]
-
-  as.integer(round(as.double(value) * adj_rate ,digits = -2) )
-}
-
 
 #' @export
 get_date_begin <- function(x){
