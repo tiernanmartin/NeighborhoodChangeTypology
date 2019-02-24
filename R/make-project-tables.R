@@ -33,11 +33,27 @@ make_model_table_inputs <- function(path){
   # READ DATA ------------------------------------------------------------
 
   # this data object is created in a Google Sheets document and doesn't require any adjustments
-  model_table_inputs <- readr::read_csv(path, col_types = "cccccccccc")
+  model_table_inputs <- readr::read_csv(path, col_types = "ccccccccc")
 
   # RETURN ------------------------------------------------------------------
 
   return(model_table_inputs)
+
+}
+
+#' @rdname project-tables
+#' @export
+make_model_table_short <- function(path){
+
+
+  # READ DATA ------------------------------------------------------------
+
+  # this data object is created in a Google Sheets document and doesn't require any adjustments
+  model_table_short <- readr::read_csv(path, col_types = "ccccccc")
+
+  # RETURN ------------------------------------------------------------------
+
+  return(model_table_short)
 
 }
 
