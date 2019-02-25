@@ -2,7 +2,7 @@
 #' @description Description
 #' @param indicators_by_dimension desc
 #' @param change_dategroupid_long desc
-#' @param indicator_topic_template desc
+#' @param indicator_dimension_template desc
 #' @return a `tibble`
 #' @export
 make_indicators_change_in_comparison <- function(indicators_comparison,
@@ -128,9 +128,6 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
                   DATE_RANGE_TYPE = stringr::str_c("change (",BEGIN_DATE_RANGE_TYPE, " to ",END_DATE_RANGE_TYPE,")")) %>%
     dplyr::select(-dplyr::starts_with("BEGIN"),
                   -dplyr::starts_with("END"),
-                  # -INDICATOR_TYPE_THRESHOLD_VALUE,
-                  # -INDICATOR_TYPE_VALUE,
-                  # -INDICATOR_TYPE_VALUE_DESC,
                   -RNUM)
 
 

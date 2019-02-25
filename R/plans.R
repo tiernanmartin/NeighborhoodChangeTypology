@@ -31,7 +31,7 @@ get_project_plan <- function(){
     acs_tables = make_acs_tables(),
     model_table_inputs = make_model_table_inputs(path = file_in("extdata/source/model_table_inputs_20190223.csv")),
     model_table_short = make_model_table_short(path = file_in("extdata/source/model-table-short-20190223.csv")),
-    model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190223.csv")),
+    model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190224.csv")),
     change_dategroupid_long = make_change_dategroupid_long(model_table_production)
   )
 
@@ -521,16 +521,16 @@ get_indicator_plan <- function(){
   # )
 
   ind_type_plan <- drake::drake_plan(
-    # indicators_comparison = make_indicators_comparison(indicators_by_dimension,
-    #                                                    model_table_production,
-    #                                                    indicator_type_template),
-    # indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_dimension,
-    #                                                                        model_table_production,
-    #                                                                        change_dategroupid_long,
-    #                                                                        indicator_type_template),
-    # indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
-    #                                                                        change_dategroupid_long,
-    #                                                                        indicator_type_template),
+    indicators_comparison = make_indicators_comparison(indicators_by_dimension,
+                                                       model_table_production,
+                                                       indicator_type_template),
+    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_dimension,
+                                                                           model_table_production,
+                                                                           change_dategroupid_long,
+                                                                           indicator_type_template),
+    indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
+                                                                           change_dategroupid_long,
+                                                                           indicator_type_template),
     # indicators_proximity = make_indicators_proximity(census_tracts_2016_trimmed,
     #                                                  indicator_type_template),
     ind_type_plan_tmp = c("placeholder")

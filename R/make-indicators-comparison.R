@@ -5,7 +5,7 @@
 #' @param indicator_type_template desc
 #' @return a `tibble`
 #' @export
-make_indicators_comparison <- function(indicators_by_topic,
+make_indicators_comparison <- function(indicators_by_dimension,
                                        model_table_production,
                                        indicator_type_template){
 
@@ -26,7 +26,7 @@ make_indicators_comparison <- function(indicators_by_topic,
 
 
   ind_type_fields <- indicator_type_template %>%
-    dplyr::full_join(indicators_by_topic,
+    dplyr::full_join(indicators_by_dimension,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
@@ -48,7 +48,7 @@ make_indicators_comparison <- function(indicators_by_topic,
   # CREATE COMPARISON FUNCTION ---------------------------------------------
 
 
-  get_comparison_fields <- function(data, topic, measure_type){
+  get_comparison_fields <- function(data, dimension, measure_type){
 
 
     # IF MEASURE_TYPE ISN'T PERCENT OR MEDIAN ---------------------------------
@@ -67,7 +67,7 @@ make_indicators_comparison <- function(indicators_by_topic,
 
     # IF DIMENSION %in% VULNERABILITY ---------------------------------------------
 
-    if(topic %in% "VULNERABILITY"){
+    if(dimension %in% "VULNERABILITY"){
 
       if(! measure_type %in% c("PERCENT")){
 
@@ -101,7 +101,7 @@ make_indicators_comparison <- function(indicators_by_topic,
 
     # IF DIMENSION %in% HOUSING MARKET --------------------------------------------
 
-    if(topic %in% "HOUSING_MARKET"){
+    if(dimension %in% "HOUSING_MARKET"){
 
       get_q4_lower <- function(x) {
 
@@ -183,8 +183,9 @@ make_indicators_comparison <- function(indicators_by_topic,
   inds_vuln_housing_comparison <- inds_vuln_housing %>%
     tidyr::nest(-DIMENSION, -INDICATOR, -VARIABLE, -DATE_GROUP_ID,-MEASURE_TYPE) %>%
     dplyr::mutate(COMP_FIELDS = purrr::pmap(list("data" = data,
-                                                 "topic" = DIMENSION,
-                                                 "measure_type" = MEASURE_TYPE), get_comparison_fields)) %>%
+                                                 "dimension" = DIMENSION,
+                                                 "measure_type" = MEASURE_TYPE),
+                                            get_comparison_fields)) %>%
     dplyr::select(-data) %>%
     tidyr::unnest()
 

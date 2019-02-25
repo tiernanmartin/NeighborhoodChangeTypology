@@ -6,7 +6,7 @@
 #' @param indicator_type_template desc
 #' @return a `tibble`
 #' @export
-make_indicators_comparison_of_change <- function(indicators_by_topic,
+make_indicators_comparison_of_change <- function(indicators_by_dimension,
                                                  model_table_production,
                                                  change_dategroupid_long,
                                                  indicator_type_template){
@@ -28,7 +28,7 @@ make_indicators_comparison_of_change <- function(indicators_by_topic,
   # PREPARE DATA ------------------------------------------------------------
 
   ind_type_fields <- indicator_type_template %>%
-    dplyr::full_join(indicators_by_topic,
+    dplyr::full_join(indicators_by_dimension,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
                             "GEOGRAPHY_ID_TYPE",
@@ -119,9 +119,9 @@ make_indicators_comparison_of_change <- function(indicators_by_topic,
   # CREATE COMPARISON FUNCTION ----------------------------------------------
 
 
-  get_comparison_fields <- function(data, topic, measure_type){
+  get_comparison_fields <- function(data, dimension, measure_type){
 
-    # IF MEASURE_TYPE ISN'T PERCENT ---------------------------------
+    # IF MEASURE_TYPE ISN'T PERCENT OR MEDIAN ---------------------------------
 
     if(! measure_type %in% c("PERCENT", "MEDIAN")){
 
@@ -137,13 +137,10 @@ make_indicators_comparison_of_change <- function(indicators_by_topic,
 
     # IF DIMENSION %in% DEMOGRAPHIC CHANGE ---------------------------------------------
 
-    if(topic %in% "DEMOGRAPHIC_CHANGE"){
+    if(dimension %in% "DEMOGRAPHIC_CHANGE"){
 
-      if(! measure_type %in% c("PERCENT")){
-
-        return(data)
-      }
-
+      # Note: DEMOGRAPHIC_CHANGE contains mostly PERCENT indicators but there is
+      # one MEDIAN indicator (INCOME)
 
       county_median <- data %>% dplyr::filter(GEOGRAPHY_TYPE %in% "county") %>% dplyr::pull(ESTIMATE_CHANGE_APPROPRIATE)
 
@@ -170,12 +167,7 @@ make_indicators_comparison_of_change <- function(indicators_by_topic,
 
     # IF DIMENSION %in% HOUSING MARKET --------------------------------------------
 
-    if(topic %in% "HOUSING_MARKET"){
-
-      if(! measure_type %in% c("PERCENT", "MEDIAN")){
-
-        return(data)
-      }
+    if(dimension %in% "HOUSING_MARKET"){
 
       get_q4_lower <- function(x) {
 
@@ -243,7 +235,7 @@ make_indicators_comparison_of_change <- function(indicators_by_topic,
   comparison_of_change_demo_housing <- change_demo_housing %>%
     tidyr::nest(-DIMENSION, -INDICATOR, -VARIABLE, -DATE_GROUP_ID, -MEASURE_TYPE) %>%
     dplyr::mutate(COMP_FIELDS = purrr::pmap(list("data" = data,
-                                                 "topic" = DIMENSION,
+                                                 "dimension" = DIMENSION,
                                                  "measure_type" = MEASURE_TYPE), get_comparison_fields)) %>%
     dplyr::select(-data) %>%
     tidyr::unnest()
@@ -257,9 +249,11 @@ make_indicators_comparison_of_change <- function(indicators_by_topic,
   check_comparison_of_change_demo_housing_na <- function(){
 
     # check the NA's first
+
+    # note: the only records with NA in INDICATOR_TYPE_MODEL should be 'county'
     comparison_of_change_demo_housing %>%
       dplyr::filter(is.na(INDICATOR_TYPE_MODEL)) %>%
-      dplyr::count(GEOGRAPHY_TYPE,GEOGRAPHY_ID) %>% print(n=Inf)
+      dplyr::count(GEOGRAPHY_TYPE,GEOGRAPHY_ID,DIMENSION, INDICATOR, VARIABLE, MEASURE_TYPE) %>% print(n=Inf)
 
   }
 
