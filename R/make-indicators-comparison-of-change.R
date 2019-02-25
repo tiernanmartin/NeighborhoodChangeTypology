@@ -83,9 +83,11 @@ make_indicators_comparison_of_change <- function(indicators_by_dimension,
     dplyr::mutate(GROUP_ID = dplyr::group_indices(.,DIMENSION, INDICATOR, VARIABLE, DATE_GROUP_ID, GEOGRAPHY_ID, MEASURE_TYPE)) %>%
     tidyr::unite("TYPE_ROLE_YEAR", c(VALUE_TYPE, DATE_TYPE)) %>%
     tidyr::spread(TYPE_ROLE_YEAR, VALUE) %>%
-    dplyr::select(-GROUP_ID) %>%
+    dplyr::select(-GROUP_ID,
+                  -dplyr::matches("^INDICATOR.+BEGIN$"), # starts with INDICATOR and ends with BEGIN
+                  -dplyr::matches("^INDICATOR.+END$"), # starts with INDICATOR and ends with BEGIN
+                  ) %>%
     dplyr::mutate_at(dplyr::vars(dplyr::matches("ESTIMATE|MOE|VALUE_BEGIN|VALUE_END")),as.numeric)
-
 
 
 
