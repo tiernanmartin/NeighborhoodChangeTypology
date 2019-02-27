@@ -10,7 +10,9 @@ make_change_dategroupid_long <- function(model_table_production){
 
   change_dategroupid_wide <- model_table_production %>%
     dplyr::filter(str_detect(MEASURE_TYPE, "^CHANGE")) %>%
-    dplyr::select(-MODEL, -MODEL_ROLE, -MEASURE_TYPE) %>% # drop columns that will impair the join
+    dplyr::select(-dplyr::starts_with("MODEL"),
+                  -dplyr::starts_with("MEASURE_TYPE"),
+                  -dplyr::ends_with("SHORT")) %>%  # drop columns that will impair the join
     dplyr::mutate(DATE_GROUP_ID_SEPARATE = DATE_GROUP_ID) %>%
     tidyr::separate(DATE_GROUP_ID_SEPARATE, into = c("BEGIN_DATE_GROUP_ID", "END_DATE_GROUP_ID"),sep = "_TO_") %>%  # separate BEGIN and END into fields
     dplyr::distinct() %>%

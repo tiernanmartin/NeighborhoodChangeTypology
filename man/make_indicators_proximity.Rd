@@ -4,12 +4,12 @@
 \alias{make_indicators_proximity}
 \title{Make The Proximity Indicators}
 \usage{
-make_indicators_proximity(census_tracts_2016_trimmed, indicator_type_template)
+make_indicators_proximity(census_tracts_2016_trimmed, indicator_value_template)
 }
 \arguments{
 \item{census_tracts_2016_trimmed}{desc}
 
-\item{indicator_type_template}{desc}
+\item{indicator_value_template}{desc}
 }
 \value{
 a \code{tibble}

@@ -7,6 +7,7 @@
 \alias{make_indicator_template}
 \alias{make_indicator_dimension_template}
 \alias{make_indicator_type_template}
+\alias{make_indicator_value_template}
 \title{Make Template Objects}
 \usage{
 make_data_template()
@@ -20,6 +21,8 @@ make_indicator_template()
 make_indicator_dimension_template()
 
 make_indicator_type_template()
+
+make_indicator_value_template()
 }
 \value{
 a \code{tibble}

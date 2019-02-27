@@ -30,8 +30,9 @@ get_project_plan <- function(){
   tables_plan <- drake::drake_plan(
     acs_tables = make_acs_tables(),
     model_table_inputs = make_model_table_inputs(path = file_in("extdata/source/model_table_inputs_20190223.csv")),
-    model_table_short = make_model_table_short(path = file_in("extdata/source/model-table-short-20190223.csv")),
-    model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190224.csv")),
+    model_table_short = make_model_table_short(path = file_in("extdata/source/model-table-short-20190225.csv")),
+    model_table_value_short = make_model_table_value_short(path = file_in("extdata/source/model-table-value-short-20190225.csv")),
+    model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190225.csv")),
     change_dategroupid_long = make_change_dategroupid_long(model_table_production)
   )
 
@@ -41,7 +42,7 @@ get_project_plan <- function(){
     variable_template = make_variable_template(),
     indicator_template = make_indicator_template(),
     indicator_dimension_template = make_indicator_dimension_template(),
-    indicator_type_template = make_indicator_type_template()
+    indicator_value_template = make_indicator_value_template()
 
   )
 
@@ -502,15 +503,11 @@ get_indicator_plan <- function(){
                                                indicators_median_sales,
                                                indicator_template),
     indicators_by_dimension = make_indicators_by_dimension(indicators_cnt_pct,
-                                                   indicators_median,
-                                                   model_table_inputs,
-                                                   indicator_dimension_template),
-    # sample_size_metadata = make_sample_size_metadata(indicators_cnt_pct,
-    #                              indicators_median),
-    # indicators = make_indicators(indicators_cnt_pct,
-    #                              indicators_median,
-    #                              sample_size_metadata),
-
+                                                           indicators_median,
+                                                           model_table_inputs,
+                                                           indicator_dimension_template),
+    indicators_in_models = make_indicators_in_models(indicators_by_dimension,
+                                                     model_table_production),
 
     ind_plan_tmp = c("placeholder")
   )
@@ -521,18 +518,18 @@ get_indicator_plan <- function(){
   # )
 
   ind_type_plan <- drake::drake_plan(
-    indicators_comparison = make_indicators_comparison(indicators_by_dimension,
+    indicators_comparison = make_indicators_comparison(indicators_in_models,
                                                        model_table_production,
-                                                       indicator_type_template),
-    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_by_dimension,
+                                                       indicator_value_template),
+    indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_in_models,
                                                                            model_table_production,
                                                                            change_dategroupid_long,
-                                                                           indicator_type_template),
+                                                                           indicator_value_template),
     indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
                                                                            change_dategroupid_long,
-                                                                           indicator_type_template),
-    # indicators_proximity = make_indicators_proximity(census_tracts_2016_trimmed,
-    #                                                  indicator_type_template),
+                                                                           indicator_value_template),
+    indicators_proximity = make_indicators_proximity(census_tracts_2016_trimmed,
+                                                     indicator_value_template),
     ind_type_plan_tmp = c("placeholder")
   )
 

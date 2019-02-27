@@ -5,14 +5,14 @@
 \title{Make The Change in Comparison Indicators}
 \usage{
 make_indicators_change_in_comparison(indicators_comparison,
-  change_dategroupid_long, indicator_type_template)
+  change_dategroupid_long, indicator_value_template)
 }
 \arguments{
 \item{change_dategroupid_long}{desc}
 
-\item{indicators_by_dimension}{desc}
+\item{indicator_value_template}{desc}
 
-\item{indicator_topic_template}{desc}
+\item{indicators_by_dimension}{desc}
 }
 \value{
 a \code{tibble}

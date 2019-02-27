@@ -50,7 +50,7 @@ make_model_table_short <- function(path){
   # READ DATA ------------------------------------------------------------
 
   # this data object is created in a Google Sheets document and doesn't require any adjustments
-  model_table_short <- readr::read_csv(path, col_types = "ccccccc")
+  model_table_short <- readr::read_csv(path, col_types = "ccccccccc")
 
   # RETURN ------------------------------------------------------------------
 
@@ -60,18 +60,34 @@ make_model_table_short <- function(path){
 
 #' @rdname project-tables
 #' @export
+make_model_table_value_short <- function(path){
+
+
+  # READ DATA ------------------------------------------------------------
+
+  # this data object is created in a Google Sheets document and doesn't require any adjustments
+  model_table_value_short <- readr::read_csv(path, col_types = "cc")
+
+  # RETURN ------------------------------------------------------------------
+
+  return(model_table_value_short)
+
+}
+
+
+#' @rdname project-tables
+#' @export
 make_model_table_production <- function(path){
 
   # this script should be edited once the final version of `model_table_production` is ready
 
   # PREPARE DATA ------------------------------------------------------------
 
-  model_table_production_raw <- readr::read_csv(path, col_types = "cccccccc")
+  model_table_production_raw <- readr::read_csv(path, col_types = "ccccccccccccc")
 
   model_table_production_ready <- model_table_production_raw %>%
     dplyr::mutate(MODEL = stringr::str_remove(MODEL,"^\\d{2}\\s-\\s")) %>% # drop the leading numbering ("01 - PORTLAND")
-    dplyr::mutate_all(to_caps_underscores) %>%
-    dplyr::select(-VARIABLE_DESC) # once this field is filled in it should no longer be dropped
+    dplyr::mutate_at(dplyr::vars(-dplyr::matches("^DESCRIPTION$")), to_caps_underscores) # make all conctent uppercase except DESCRIPTION
 
   # RETURN ------------------------------------------------------------------
   model_table_production <- model_table_production_ready

@@ -4,15 +4,15 @@
 \alias{make_indicators_comparison}
 \title{Make The Comparison Indicators}
 \usage{
-make_indicators_comparison(indicators_by_topic, model_table_production,
-  indicator_type_template)
+make_indicators_comparison(indicators_in_models, model_table_production,
+  indicator_value_template)
 }
 \arguments{
+\item{indicators_in_models}{desc}
+
 \item{model_table_production}{desc}
 
-\item{indicator_type_template}{desc}
-
-\item{indicators_by_dimension}{desc}
+\item{indicator_value_template}{desc}
 }
 \value{
 a \code{tibble}

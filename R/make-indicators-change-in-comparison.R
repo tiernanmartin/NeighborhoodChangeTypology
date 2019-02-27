@@ -2,12 +2,12 @@
 #' @description Description
 #' @param indicators_by_dimension desc
 #' @param change_dategroupid_long desc
-#' @param indicator_dimension_template desc
+#' @param indicator_value_template desc
 #' @return a `tibble`
 #' @export
 make_indicators_change_in_comparison <- function(indicators_comparison,
                                                  change_dategroupid_long,
-                                                 indicator_type_template){
+                                                 indicator_value_template){
 
 
 
@@ -21,11 +21,11 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
   inds_housing <- indicators_comparison %>%
     dplyr::rename(DATE_GROUP_ID_JOIN = DATE_GROUP_ID) %>%
     dplyr::filter(DIMENSION %in% "HOUSING_MARKET") %>%
-    dplyr::select(-SOURCE, -VARIABLE_DESC)   # these columns shouldn't be included in the CHANGE indicator
-
+    dplyr::select(-SOURCE, -VARIABLE_DESC) %>%    # these columns shouldn't be included in the CHANGE indicator
+    drop_na_cols() # drop the empty columns
 
   inds_housing_long <- inds_housing %>%
-    tidyr::gather(VALUE_TYPE, VALUE, c(ESTIMATE, MOE, INDICATOR_TYPE_THRESHOLD_VALUE, INDICATOR_TYPE_VALUE, INDICATOR_TYPE_VALUE_DESC))
+    tidyr::gather(VALUE_TYPE, VALUE, dplyr::matches("ESTIMATE|MOE|RELATIVE"))
 
 
   check_inds_housing_long <- function(){
@@ -47,7 +47,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
   inds_wide <- inds_housing_change_dategroupid_join %>%
     #drop fields that will impede spread()
-    dplyr::select(-DATE_GROUP_ID_JOIN, -DATE_BEGIN, -DATE_END, -DATE_RANGE, -DATE_RANGE_TYPE, -INDICATOR_TYPE_MODEL) %>%
+    dplyr::select(-DATE_GROUP_ID_JOIN, -DATE_BEGIN, -DATE_END, -DATE_RANGE, -DATE_RANGE_TYPE) %>%
     dplyr::mutate(DATE_TYPE = stringr::str_extract(DATE_TYPE, "BEGIN|END")) %>%
     # GROUP_ID in preparation for spread()
     dplyr::mutate(GROUP_ID = dplyr::group_indices(.,DIMENSION, INDICATOR, VARIABLE, DATE_GROUP_ID, GEOGRAPHY_ID, MEASURE_TYPE)) %>%
@@ -57,9 +57,9 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
 
   change_dategroupid_wide_change <- inds_wide %>%
-    dplyr::mutate(INDICATOR_TYPE = "RELATIVE_CHANGE",
-                  INDICATOR_TYPE_VALUE_CHANGE = stringr::str_c(INDICATOR_TYPE_VALUE_DESC_BEGIN," -> ",INDICATOR_TYPE_VALUE_DESC_END),
-                  INDICATOR_TYPE_MODEL = INDICATOR_TYPE_VALUE_CHANGE)
+    dplyr::mutate(RELATIVE_CHANGE_DESC = stringr::str_c(RELATIVE_DESC_BEGIN," -> ",RELATIVE_DESC_END),
+                  RELATIVE_CHANGE_LGL = RELATIVE_CHANGE_DESC %in% c("LOW/MED -> HIGH")
+    )
 
 
   # VISUALIZE DATA ----------------------------------------------------------
@@ -68,8 +68,8 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
     # check the NA's first
     change_dategroupid_wide_change %>%
-      filter(is.na(INDICATOR_TYPE_MODEL)) %>%
-      count(GEOGRAPHY_TYPE,GEOGRAPHY_ID) %>% print(n=Inf)
+      count(is.na(RELATIVE_CHANGE_DESC), MEASURE_TYPE) %>% print(n=Inf)
+
 
   }
 
@@ -97,7 +97,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
   # JOIN DATE_* FIELDS ------------------------------------------------------
 
   date_group_id_fields <- inds_housing %>%
-    dplyr::select(-MEASURE_TYPE, -ESTIMATE, -MOE,-dplyr::matches("^INDICATOR_")) %>%
+    dplyr::select(-MEASURE_TYPE, -dplyr::matches("ESTIMATE|MOE|RELATIVE")) %>%
     dplyr::distinct()
 
 
@@ -132,8 +132,16 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
 
 
+  # CONVERT COLUMNS BACK TO THEIR ORIGINAL CLASSES --------------------------
+
+  change_dategroupid_classes <- change_dategroupid_all_fields %>%
+    dplyr::mutate_at(dplyr::vars(dplyr::matches("ESTIMATE|MOE")),as.double) %>%
+    dplyr::mutate_at(dplyr::vars(dplyr::matches("RELATIVE.+BEGIN|RELATIVE.+END")),as.double) %>%
+    dplyr::mutate_at(dplyr::vars(dplyr::matches("DESC")),as.character) %>%
+    dplyr::mutate_at(dplyr::vars(dplyr::matches("LGL")),as.logical)
+
   # CREATE SOURCE AND VARIABLE_DESC ----------------------------------------------------
-  change_dategroupid_var_desc <- change_dategroupid_all_fields %>%
+  change_dategroupid_var_desc <- change_dategroupid_classes %>%
     dplyr::mutate(SOURCE = "MULTIPLE",
                   VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, VARIABLE, sep = "_"))
 
@@ -141,7 +149,7 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
   # Note: this just makes sure that the columns have the same order as the indicator_template
 
-  indicators_change_in_comparison_ready <- indicator_type_template %>%
+  indicators_change_in_comparison_ready <- indicator_value_template %>%
     dplyr::full_join(change_dategroupid_var_desc,
                      by = c("SOURCE",
                             "GEOGRAPHY_ID",
@@ -158,23 +166,21 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
                             "VARIABLE",
                             "VARIABLE_DESC",
                             "MEASURE_TYPE",
-                            "INDICATOR_TYPE",
-                            "INDICATOR_TYPE_THRESHOLD",
-                            "INDICATOR_TYPE_DESC",
-                            "INDICATOR_TYPE_MODEL")) %>%
-    dplyr::select(dplyr::starts_with("SOURCE"),
-                  dplyr::starts_with("GEOGRAPHY"),
-                  dplyr::starts_with("DATE"),
-                  DIMENSION,
-                  INDICATOR,
-                  dplyr::starts_with("VARIABLE"),
-                  MEASURE_TYPE,
-                  dplyr::starts_with("ESTIMATE"),
-                  dplyr::starts_with("MOE"),
-                  dplyr::starts_with("INDICATOR"),
-                  dplyr::everything()) %>%
-    # fields that were gather()'ed need to be coerced back to numeric
-    dplyr::mutate_at(dplyr::vars(dplyr::matches("ESTIMATE|VALUE_BEGIN|VALUE_END")),as.numeric)
+                            "ESTIMATE_BEGIN",
+                            "ESTIMATE_END",
+                            "MOE_BEGIN",
+                            "MOE_END",
+                            "RELATIVE_BEGIN",
+                            "RELATIVE_DESC_BEGIN",
+                            "RELATIVE_THRESHOLD_BEGIN",
+                            "RELATIVE_LGL_BEGIN",
+                            "RELATIVE_END",
+                            "RELATIVE_DESC_END",
+                            "RELATIVE_THRESHOLD_END",
+                            "RELATIVE_LGL_END",
+                            "RELATIVE_CHANGE_DESC",
+                            "RELATIVE_CHANGE_LGL"))
+
 
   indicators_change_in_comparison <- indicators_change_in_comparison_ready
 
