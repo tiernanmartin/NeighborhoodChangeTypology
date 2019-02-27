@@ -5,6 +5,18 @@
 NULL
 
 #' @export
+drop_na_cols <- function(x){
+
+  # source: <https://community.rstudio.com/t/drop-all-na-columns-from-a-dataframe/5844/3>
+
+  x %>%
+    purrr::map(~.x) %>%
+    purrr::discard(~all(is.na(.x))) %>%
+    purrr::map_df(~.x)
+}
+
+
+#' @export
 g <- dplyr::glimpse
 
 #' @export
