@@ -24,7 +24,8 @@ make_census_tracts_2016_trimmed <- function(census_tracts_2016, waterbodies, acs
 
   census_tracts_2016_trimmed_ready <- geog_fields %>%
       dplyr::left_join(census_tracts_2016_no_water, by = "GEOGRAPHY_ID") %>%
-      sf::st_as_sf()
+      sf::st_as_sf() %>%
+    sf::st_collection_extract("POLYGON")
 
 
   census_tracts_2016_trimmed <- census_tracts_2016_trimmed_ready
