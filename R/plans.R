@@ -572,27 +572,9 @@ get_model_plan <- function(){
 
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-  coo_original_plan <- drake::drake_plan()
-
-  portland_plan <- drake::drake_plan(
-    # portland_model_vulnerability = make_portland_model_vulnerability(),
-    portland_plan_tmp = c("placeholder")
-  )
-
-  coo_original_updated_plan <- drake::drake_plan(
-
-    coo_original_updated_plan_tmp =  c("placeholder")
-  )
-
-  original_revised <- drake::drake_plan(
-    # typology = make_typology(vulnerability_indicators, demo_change_indicators, housing_market_indicators, census_tracts_2016_trimmed)
-    original_revised_plan_tmp =  c("placeholder")
-  )
-
-  model_plan <- bind_plans(coo_original_plan,
-                           portland_plan,
-                           coo_original_updated_plan,
-                           original_revised
+  model_plan <- drake::drake_plan(
+    model_pdx16 = make_model_pdx16(indicators_wide,
+                             census_tracts_2016_trimmed)
   )
 
 

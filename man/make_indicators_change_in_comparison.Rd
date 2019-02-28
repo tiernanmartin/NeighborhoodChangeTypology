@@ -8,11 +8,11 @@ make_indicators_change_in_comparison(indicators_comparison,
   change_dategroupid_long, indicator_value_template)
 }
 \arguments{
+\item{indicators_comparison}{desc}
+
 \item{change_dategroupid_long}{desc}
 
 \item{indicator_value_template}{desc}
-
-\item{indicators_by_dimension}{desc}
 }
 \value{
 a \code{tibble}

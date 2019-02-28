@@ -58,7 +58,10 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
   change_dategroupid_wide_change <- inds_wide %>%
     dplyr::mutate(RELATIVE_CHANGE_DESC = stringr::str_c(RELATIVE_DESC_BEGIN," -> ",RELATIVE_DESC_END),
-                  RELATIVE_CHANGE_LGL = RELATIVE_CHANGE_DESC %in% c("LOW/MED -> HIGH")
+                  RELATIVE_CHANGE_LGL = dplyr::case_when(
+                    is.na(RELATIVE_CHANGE_DESC) ~ NA, # impacts counties and communities (only on some inds)
+                    TRUE ~ RELATIVE_CHANGE_DESC %in% c("LOW/MED -> HIGH")
+                  )
     )
 
 
