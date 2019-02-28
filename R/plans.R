@@ -30,8 +30,7 @@ get_project_plan <- function(){
   tables_plan <- drake::drake_plan(
     acs_tables = make_acs_tables(),
     model_table_inputs = make_model_table_inputs(path = file_in("extdata/source/model_table_inputs_20190223.csv")),
-    model_table_short = make_model_table_short(path = file_in("extdata/source/model-table-short-20190225.csv")),
-    model_table_value_short = make_model_table_value_short(path = file_in("extdata/source/model-table-value-short-20190225.csv")),
+    model_table_column_type = make_model_table_column_type(path = file_in("extdata/source/model-table-column-type-20190227.csv")),
     model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190225.csv")),
     change_dategroupid_long = make_change_dategroupid_long(model_table_production)
   )
@@ -519,10 +518,8 @@ get_indicator_plan <- function(){
 
   ind_type_plan <- drake::drake_plan(
     indicators_comparison = make_indicators_comparison(indicators_in_models,
-                                                       model_table_production,
-                                                       indicator_value_template),
+                                       indicator_value_template),
     indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_in_models,
-                                                                           model_table_production,
                                                                            change_dategroupid_long,
                                                                            indicator_value_template),
     indicators_change_in_comparison = make_indicators_change_in_comparison(indicators_comparison,
@@ -530,6 +527,12 @@ get_indicator_plan <- function(){
                                                                            indicator_value_template),
     indicators_proximity = make_indicators_proximity(census_tracts_2016_trimmed,
                                                      indicator_value_template),
+    indicators_wide = make_indicators_wide(model_table_column_type,
+      model_table_production,
+      indicators_comparison,
+      indicators_comparison_of_change,
+      indicators_change_in_comparison,
+      indicators_proximity),
     ind_type_plan_tmp = c("placeholder")
   )
 

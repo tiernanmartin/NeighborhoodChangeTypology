@@ -1,13 +1,11 @@
 #' @title Make The Change in Comparison Indicators
 #' @description Description
 #' @param indicators_in_models desc
-#' @param model_table_production desc
 #' @param change_dategroupid_long desc
 #' @param indicator_value_template desc
 #' @return a `tibble`
 #' @export
 make_indicators_comparison_of_change <- function(indicators_in_models,
-                                                 model_table_production,
                                                  change_dategroupid_long,
                                                  indicator_value_template){
 
@@ -41,7 +39,7 @@ make_indicators_comparison_of_change <- function(indicators_in_models,
 
   inds_demo_housing <- ind_value_fields %>%
     dplyr::rename(DATE_GROUP_ID_JOIN = DATE_GROUP_ID) %>%
-    dplyr::filter(DIMENSION %in% c("DEMOGRAPHIC_CHANGE", "HOUSING_MARKET")) %>%
+    dplyr::filter(! DIMENSION %in% c("VULNERABILITY")) %>%
     dplyr::filter(! is.na(GEOGRAPHY_ID)) %>%  # for some unknown reason there are NA GEOGRAPHY_IDs in the ASSESSOR rows
     dplyr::select(-SOURCE, -VARIABLE_DESC) %>%  # these columns shouldn't be included in the CHANGE indicator
     drop_na_cols() # drop the empty columns
@@ -105,6 +103,15 @@ make_indicators_comparison_of_change <- function(indicators_in_models,
 
   get_comparison_fields <- function(data, dimension, measure_type){
 
+    # IF DIMENSION %in% VULNERABILITY ---------------------------------------------
+
+    if(dimension %in% "VULNERABILITY"){
+
+      return(data)
+
+    }
+
+
     # IF MEASURE_TYPE ISN'T PERCENT OR MEDIAN ---------------------------------
 
     if(! measure_type %in% c("PERCENT", "MEDIAN")){
@@ -121,7 +128,7 @@ make_indicators_comparison_of_change <- function(indicators_in_models,
 
     # IF DIMENSION %in% DEMOGRAPHIC CHANGE ---------------------------------------------
 
-    if(dimension %in% "DEMOGRAPHIC_CHANGE"){
+    if(dimension %in% c("DEMOGRAPHIC_CHANGE","MISCELLANEOUS")){
 
       # Note: DEMOGRAPHIC_CHANGE contains mostly PERCENT indicators but there is
       # one MEDIAN indicator (INCOME)
@@ -306,41 +313,7 @@ make_indicators_comparison_of_change <- function(indicators_in_models,
     dplyr::select(-dplyr::matches("ABSOLUTE|RATIO|APPROPRIATE")) # drop the old DIFFERENCE_* fields
 
 
-
-  # REFORMAT ----------------------------------------------------------------
-
-  # Note: this just makes sure that the columns have the same order as the indicator_template
-
-  indicators_comparison_of_change_ready <- indicator_value_template %>%
-    dplyr::full_join(change_diff_appropriate_only,
-                     by = c("SOURCE",
-                            "GEOGRAPHY_ID",
-                            "GEOGRAPHY_ID_TYPE",
-                            "GEOGRAPHY_NAME",
-                            "GEOGRAPHY_TYPE",
-                            "DATE_GROUP_ID",
-                            "DATE_BEGIN",
-                            "DATE_END",
-                            "DATE_RANGE",
-                            "DATE_RANGE_TYPE",
-                            "DIMENSION",
-                            "INDICATOR",
-                            "VARIABLE",
-                            "VARIABLE_DESC",
-                            "MEASURE_TYPE",
-                            "ESTIMATE_BEGIN",
-                            "ESTIMATE_END",
-                            "MOE_BEGIN",
-                            "MOE_END",
-                            "DIFFERENCE",
-                            "DIFFERENCE_MOE",
-                            "CHANGE",
-                            "CHANGE_MOE",
-                            "CHANGE_DESC",
-                            "CHANGE_THRESHOLD",
-                            "CHANGE_LGL"))
-
-  indicators_comparison_of_change <- indicators_comparison_of_change_ready
+  indicators_comparison_of_change <- change_diff_appropriate_only
 
   # RETURN ------------------------------------------------------------------
 

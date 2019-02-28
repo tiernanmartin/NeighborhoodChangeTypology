@@ -1,19 +1,25 @@
+#' @title Make The Project Inidicators (Wide)
+#' @description Description
+#' @param model_table_column_type desc
+#' @param model_table_production desc
+#' @param indicators_comparison desc
+#' @param indicators_comparison_of_change desc
+#' @param indicators_change_in_comparison desc
+#' @param indicators_proximity desc
+#' @return a `tibble`
+#' @export
 
-# SETUP -------------------------------------------------------------------
-
-devtools::load_all(".")
-library(tidyverse)
-
-loadd(model_table_column_type,
+make_indicators_wide <- function(model_table_column_type,
       model_table_production,
       indicators_comparison,
       indicators_comparison_of_change,
       indicators_change_in_comparison,
-      indicators_proximity)
+      indicators_proximity){
+  # GET THE COLNAMES FOR EACH MODEL_ROLE TYPE -------------------------------
 
-
-
-# GET THE COLNAMES FOR EACH MODEL_ROLE TYPE -------------------------------
+cols_ref <- model_table_column_type %>%
+  dplyr::filter(MODEL_ROLE %in% "REFERENCE") %>%
+  pull(COLNAME)
 
 cols_value <- model_table_column_type %>%
   dplyr::filter(! MODEL_ROLE %in% "REFERENCE") %>%
@@ -76,7 +82,7 @@ model_table_value_short <- model_table_column_type %>%
   dplyr::transmute(VALUE = COLNAME,
                    VALUE_SHORT = COLNAME_SHORT)
 
-all_inds_wide <- all_inds_long %>%
+all_inds_wide_full <- all_inds_long %>%
   dplyr::left_join(model_table_value_short, by = c(VALUE_TYPE = "VALUE")) %>%
   dplyr::select(-VALUE_TYPE) %>%
   # only include the combinations of fields that are found in `model_table_production`
@@ -94,5 +100,41 @@ all_inds_wide <- all_inds_long %>%
                 VALUE) %>%
   tidyr::spread(WIDE_FIELD, VALUE)
 
-# result: tbl with 402 rows (tracts, communities and county) and 1114 columns
+# result: tbl with 402 rows (tracts, communities and county) and 1,114 columns
+
+
+
+# DROP COLUMNS THAT ONLY CONTAIN NA ---------------------------------------
+
+# Note: only drop columns that contain all NA's (columns with some missing values are retained)
+all_inds_wide_no_na <- drop_na_cols(all_inds_wide_full)
+
+# result: tbl with 402 rows (tracts, communities and county) and 849 columns
+
+
+# RE-ESTABLISH CORRECT CLASSES --------------------------------------------
+
+cols_char <- names(all_inds_wide_no_na) %>%
+  purrr::keep(stringr::str_detect,"GEOG|DESC_")
+
+cols_lgl <- names(all_inds_wide_no_na) %>%
+  purrr::keep(stringr::str_detect,"LGL_")
+
+cols_num <- names(all_inds_wide_no_na) %>%
+  purrr::discard(stringr::str_detect,"GEOG|DESC_|LGL_")
+
+all_inds_wide_class <-  all_inds_wide_no_na %>%
+  dplyr::mutate_at(tidyselect::vars_select(names(.), cols_char), as.character) %>%
+  dplyr::mutate_at(tidyselect::vars_select(names(.), cols_lgl), as.logical) %>%
+  dplyr::mutate_at(tidyselect::vars_select(names(.), cols_num), as.numeric)
+
+indicators_wide <- all_inds_wide_class
+
+# RETURN ------------------------------------------------------------------
+
+return(indicators_wide)
+
+
+
+}
 

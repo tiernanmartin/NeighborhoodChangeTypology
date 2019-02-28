@@ -9,7 +9,7 @@ make_change_dategroupid_long <- function(model_table_production){
 # PREPARE DATA ------------------------------------------------------------
 
   change_dategroupid_wide <- model_table_production %>%
-    dplyr::filter(str_detect(MEASURE_TYPE, "^CHANGE")) %>%
+    dplyr::filter(str_detect(DATE_GROUP_ID, "TO")) %>%
     dplyr::select(-dplyr::starts_with("MODEL"),
                   -dplyr::starts_with("MEASURE_TYPE"),
                   -dplyr::ends_with("SHORT")) %>%  # drop columns that will impair the join

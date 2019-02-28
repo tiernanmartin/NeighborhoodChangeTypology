@@ -4,17 +4,15 @@
 \alias{make_indicators_comparison_of_change}
 \title{Make The Change in Comparison Indicators}
 \usage{
-make_indicators_comparison_of_change(indicators_by_dimension,
-  model_table_production, change_dategroupid_long, indicator_type_template)
+make_indicators_comparison_of_change(indicators_in_models,
+  change_dategroupid_long, indicator_value_template)
 }
 \arguments{
-\item{indicators_by_dimension}{desc}
-
-\item{model_table_production}{desc}
+\item{indicators_in_models}{desc}
 
 \item{change_dategroupid_long}{desc}
 
-\item{indicator_type_template}{desc}
+\item{indicator_value_template}{desc}
 }
 \value{
 a \code{tibble}

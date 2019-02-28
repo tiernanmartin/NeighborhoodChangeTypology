@@ -1,12 +1,10 @@
 #' @title Make The Comparison Indicators
 #' @description Description
 #' @param indicators_in_models desc
-#' @param model_table_production desc
 #' @param indicator_value_template desc
 #' @return a `tibble`
 #' @export
 make_indicators_comparison <- function(indicators_in_models,
-                                       model_table_production,
                                        indicator_value_template){
 
   # NOTE --------------------------------------------------------------------
@@ -19,9 +17,9 @@ make_indicators_comparison <- function(indicators_in_models,
   get_comparison_fields <- function(data, dimension, measure_type){
 
 
-    # IF DIMENSION ISN'T DIMENSION VULNERABILITY OR HOUSING_MARKET ------------
+    # IF DIMENSION IS DEMOGRAPHIC_CHANGE ------------
 
-    if(! dimension %in% c("VULNERABILITY", "HOUSING_MARKET")){
+    if(dimension %in% c("DEMOGRAPHIC_CHANGE")){
 
       return(data)
     }
@@ -43,7 +41,7 @@ make_indicators_comparison <- function(indicators_in_models,
 
     # IF DIMENSION %in% VULNERABILITY ---------------------------------------------
 
-    if(dimension %in% "VULNERABILITY"){
+    if(dimension %in% c("VULNERABILITY", "MISCELLANEOUS")){
 
       if(! measure_type %in% c("PERCENT")){
 
@@ -153,8 +151,11 @@ make_indicators_comparison <- function(indicators_in_models,
                             "ESTIMATE",
                             "MOE"))
 
+  ind_dimensions <- ind_value_fields %>%
+    # remove DEMOGRAPHIC_CHANGE fields (they will be empty)
+    dplyr::filter(DIMENSION %in% c("VULNERABILITY", "HOUSING_MARKET", "MISCELLANEOUS"))
 
-  inds_no_na_geogs <- ind_value_fields %>%
+  inds_no_na_geogs <- ind_dimensions %>%
     dplyr::filter(! is.na(GEOGRAPHY_ID)) # for some unknown reason there are NA GEOGRAPHY_IDs in the ASSESSOR rows
 
   inds_vuln_housing_comparison <- inds_no_na_geogs %>%
@@ -166,59 +167,7 @@ make_indicators_comparison <- function(indicators_in_models,
     dplyr::select(-data) %>%
     tidyr::unnest()
 
-  # REFORMAT ----------------------------------------------------------------
-
-  # Note: this just makes sure that the columns have the same order as the indicator_template
-
-  indicators_comparison_ready <- indicator_value_template %>%
-    dplyr::full_join(inds_vuln_housing_comparison,
-                     by = c("SOURCE",
-                            "GEOGRAPHY_ID",
-                            "GEOGRAPHY_ID_TYPE",
-                            "GEOGRAPHY_NAME",
-                            "GEOGRAPHY_TYPE",
-                            "DATE_GROUP_ID",
-                            "DATE_BEGIN",
-                            "DATE_END",
-                            "DATE_RANGE",
-                            "DATE_RANGE_TYPE",
-                            "DIMENSION",
-                            "INDICATOR",
-                            "VARIABLE",
-                            "VARIABLE_DESC",
-                            "MEASURE_TYPE",
-                            "ESTIMATE",
-                            "ESTIMATE_BEGIN",
-                            "ESTIMATE_END",
-                            "MOE",
-                            "MOE_BEGIN",
-                            "MOE_END",
-                            "DIFFERENCE",
-                            "DIFFERENCE_MOE",
-                            "RELATIVE",
-                            "RELATIVE_DESC",
-                            "RELATIVE_THRESHOLD",
-                            "RELATIVE_LGL",
-                            "RELATIVE_BEGIN" ,
-                            "RELATIVE_DESC_BEGIN",
-                            "RELATIVE_THRESHOLD_BEGIN" ,
-                            "RELATIVE_LGL_BEGIN",
-                            "RELATIVE_END",
-                            "RELATIVE_DESC_END" ,
-                            "RELATIVE_THRESHOLD_END",
-                            "RELATIVE_LGL_END",
-                            "CHANGE",
-                            "CHANGE_DESC",
-                            "CHANGE_THRESHOLD",
-                            "CHANGE_LGL",
-                            "RELATIVE_CHANGE_DESC",
-                            "RELATIVE_CHANGE_LGL",
-                            "PROXIMITY_DESC"))
-
-
-
-
-  indicators_comparison <- indicators_comparison_ready
+  indicators_comparison <- inds_vuln_housing_comparison
 
 
   # RETURN ------------------------------------------------------------------

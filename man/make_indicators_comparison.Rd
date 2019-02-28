@@ -4,13 +4,10 @@
 \alias{make_indicators_comparison}
 \title{Make The Comparison Indicators}
 \usage{
-make_indicators_comparison(indicators_in_models, model_table_production,
-  indicator_value_template)
+make_indicators_comparison(indicators_in_models, indicator_value_template)
 }
 \arguments{
 \item{indicators_in_models}{desc}
-
-\item{model_table_production}{desc}
 
 \item{indicator_value_template}{desc}
 }

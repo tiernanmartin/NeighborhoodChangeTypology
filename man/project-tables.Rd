@@ -5,6 +5,7 @@
 \alias{make_model_table_inputs}
 \alias{make_model_table_short}
 \alias{make_model_table_value_short}
+\alias{make_model_table_column_type}
 \alias{make_model_table_production}
 \title{Make A Tibble of the Project Models}
 \usage{
@@ -15,6 +16,8 @@ make_model_table_inputs(path)
 make_model_table_short(path)
 
 make_model_table_value_short(path)
+
+make_model_table_column_type(path)
 
 make_model_table_production(path)
 }

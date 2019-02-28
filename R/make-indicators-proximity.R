@@ -27,17 +27,7 @@ make_indicators_proximity <- function(census_tracts_2016_trimmed,
     dplyr::select(-data)
 
 
-# REFORMAT ----------------------------------------------------------------
-
-  indicators_proximity_ready <- indicator_value_template %>%
-    dplyr::full_join(tract_neighbors,
-                     by = c("GEOGRAPHY_ID",
-                            "GEOGRAPHY_ID_TYPE",
-                            "GEOGRAPHY_NAME",
-                            "GEOGRAPHY_TYPE",
-                            "PROXIMITY_DESC"))
-
-  indicators_proximity <- indicators_proximity_ready
+  indicators_proximity <- tract_neighbors
 
   # RETURN ------------------------------------------------------------------
 

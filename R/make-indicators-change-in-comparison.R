@@ -136,53 +136,17 @@ make_indicators_change_in_comparison <- function(indicators_comparison,
 
   change_dategroupid_classes <- change_dategroupid_all_fields %>%
     dplyr::mutate_at(dplyr::vars(dplyr::matches("ESTIMATE|MOE")),as.double) %>%
-    dplyr::mutate_at(dplyr::vars(dplyr::matches("RELATIVE.+BEGIN|RELATIVE.+END")),as.double) %>%
     dplyr::mutate_at(dplyr::vars(dplyr::matches("DESC")),as.character) %>%
-    dplyr::mutate_at(dplyr::vars(dplyr::matches("LGL")),as.logical)
+    dplyr::mutate_at(dplyr::vars(dplyr::matches("LGL")),as.logical) %>%
+    dplyr::mutate_at(dplyr::vars(dplyr::matches("RELATIVE_BEGIN|RELATIVE_END|RELATIVE_THRESHOLD_BEGIN|RELATIVE_THRESHOLD_END")), as.double)
 
   # CREATE SOURCE AND VARIABLE_DESC ----------------------------------------------------
   change_dategroupid_var_desc <- change_dategroupid_classes %>%
     dplyr::mutate(SOURCE = "MULTIPLE",
                   VARIABLE_DESC = stringr::str_c(MEASURE_TYPE, VARIABLE, sep = "_"))
 
-  # REFORMAT ----------------------------------------------------------------
 
-  # Note: this just makes sure that the columns have the same order as the indicator_template
-
-  indicators_change_in_comparison_ready <- indicator_value_template %>%
-    dplyr::full_join(change_dategroupid_var_desc,
-                     by = c("SOURCE",
-                            "GEOGRAPHY_ID",
-                            "GEOGRAPHY_ID_TYPE",
-                            "GEOGRAPHY_NAME",
-                            "GEOGRAPHY_TYPE",
-                            "DATE_GROUP_ID",
-                            "DATE_BEGIN",
-                            "DATE_END",
-                            "DATE_RANGE",
-                            "DATE_RANGE_TYPE",
-                            "DIMENSION",
-                            "INDICATOR",
-                            "VARIABLE",
-                            "VARIABLE_DESC",
-                            "MEASURE_TYPE",
-                            "ESTIMATE_BEGIN",
-                            "ESTIMATE_END",
-                            "MOE_BEGIN",
-                            "MOE_END",
-                            "RELATIVE_BEGIN",
-                            "RELATIVE_DESC_BEGIN",
-                            "RELATIVE_THRESHOLD_BEGIN",
-                            "RELATIVE_LGL_BEGIN",
-                            "RELATIVE_END",
-                            "RELATIVE_DESC_END",
-                            "RELATIVE_THRESHOLD_END",
-                            "RELATIVE_LGL_END",
-                            "RELATIVE_CHANGE_DESC",
-                            "RELATIVE_CHANGE_LGL"))
-
-
-  indicators_change_in_comparison <- indicators_change_in_comparison_ready
+  indicators_change_in_comparison <- change_dategroupid_var_desc
 
 
   # NOTES -------------------------------------------------------------------
