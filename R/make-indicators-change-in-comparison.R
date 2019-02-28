@@ -1,6 +1,6 @@
 #' @title Make The Change in Comparison Indicators
 #' @description Description
-#' @param indicators_by_dimension desc
+#' @param indicators_comparison desc
 #' @param change_dategroupid_long desc
 #' @param indicator_value_template desc
 #' @return a `tibble`
