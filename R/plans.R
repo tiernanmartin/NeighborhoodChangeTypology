@@ -31,7 +31,7 @@ get_project_plan <- function(){
     acs_tables = make_acs_tables(),
     model_table_inputs = make_model_table_inputs(path = file_in("extdata/source/model_table_inputs_20190223.csv")),
     model_table_column_type = make_model_table_column_type(path = file_in("extdata/source/model-table-column-type-20190227.csv")),
-    model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190225.csv")),
+    model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190228.csv")),
     change_dategroupid_long = make_change_dategroupid_long(model_table_production)
   )
 
@@ -578,7 +578,15 @@ get_model_plan <- function(){
     model_coo16 = make_model_coo16(indicators_wide,
                              census_tracts_2016_trimmed),
     model_coo18 = make_model_coo18(indicators_wide,
-                             census_tracts_2016_trimmed)
+                             census_tracts_2016_trimmed),
+    model_coorev18 = make_model_coorev18(indicators_wide,
+                             census_tracts_2016_trimmed),
+    model_all = make_model_all(indicators_wide,
+                             census_tracts_2016_trimmed,
+                             model_pdx18,
+                             model_coo16,
+                             model_coo18,
+                             model_coorev18)
   )
 
 
