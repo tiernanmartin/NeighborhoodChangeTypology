@@ -573,7 +573,11 @@ get_model_plan <- function(){
   pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
   model_plan <- drake::drake_plan(
-    model_pdx16 = make_model_pdx16(indicators_wide,
+    model_pdx18 = make_model_pdx16(indicators_wide,
+                             census_tracts_2016_trimmed),
+    model_coo16 = make_model_coo16(indicators_wide,
+                             census_tracts_2016_trimmed),
+    model_coo18 = make_model_coo18(indicators_wide,
                              census_tracts_2016_trimmed)
   )
 
