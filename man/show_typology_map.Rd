@@ -4,10 +4,15 @@
 \alias{show_typology_map}
 \title{SHow Typology Map}
 \usage{
-show_typology_map(model_pdx16)
+show_typology_map(model_pdx18, model_coo16, model_coo18,
+  census_tracts_2016_trimmed)
 }
 \arguments{
-\item{model_pdx16}{desc}
+\item{model_pdx18}{desc}
+
+\item{model_coo16}{desc}
+
+\item{census_tracts_2016_trimmed}{desc}
 }
 \value{
 a MULTIPOLYGON simple feature (class =  \code{sf})
