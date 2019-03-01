@@ -14,7 +14,7 @@ make_indicators_comparison <- function(indicators_in_models,
   # CREATE COMPARISON FUNCTION ---------------------------------------------
 
 
-  get_comparison_fields <- function(data, dimension, measure_type){
+  get_comparison_fields <- function(data, dimension, indicator, measure_type){
 
 
     # IF DIMENSION IS DEMOGRAPHIC_CHANGE ------------
@@ -70,7 +70,36 @@ make_indicators_comparison <- function(indicators_in_models,
 
     }
 
-    # IF DIMENSION %in% HOUSING MARKET --------------------------------------------
+
+    # IF DIMENSION %in% HOUSING MARKET & INDICATOR %IN% MFUNITS ----------------
+
+     if(dimension %in% "HOUSING_MARKET" & indicator %in% "MULTIFAMILY"){
+
+      pct_multifamily_threshold <- 0.90
+
+      df_community_tract <- data %>%
+        dplyr::filter(GEOGRAPHY_TYPE %in% c("tract", "community")) %>%
+        dplyr::mutate(RELATIVE_THRESHOLD = pct_multifamily_threshold) %>%
+        dplyr::mutate(RELATIVE = plyr::round_any(ESTIMATE - RELATIVE_THRESHOLD, accuracy = .001),
+                      RELATIVE_MOE = MOE,
+                      RELATIVE_DESC = dplyr::case_when(
+                        RELATIVE>= 0 ~ "GREATER THAN / EQUAL TO 90%",
+                        TRUE ~ "LESS THAN 90%"
+                      ),
+                      RELATIVE_THRESHOLD,
+                      RELATIVE_LGL = RELATIVE_DESC %in% "GREATER THAN / EQUAL TO 90%"
+        )
+
+      df_county_community_tract <- list(df_county, df_community_tract) %>%
+        purrr::map_dfr(c)
+
+      return(df_county_community_tract)
+
+    }
+
+    # IF DIMENSION %in% HOUSING MARKET & INDICATOR %!IN% MFUNITS ---------------
+
+
 
     if(dimension %in% "HOUSING_MARKET"){
 
@@ -162,6 +191,7 @@ make_indicators_comparison <- function(indicators_in_models,
     tidyr::nest(-DIMENSION, -INDICATOR, -VARIABLE, -DATE_GROUP_ID,-MEASURE_TYPE) %>%
     dplyr::mutate(COMP_FIELDS = purrr::pmap(list("data" = data,
                                                  "dimension" = DIMENSION,
+                                                 "indicator" = INDICATOR,
                                                  "measure_type" = MEASURE_TYPE),
                                             get_comparison_fields)) %>%
     dplyr::select(-data) %>%
