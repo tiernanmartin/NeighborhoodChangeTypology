@@ -29,9 +29,9 @@ get_project_plan <- function(){
 
   tables_plan <- drake::drake_plan(
     acs_tables = make_acs_tables(),
-    model_table_inputs = make_model_table_inputs(path = file_in("extdata/source/model_table_inputs_20190223.csv")),
+    model_table_inputs = make_model_table_inputs(path = file_in("extdata/source/model_table_inputs_20190304.csv")),
     model_table_column_type = make_model_table_column_type(path = file_in("extdata/source/model-table-column-type-20190227.csv")),
-    model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190228.csv")),
+    model_table_production = make_model_table_production(path = file_in("extdata/source/model_table_production_ref_only_20190304.csv")),
     change_dategroupid_long = make_change_dategroupid_long(model_table_production)
   )
 

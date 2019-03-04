@@ -100,7 +100,7 @@ make_indicators_wide <- function(model_table_column_type,
                   VALUE) %>%
     tidyr::spread(WIDE_FIELD, VALUE)
 
-  # result: tbl with 402 rows (tracts, communities and county) and 1,381 columns
+  # result: tbl with 402 rows (tracts, communities and county) and 1,114 columns
 
 
 
@@ -109,7 +109,7 @@ make_indicators_wide <- function(model_table_column_type,
   # Note: only drop columns that contain all NA's (columns with some missing values are retained)
   all_inds_wide_no_na <- drop_na_cols(all_inds_wide_full)
 
-  # result: tbl with 402 rows (tracts, communities and county) and 1,060 columns
+  # result: tbl with 402 rows (tracts, communities and county) and 849 columns
 
 
   # RE-ESTABLISH CORRECT CLASSES --------------------------------------------
