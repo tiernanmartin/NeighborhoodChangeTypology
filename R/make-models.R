@@ -145,7 +145,8 @@ make_model_pdx18 <- function(indicators_wide,
     dplyr::mutate(PDX18_TYPE = dplyr::case_when(
       GEOGRAPHY_TYPE %in% c("county","community") ~ NA_character_,
       PDX18_VULN_TYPE %in% c("Not Vulnerable") &
-        PDX18_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)") &
+        PDX18_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)",
+                                   "Changing") &
         PDX18_HOUSMRKT_TYPE %in% c("Appreciated") ~ "Continued Loss",
       PDX18_VULN_TYPE %in% c("Vulnerable") &
         PDX18_DEMOCHNG_TYPE %in% c("Changing") &
@@ -315,7 +316,8 @@ make_model_coo16 <- function(indicators_wide,
     dplyr::mutate(COO16_TYPE = dplyr::case_when(
       GEOGRAPHY_TYPE %in% c("county","community") ~ NA_character_,
       COO16_VULN_TYPE %in% c("Not Vulnerable") &
-        COO16_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)") &
+        COO16_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)",
+                                   "Changing") &
         COO16_HOUSMRKT_TYPE %in% c("Appreciated") ~ "Continued Loss",
       COO16_VULN_TYPE %in% c("Vulnerable") &
         COO16_DEMOCHNG_TYPE %in% c("Changing") &
@@ -485,7 +487,8 @@ make_model_coo18 <- function(indicators_wide,
     dplyr::mutate(COO18_TYPE = dplyr::case_when(
       GEOGRAPHY_TYPE %in% c("county","community") ~ NA_character_,
       COO18_VULN_TYPE %in% c("Not Vulnerable") &
-        COO18_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)") &
+        COO18_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)",
+                                   "Changing") &
         COO18_HOUSMRKT_TYPE %in% c("Appreciated") ~ "Continued Loss",
       COO18_VULN_TYPE %in% c("Vulnerable") &
         COO18_DEMOCHNG_TYPE %in% c("Changing") &
@@ -758,7 +761,8 @@ make_model_coorev18 <- function(indicators_wide,
     dplyr::mutate(COOREV18_MF_TYPE = dplyr::case_when(
       GEOGRAPHY_TYPE %in% c("county","community") ~ NA_character_,
       COOREV18_VULN_TYPE %in% c("Not Vulnerable") &
-        COOREV18_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)") &
+        COOREV18_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)",
+                                      "Changing") &
         COOREV18_HOUSMRKT_MF_TYPE %in% c("Appreciated") ~ "Continued Loss",
       COOREV18_VULN_TYPE %in% c("Vulnerable") &
         COOREV18_DEMOCHNG_TYPE %in% c("Changing") &
@@ -780,7 +784,8 @@ make_model_coorev18 <- function(indicators_wide,
     dplyr::mutate(COOREV18_SF_TYPE = dplyr::case_when(
       GEOGRAPHY_TYPE %in% c("county","community") ~ NA_character_,
       COOREV18_VULN_TYPE %in% c("Not Vulnerable") &
-        COOREV18_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)") &
+        COOREV18_DEMOCHNG_TYPE %in% c("Changing (White & High Ed.)",
+                                      "Changing") &
         COOREV18_HOUSMRKT_SF_TYPE %in% c("Appreciated") ~ "Continued Loss",
       COOREV18_VULN_TYPE %in% c("Vulnerable") &
         COOREV18_DEMOCHNG_TYPE %in% c("Changing") &
