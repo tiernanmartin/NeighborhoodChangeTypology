@@ -32,4 +32,6 @@ devtools::install_github("tiernanmartin/NeighborhoodChangeTypology")
 
 ## Note
 
+As of March 4, 2019, this package currently depends on an outdated version of the [`osfr`](https://centerforopenscience.github.io/osfr/) R package (v0.1). An update to [`NeighborhoodChangeTypology`](https://github.com/tiernanmartin/NeighborhoodChangeTypology) will change the [`osfr`](https://centerforopenscience.github.io/osfr/) -related code to the most recent version of the [`osfr`](https://centerforopenscience.github.io/osfr/) API.
+
 This project is a work-in-progress. 

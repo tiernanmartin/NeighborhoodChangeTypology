@@ -22,7 +22,7 @@ Suggests:
     dplyr,
     readr,
     sf,
-    osfr,
+    osfr (<= 0.1.0),
     tidycensus,
     tigris,
     rgdal,
