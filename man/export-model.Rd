@@ -2,16 +2,25 @@
 % Please edit documentation in R/export-model.R
 \name{export_model_all_csv}
 \alias{export_model_all_csv}
+\alias{export_model_all_rds}
+\alias{export_model_all_csv}
 \alias{export_model_all_gpkg}
 \alias{export_model_typologies_csv}
+\alias{export_model_typologies_rds}
 \alias{export_model_typologies_gpkg}
 \title{Export Model As Files}
 \usage{
 export_model_all_csv(model_all, path)
 
+export_model_all_rds(model_all, path)
+
+export_model_all_csv(model_all, path)
+
 export_model_all_gpkg(model_all, path)
 
 export_model_typologies_csv(model_all, path)
+
+export_model_typologies_rds(model_all, path)
 
 export_model_typologies_gpkg(model_all, path)
 }

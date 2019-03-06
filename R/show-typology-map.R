@@ -49,12 +49,12 @@ my_pal <- c(
   RColorBrewer::brewer.pal(n = 9,'YlGnBu')[c(6,7)]
 )
 
-my_pal_hex <- c("#ffff00",
-                "#ffc800",
-                "#ff9600",
-                "#a30382",
-                "#0794d0",
-                "#1b5f8f")
+my_pal_hex <- c("#f5eb12",
+                "#fcc811",
+                "#f89621",
+                "#9e2382",
+                "#0d94ce",
+                "#1c6091")
 
 
 pal <- leaflet::colorFactor(my_pal_hex,levels = levels(model_ready$COOREV18_SF_TYPE_FCT), ordered = TRUE,na.color = 'transparent')
@@ -464,12 +464,18 @@ my_pal <- c(
   RColorBrewer::brewer.pal(n = 9,'YlGnBu')[c(6,7)]
 )
 
-my_pal_hex <- c("#ffff00",
-                "#ffc800",
-                "#ff9600",
-                "#a30382",
-                "#0794d0",
-                "#1b5f8f")
+# my_pal_hex <- c("#ffff00",
+#                 "#ffc800",
+#                 "#ff9600",
+#                 "#a30382",
+#                 "#0794d0",
+#                 "#1b5f8f")
+my_pal_hex <- c("#f5eb12",
+                "#fcc811",
+                "#f89621",
+                "#9e2382",
+                "#0d94ce",
+                "#1c6091")
 
 
 pal <- leaflet::colorFactor(my_pal_hex,levels = levels(model_ready$COOREV18_SF_TYPE_FCT), ordered = TRUE,na.color = 'transparent')
