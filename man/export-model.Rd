@@ -3,7 +3,6 @@
 \name{export_model_all_csv}
 \alias{export_model_all_csv}
 \alias{export_model_all_rds}
-\alias{export_model_all_csv}
 \alias{export_model_all_gpkg}
 \alias{export_model_pdx18_gpkg}
 \alias{export_model_coo16_gpkg}
@@ -17,8 +16,6 @@
 export_model_all_csv(model_all, path)
 
 export_model_all_rds(model_all, path)
-
-export_model_all_csv(model_all, path)
 
 export_model_all_gpkg(model_all, path)
 

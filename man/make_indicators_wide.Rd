@@ -5,13 +5,15 @@
 \title{Make The Project Inidicators (Wide)}
 \usage{
 make_indicators_wide(model_table_column_type, model_table_production,
-  indicators_comparison, indicators_comparison_of_change,
+  community_metadata, indicators_comparison, indicators_comparison_of_change,
   indicators_change_in_comparison, indicators_proximity)
 }
 \arguments{
 \item{model_table_column_type}{desc}
 
 \item{model_table_production}{desc}
+
+\item{community_metadata}{desc}
 
 \item{indicators_comparison}{desc}
 

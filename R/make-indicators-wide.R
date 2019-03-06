@@ -2,6 +2,7 @@
 #' @description Description
 #' @param model_table_column_type desc
 #' @param model_table_production desc
+#' @param community_metadata desc
 #' @param indicators_comparison desc
 #' @param indicators_comparison_of_change desc
 #' @param indicators_change_in_comparison desc
@@ -11,6 +12,7 @@
 
 make_indicators_wide <- function(model_table_column_type,
                                  model_table_production,
+                                 community_metadata,
                                  indicators_comparison,
                                  indicators_comparison_of_change,
                                  indicators_change_in_comparison,
@@ -69,7 +71,7 @@ make_indicators_wide <- function(model_table_column_type,
   }
 
   # map the function, rowbind the results, and gather()
-  all_inds_long <- pmap_dfr(inds_cols_tbl, select_cols_and_mutate) %>%
+  all_inds_long <- purrr::pmap_dfr(inds_cols_tbl, select_cols_and_mutate) %>%
     tidyr::gather(VALUE_TYPE, VALUE, tidyselect::vars_select(names(.), cols_value))
 
 
@@ -128,7 +130,18 @@ make_indicators_wide <- function(model_table_column_type,
     dplyr::mutate_at(tidyselect::vars_select(names(.), cols_lgl), as.logical) %>%
     dplyr::mutate_at(tidyselect::vars_select(names(.), cols_num), as.numeric)
 
-  indicators_wide <- all_inds_wide_class
+# JOIN GEOGRAPHY_COMMUNITY_* COLUMNS --------------------------------------
+
+
+  geography_community_cols <- community_metadata %>%
+    dplyr::distinct() %>%
+    dplyr::select(GEOGRAPHY_ID, GEOGRAPHY_COMMUNITY_NAME, GEOGRAPHY_COMMUNITY_ID)
+
+  all_inds_wide_comm <- all_inds_wide_class %>%
+    dplyr::left_join(geography_community_cols, by = "GEOGRAPHY_ID")
+
+    indicators_wide <- all_inds_wide_comm
+
 
   # RETURN ------------------------------------------------------------------
 

@@ -518,7 +518,7 @@ get_indicator_plan <- function(){
 
   ind_type_plan <- drake::drake_plan(
     indicators_comparison = make_indicators_comparison(indicators_in_models,
-                                       indicator_value_template),
+                                                       indicator_value_template),
     indicators_comparison_of_change = make_indicators_comparison_of_change(indicators_in_models,
                                                                            change_dategroupid_long,
                                                                            indicator_value_template),
@@ -528,11 +528,12 @@ get_indicator_plan <- function(){
     indicators_proximity = make_indicators_proximity(census_tracts_2016_trimmed,
                                                      indicator_value_template),
     indicators_wide = make_indicators_wide(model_table_column_type,
-      model_table_production,
-      indicators_comparison,
-      indicators_comparison_of_change,
-      indicators_change_in_comparison,
-      indicators_proximity),
+                                           model_table_production,
+                                           community_metadata,
+                                           indicators_comparison,
+                                           indicators_comparison_of_change,
+                                           indicators_change_in_comparison,
+                                           indicators_proximity),
     ind_type_plan_tmp = c("placeholder")
   )
 
@@ -574,19 +575,19 @@ get_model_plan <- function(){
 
   model_plan <- drake::drake_plan(
     model_pdx18 = make_model_pdx18(indicators_wide,
-                             census_tracts_2016_trimmed),
+                                   census_tracts_2016_trimmed),
     model_coo16 = make_model_coo16(indicators_wide,
-                             census_tracts_2016_trimmed),
+                                   census_tracts_2016_trimmed),
     model_coo18 = make_model_coo18(indicators_wide,
-                             census_tracts_2016_trimmed),
+                                   census_tracts_2016_trimmed),
     model_coorev18 = make_model_coorev18(indicators_wide,
-                             census_tracts_2016_trimmed),
+                                         census_tracts_2016_trimmed),
     model_all = make_model_all(indicators_wide,
-                             census_tracts_2016_trimmed,
-                             model_pdx18,
-                             model_coo16,
-                             model_coo18,
-                             model_coorev18)
+                               census_tracts_2016_trimmed,
+                               model_pdx18,
+                               model_coo16,
+                               model_coo18,
+                               model_coorev18)
   )
 
 
@@ -632,4 +633,40 @@ get_workflow_plan <- function(){
 
   return(workflow_plan)
 
+}
+
+
+# EXPORT PLAN -------------------------------------------------------------
+
+#' @title Get the Export Plan
+#' @description Use \code{\link[drake]{drake_plan}} to create the project's
+#'   templates plan.
+#' @return a `drake` plan
+
+#' @export
+get_export_plan <- function(){
+
+  pkgconfig::set_config("drake::strings_in_dots" = "literals")
+
+  exp_plan <- drake::drake_plan(
+    model_all_csv = export_model_all_csv(model_all, file_out("extdata/data-export/model-all-20190305.csv")),
+    model_all_rds = export_model_all_rds(model_all, file_out("extdata/data-export/model-all-20190305.rds")),
+    model_pdx18_gpkg = export_model_pdx18_gpkg(model_all, file_out("extdata/data-export/model-pdx18-20190305.gpkg")),
+    model_coo16_gpkg = export_model_coo16_gpkg(model_all, file_out("extdata/data-export/model-coo16-20190305.gpkg")),
+    model_coo18_gpkg = export_model_coo18_gpkg(model_all, file_out("extdata/data-export/model-coo18-20190305.gpkg")),
+    model_coorev18_gpkg = export_model_coorev18_gpkg(model_all, file_out("extdata/data-export/model-coorev18-20190305.gpkg")),
+    model_typologies_csv = export_model_typologies_csv(model_all, file_out("extdata/data-export/model-typologies-20190305.csv")),
+    model_typologies_rds = export_model_typologies_rds(model_all, file_out("extdata/data-export/model-typologies-20190305.rds")),
+    model_typologies_gpkg = export_model_typologies_gpkg(model_all, file_out("extdata/data-export/model-typologies-20190305.gpkg")),
+    kc_boundary_gpkg = export_kc_boundary_gpkg(kc_boundary, file_out("extdata/data-export/kc-boundary.gpkg")),
+    white_center_place_gpkg = export_white_center_place_gpkg(white_center_place, file_out("extdata/data-export/white-center-place.gpkg")),
+    coo_communities_gpkg = export_coo_communities_gpkg(model_all, file_out("extdata/data-export/coo-communities.gpkg"))
+
+  )
+
+  export_plan <- drake::bind_plans(
+    get_workflow_plan(),
+    exp_plan)
+
+  return(export_plan)
 }
