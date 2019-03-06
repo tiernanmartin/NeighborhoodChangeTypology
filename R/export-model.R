@@ -45,8 +45,53 @@ export_model_all_csv <- function(model_all, path){
 #' @export
 export_model_all_gpkg <- function(model_all, path){
 
+  stop("This function returns an error when it is run.\nSee the question posted on Stackoverflow: <https://gis.stackexchange.com/q/314500/49120>")
 
- sf::write_sf(model_all, path , driver = "GPKG")
+ sf::write_sf(model_all, path , driver = "GPKG",delete_dsn = TRUE,  layer_options = c("OVERWRITE=yes"))
+
+}
+
+#' @rdname export-model
+#' @export
+export_model_pdx18_gpkg <- function(model_all, path){
+
+  model_all %>%
+    dplyr::select(dplyr::matches("GEOGRAPHY"),
+                  dplyr::matches("PDX18")) %>%
+    sf::write_sf(path , driver = "GPKG",delete_dsn = TRUE,  layer_options = c("OVERWRITE=yes"))
+
+}
+
+#' @rdname export-model
+#' @export
+export_model_coo16_gpkg <- function(model_all, path){
+
+  model_all %>%
+    dplyr::select(dplyr::matches("GEOGRAPHY"),
+                  dplyr::matches("COO16")) %>%
+    sf::write_sf(path , driver = "GPKG",delete_dsn = TRUE,  layer_options = c("OVERWRITE=yes"))
+
+}
+
+#' @rdname export-model
+#' @export
+export_model_coo18_gpkg <- function(model_all, path){
+
+  model_all %>%
+    dplyr::select(dplyr::matches("GEOGRAPHY"),
+                  dplyr::matches("COO18")) %>%
+    sf::write_sf(path , driver = "GPKG",delete_dsn = TRUE,  layer_options = c("OVERWRITE=yes"))
+
+}
+
+#' @rdname export-model
+#' @export
+export_model_coorev18_gpkg <- function(model_all, path){
+
+  model_all %>%
+    dplyr::select(dplyr::matches("GEOGRAPHY"),
+                  dplyr::matches("COOREV18")) %>%
+    sf::write_sf(path , driver = "GPKG",delete_dsn = TRUE,  layer_options = c("OVERWRITE=yes"))
 
 }
 
