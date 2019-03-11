@@ -5,12 +5,16 @@
 has not yet been a stable, usable release suitable for the
 public.](http://www.repostatus.org/badges/latest/wip.svg)](http://www.repostatus.org/#wip)
 
+[![Neighborhood Change Typology
+Report](doc/nct-report-cover-with-logos.png)](tinyurl.com/NeighborhoodChangeTypology)
+
 # NeighborhoodChangeTypology
 
 [`NeighborhoodChangeTypology`](https://github.com/tiernanmartin/NeighborhoodChangeTypology)
 provides a framework for understanding the different phases and types of
 neighborhood change that are occurring in communities throughout King
-County, Washington.
+County, Washington. The report for this project is available to read
+here: <http://tinyurl.com/NeighborhoodChangeTypology>
 
 ## Installation
 
