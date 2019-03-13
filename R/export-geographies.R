@@ -18,6 +18,17 @@ export_kc_boundary_gpkg <- function(kc_boundary, path){
 }
 
 #' @rdname export-geographies
+export_counties_nearby_kc_no_waterbodies_gpkg <- function(counties_nearby_kc_no_waterbodies, path){
+
+  counties_nearby_kc_no_waterbodies %>%
+    sf::st_transform(4326) %>%
+    sf::write_sf(path , driver = "GPKG",delete_dsn = TRUE,  layer_options = c("OVERWRITE=yes"))
+
+  return(invisible(NULL))
+
+}
+
+#' @rdname export-geographies
 export_white_center_place_gpkg <- function(white_center_place, path){
 
   white_center_place %>%
